@@ -1,8 +1,6 @@
 {
   "name": "edsm",
-  "email_notifications": {
-    "no_alert_for_skipped_runs": false
-  },
+  "email_notifications": {},
   "webhook_notifications": {},
   "timeout_seconds": 0,
   "trigger": {
@@ -18,12 +16,11 @@
       "task_key": "job_settings",
       "run_if": "ALL_SUCCESS",
       "notebook_task": {
-        "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/01_job_settings",
-        "source": "WORKSPACE"
+        "notebook_path": "01_job_settings",
+        "source": "GIT"
       },
       "timeout_seconds": 0,
-      "email_notifications": {},
-      "webhook_notifications": {}
+      "email_notifications": {}
     },
     {
       "task_key": "bronze_loop",
@@ -40,25 +37,23 @@
           "task_key": "bronze",
           "run_if": "ALL_SUCCESS",
           "notebook_task": {
-            "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/05_ingest",
+            "notebook_path": "05_ingest",
             "base_parameters": {
               "job_settings": "{{input}}",
               "color": "bronze"
             },
-            "source": "WORKSPACE"
+            "source": "GIT"
           },
           "max_retries": 0,
           "min_retry_interval_millis": 900000,
           "retry_on_timeout": false,
           "disable_auto_optimization": true,
           "timeout_seconds": 0,
-          "email_notifications": {},
-          "webhook_notifications": {}
+          "email_notifications": {}
         }
       },
       "timeout_seconds": 0,
-      "email_notifications": {},
-      "webhook_notifications": {}
+      "email_notifications": {}
     },
     {
       "task_key": "silver_loop",
@@ -75,25 +70,23 @@
           "task_key": "silver",
           "run_if": "ALL_SUCCESS",
           "notebook_task": {
-            "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/05_ingest",
+            "notebook_path": "05_ingest",
             "base_parameters": {
               "job_settings": "{{input}}",
               "color": "silver"
             },
-            "source": "WORKSPACE"
+            "source": "GIT"
           },
           "max_retries": 0,
           "min_retry_interval_millis": 900000,
           "retry_on_timeout": false,
           "disable_auto_optimization": true,
           "timeout_seconds": 0,
-          "email_notifications": {},
-          "webhook_notifications": {}
+          "email_notifications": {}
         }
       },
       "timeout_seconds": 0,
-      "email_notifications": {},
-      "webhook_notifications": {}
+      "email_notifications": {}
     },
     {
       "task_key": "gold_loop",
@@ -110,25 +103,23 @@
           "task_key": "gold",
           "run_if": "ALL_SUCCESS",
           "notebook_task": {
-            "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/05_ingest",
+            "notebook_path": "05_ingest",
             "base_parameters": {
               "job_settings": "{{input}}",
               "color": "gold"
             },
-            "source": "WORKSPACE"
+            "source": "GIT"
           },
           "max_retries": 0,
           "min_retry_interval_millis": 900000,
           "retry_on_timeout": false,
           "disable_auto_optimization": true,
           "timeout_seconds": 0,
-          "email_notifications": {},
-          "webhook_notifications": {}
+          "email_notifications": {}
         }
       },
       "timeout_seconds": 0,
-      "email_notifications": {},
-      "webhook_notifications": {}
+      "email_notifications": {}
     },
     {
       "task_key": "history_loop",
@@ -145,24 +136,22 @@
           "task_key": "history",
           "run_if": "ALL_SUCCESS",
           "notebook_task": {
-            "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/06_history",
+            "notebook_path": "06_history",
             "base_parameters": {
               "job_settings": "{{input}}"
             },
-            "source": "WORKSPACE"
+            "source": "GIT"
           },
           "max_retries": 0,
           "min_retry_interval_millis": 900000,
           "retry_on_timeout": false,
           "disable_auto_optimization": true,
           "timeout_seconds": 0,
-          "email_notifications": {},
-          "webhook_notifications": {}
+          "email_notifications": {}
         }
       },
       "timeout_seconds": 0,
-      "email_notifications": {},
-      "webhook_notifications": {}
+      "email_notifications": {}
     },
     {
       "task_key": "optimize_and_vacuum",
@@ -173,18 +162,22 @@
       ],
       "run_if": "ALL_SUCCESS",
       "notebook_task": {
-        "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/08_optimize_and_vacuum",
-        "source": "WORKSPACE"
+        "notebook_path": "08_optimize_and_vacuum",
+        "source": "GIT"
       },
       "max_retries": 0,
       "min_retry_interval_millis": 900000,
       "retry_on_timeout": false,
       "disable_auto_optimization": true,
       "timeout_seconds": 0,
-      "email_notifications": {},
-      "webhook_notifications": {}
+      "email_notifications": {}
     }
   ],
+  "git_source": {
+    "git_url": "https://github.com/bryanlharris/edsm.git",
+    "git_provider": "gitHub",
+    "git_branch": "main"
+  },
   "queue": {
     "enabled": true
   },
