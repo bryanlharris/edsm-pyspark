@@ -1,0 +1,29 @@
+{
+    "pipeline_function": "bronze_function",
+    "dst_table_name": "edsm.bronze.systemsPopulated",
+    "readStream_load": "/Volumes/edsm/bronze/landing/",
+    "trigger_type": {"availableNow": "true"},
+    "source_type": "cloudfiles",
+    "readStreamOptions": {
+        "compression": "snappy",
+        "pathGlobFilter": "systemsPopulated.json",
+        "cloudFiles.format": "json",
+        "cloudFiles.maxFilesPerTrigger": "1",
+        "cloudFiles.inferColumnTypes": "true",
+        "cloudFiles.inferSchema": "false",
+        "cloudFiles.schemaHints": "bodies.element.atmosphereComposition STRING",
+        "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/systemsPopulated/_schema/",
+        "cloudFiles.schemaEvolutionMode": "none",
+        "cloudFiles.useNotifications": "false",
+        "cloudFiles.useIncrementalListing": "auto",
+        "cloudFiles.validateOptions": "true",
+        "badRecordsPath": "/Volumes/edsm/bronze/utility/systemsPopulated/_badRecords/"
+    },
+    "writeStream_format": "delta",
+    "writeStreamOptions": {
+        "mergeSchema": "true",
+        "checkpointLocation": "/Volumes/edsm/bronze/utility/systemsPopulated/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    },
+    "writeStream_outputMode": "append"
+}

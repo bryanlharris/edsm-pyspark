@@ -1,0 +1,16 @@
+{
+    "pipeline_function": "gold.powerPlay",
+    "src_table_name": "edsm.silver.powerPlay",
+    "dst_table_name": "edsm.gold.powerPlay",
+    "merge_columns": [ "name", "id", "id64", "power" ],
+    "pk2": "primary_key",
+    "readStreamOptions": {
+        "rescuedDataColumn": "_rescued_data",
+        "ignoreChanges": "true"
+    },
+    "writeStreamOptions": {
+        "mergeSchema": "true",
+        "checkpointLocation": "/Volumes/edsm/gold/utility/powerPlay/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    }
+}

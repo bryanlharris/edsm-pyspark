@@ -1,0 +1,22 @@
+{
+    "pipeline_function": "upsert_using_checksum",
+    "src_table_name": "edsm.bronze.codex",
+    "dst_table_name": "edsm.silver.codex",
+    "pk": {
+        "name": "pk_columns_checksum",
+        "columns": []
+    },
+    "column_map": {},
+    "data_type_map": {
+        "date": "timestamp"
+    },
+    "readStreamOptions": {
+        "rescuedDataColumn": "_rescued_data",
+        "ignoreChanges": "true"
+    },
+    "writeStreamOptions": {
+        "mergeSchema": "true",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/codex/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    }
+}

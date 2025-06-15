@@ -1,0 +1,27 @@
+{
+    "pipeline_function": "bronze.powerPlay",
+    "dst_table_name": "edsm.bronze.powerPlay",
+    "readStream_load": "/Volumes/edsm/bronze/landing/",
+    "trigger_type": {"availableNow": "true"},
+    "source_type": "cloudfiles",
+    "readStreamOptions": {
+        "pathGlobFilter": "powerPlay.json",
+        "cloudFiles.format": "json",
+        "cloudFiles.maxFilesPerTrigger": "1",
+        "cloudFiles.inferColumnTypes": "true",
+        "cloudFiles.inferSchema": "true",
+        "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/powerPlay/_schema/",
+        "cloudFiles.schemaEvolutionMode": "none",
+        "cloudFiles.useNotifications": "false",
+        "cloudFiles.useIncrementalListing": "auto",
+        "cloudFiles.validateOptions": "true",
+        "badRecordsPath": "/Volumes/edsm/bronze/utility/powerPlay/_badRecords/"
+    },
+    "writeStream_format": "delta",
+    "writeStreamOptions": {
+        "mergeSchema": "true",
+        "checkpointLocation": "/Volumes/edsm/bronze/utility/powerPlay/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    },
+    "writeStream_outputMode": "append"
+}
