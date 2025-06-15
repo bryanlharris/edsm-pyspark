@@ -1,16 +1,7 @@
 
-
-
-
 from pyspark.sql.functions import when, col, to_timestamp, to_date, regexp_replace
 from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim
 import re
-
-
-
-
-
-
 
 
 def sha_key(df, name=None, columns=None):
@@ -22,7 +13,6 @@ def sha_key(df, name=None, columns=None):
             if f.dataType.simpleString() in [ "string", "int", "decimal", "date", "timestamp" ]
         ]
     return df.withColumn(name, sha2(concat_ws("-", *[coalesce(col(c).cast("string"), lit("")) for c in columns ]), 256))
-
 
 
 
@@ -52,15 +42,8 @@ def trim_columns(df, cols=None):
 def rename_columns(df, column_map=None):
     if not column_map:
         return df
-    # column_map      = {c: column_map[c] for c in df.columns if c in column_map}
-    # renamed = [
-    #     col(c).alias(column_map[c]) if c in column_map else col(c)
-    #     for c in df.columns
-    # ]
     new_names = [column_map.get(c, c) for c in df.columns]
     return df.select(renamed)
-
-
 
 
 def cast_data_types(df, data_type_map=None):

@@ -1,12 +1,7 @@
-
-
 import json
 from delta.tables import DeltaTable
 from pyspark.sql.functions import col, current_timestamp, sha2, concat_ws, coalesce, lit, expr
 from functions import *
-
-
-
 
 def bronze_function(spark, settings):
     # Variables
@@ -39,10 +34,6 @@ def bronze_function(spark, settings):
         .trigger(availableNow=True)
         .table(f"{dst_table_name}")
     )
-
-
-
-
 
 def upsert_using_checksum(spark, settings):
 
@@ -96,10 +87,6 @@ def upsert_using_checksum(spark, settings):
         )
         .start()
     )
-
-
-
-
 
 def upsert_delete_using_checksum(spark, settings):
 
