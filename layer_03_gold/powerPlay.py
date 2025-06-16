@@ -84,6 +84,10 @@ def powerPlay(spark, settings):
             .drop("current_flag", "created_on", "effective_dt")
             .exceptAll(existing.drop("current_flag", "created_on", "effective_dt"))
             .dropDuplicates(merge_columns)
+            .withColumn("current_flag", lit("Y"))
+            .withColumn("created_on", current_timestamp())
+            .withColumn("deleted_on", lit(None).cast("timestamp"))
+            .withColumn("effective_dt", current_timestamp())
         )
         delta.alias("t") \
             .merge(new.alias("s"),
