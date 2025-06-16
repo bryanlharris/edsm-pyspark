@@ -34,8 +34,8 @@ def powerPlay(spark, settings):
         .table(f"{dst_table_name}")
     )
 
-    df = spark.read.json(readStreamOptions["badRecordsPath"])
-    df.write.mode("overwrite").format("delta").saveAsTable(f"{dst_table_name}_bad_records")
+
+
 
 
 
