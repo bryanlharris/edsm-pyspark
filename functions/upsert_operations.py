@@ -36,13 +36,6 @@ def merge_upsert_delete(mergeKeys, destinationTable):
 
 def spark_upsert(spark, sourcePK, destinationTable, destinationPK):
     def _do_upsert(microBatchDF, batchId):
-        microBatchDF = (
-            microBatchDF
-            .withColumn("row_number", row_number().over(Window.partitionBy(sourcePK).orderBy(col("ingest_time").desc())))
-            .filter(col("row_number") == 1)
-            .drop("row_number")
-        )
-
         from delta.tables import DeltaTable
         deltaTable = DeltaTable.forName(spark, destinationTable)
         (
@@ -54,15 +47,13 @@ def spark_upsert(spark, sourcePK, destinationTable, destinationPK):
         )
     return _do_upsert
 
-def spark_upsert_delete(spark, mergeKeys, destinationTable):
-    def _do_upsert(microBatchDF, batchId):        
+def spark_upsert_delete(spark, sourcePK, destinationTable, destinationPK):
+    def _do_upsert(microBatchDF, batchId):
         from delta.tables import DeltaTable
         deltaTable = DeltaTable.forName(spark, destinationTable)
-
-        merge_condition = " AND ".join([f"s.{col} = d.{col}" for col in mergeKeys])
         (
             deltaTable.alias("d")
-            .merge(microBatchDF.alias("s"), merge_condition)
+            .merge(microBatchDF.alias("s"), f"s.{sourcePK} = d.{destinationPK}")
             .whenMatchedUpdateAll()
             .whenNotMatchedInsertAll()
             .whenNotMatchedBySourceDelete()
