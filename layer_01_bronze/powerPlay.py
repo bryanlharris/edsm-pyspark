@@ -1,5 +1,6 @@
 import json
 from pyspark.sql.functions import current_timestamp, expr, col
+from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
 from functions import create_table_if_not_exists
 
 def powerPlay(spark, settings):
@@ -19,7 +20,17 @@ def powerPlay(spark, settings):
         .load(readStream_load)
         .withColumn("ingest_time", current_timestamp())
         .withColumn("source_metadata", expr("_metadata"))
-        # .filter(col("source_metadata.file_path").contains("/20250615/"))
+        .withColumn(
+            "ingest_time",
+            to_timestamp(
+                concat(
+                    regexp_extract(col("source_metadata.file_path"), "/landing/(\\d{8})/", 1),
+                    lit(" "),
+                    date_format(col("ingest_time"), "HH:mm:ss"),
+                ),
+                "yyyyMMdd HH:mm:ss",
+            ),
+        )
     )
 
     # Sanity check
