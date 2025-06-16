@@ -5,6 +5,7 @@
     "trigger_type": {"availableNow": "true"},
     "source_type": "cloudfiles",
     "readStreamOptions": {
+        "multiLine": "true",
         "pathGlobFilter": "powerPlay.json",
         "cloudFiles.format": "json",
         "cloudFiles.maxFilesPerTrigger": "1",
