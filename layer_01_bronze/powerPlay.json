@@ -7,7 +7,7 @@
         "cloudFiles.maxFilesPerTrigger":    "1",
         "pathGlobFilter":                   "powerPlay.json",
         "cloudFiles.inferColumnTypes":      "true",
-        "cloudFiles.inferSchema":           "true",
+        "inferSchema":                      "true",
         "cloudFiles.schemaLocation":        "/Volumes/edsm/bronze/utility/powerPlay/_schema/",
         "multiline":                        "true",
         "badRecordsPath":                   "/Volumes/edsm/bronze/utility/powerPlay/_badRecords/"
