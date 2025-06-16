@@ -89,9 +89,10 @@ def powerPlay(spark, settings):
             .withColumn("deleted_on", lit(None).cast("timestamp"))
             .withColumn("effective_dt", current_timestamp())
         )
+        on_conditions = [f"t.{c}=s.{c}" for c in merge_columns] + ["t.current_flag='Y'", "t.primary_key=s.primary_key"]
+        on_clause = " AND ".join(on_conditions)
         delta.alias("t") \
-            .merge(new.alias("s"),
-                " AND ".join(f"t.{c}=s.{c}" for c in merge_columns)) \
+            .merge(new.alias("s"), on_clause) \
             .whenNotMatchedInsertAll() \
             .execute()
 
