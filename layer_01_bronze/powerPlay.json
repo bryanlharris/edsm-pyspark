@@ -4,7 +4,6 @@
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {
         "cloudFiles.format":                "json",
-        "modifiedBefore":                   "2025-06-16 00:00:00.000000 UTC+0",
         "cloudFiles.validateOptions":       "false",
         "cloudFiles.maxFilesPerTrigger":    "1",
         "pathGlobFilter":                   "powerPlay.json",
