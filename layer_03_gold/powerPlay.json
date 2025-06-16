@@ -9,8 +9,6 @@
         "ignoreChanges": "true"
     },
     "writeStreamOptions": {
-        "mergeSchema": "true",
-        "checkpointLocation": "/Volumes/edsm/gold/utility/powerPlay/_checkpoints/",
-        "delta.columnMapping.mode": "name"
+        "checkpointLocation": "/Volumes/edsm/gold/utility/powerPlay/_checkpoints/"
     }
 }
