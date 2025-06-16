@@ -25,6 +25,10 @@ def powerPlay(spark, settings):
                 256
             )
         )
+
+        # Sanity check
+        create_table_if_not_exists(spark, microBatchDF, dst_table_name)
+
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(
             f"""
@@ -57,9 +61,6 @@ def powerPlay(spark, settings):
             )
         )
 
-    # Sanity check
-    create_table_if_not_exists(spark, df, dst_table_name)
-
     (
         df.writeStream
         .queryName(dst_table_name)
@@ -69,42 +70,6 @@ def powerPlay(spark, settings):
         .outputMode("update")
         .start()
     )
-
-
-
-    # # Read and transform
-    # df = (
-    #     .transform(rename_columns, column_map)
-    #     .transform(cast_data_types, data_type_map)
-    #     .withColumn("file_path", col("source_metadata").getField("file_path"))
-    #     .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
-    #     .withColumn("ingest_time", current_timestamp())
-    #     .dropDuplicates()
-    # )
-
-    # # Sanity check
-    # create_table_if_not_exists(spark, df, dst_table_name)
-
-    # # Write
-    # query = (
-    #     df.writeStream
-    #     .queryName(dst_table_name)
-    #     .format("delta")
-    #     .options(**writeStreamOptions)
-    #     .trigger(availableNow=True)
-    #     .foreachBatch(lambda df, epoch_id: (
-    #         DeltaTable.forName(spark, dst_table_name)
-    #         .alias("t")
-    #         .merge(df.alias("s"), merge_condition)
-    #         .whenMatchedUpdateAll()
-    #         .whenNotMatchedInsertAll()
-    #         .execute()
-    #     ))
-    #     .outputMode("update")
-    #     .start()
-    # )
-
-
 
 
 
