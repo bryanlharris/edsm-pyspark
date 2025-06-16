@@ -1,5 +1,5 @@
 import json
-from pyspark.sql.functions import current_timestamp, expr
+from pyspark.sql.functions import current_timestamp, expr, col
 from functions import create_table_if_not_exists
 
 def powerPlay(spark, settings):
