@@ -19,7 +19,7 @@ def powerPlay(spark, settings):
         .load(readStream_load)
         .withColumn("ingest_time", current_timestamp())
         .withColumn("source_metadata", expr("_metadata"))
-        .filter(col("source_metadata.file_path").contains("/20250615/"))
+        # .filter(col("source_metadata.file_path").contains("/20250615/"))
     )
 
     # Sanity check
