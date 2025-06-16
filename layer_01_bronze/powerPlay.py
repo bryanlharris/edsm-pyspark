@@ -14,7 +14,7 @@ def powerPlay(spark, settings):
     # Read & Transform
     df = (
         spark.readStream
-        .format("cloudfiles")
+        .format("cloudFiles")
         .options(**readStreamOptions)
         .load(readStream_load)
         .withColumn("ingest_time", current_timestamp())
