@@ -3,14 +3,14 @@
     "dst_table_name": "edsm.bronze.powerPlay",
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {
-        "cloudFiles.modifiedBefore": "2025-06-16T00:00:00.000Z",
-        "cloudFiles.format": "json",
+        "cloudFiles.format":             "json",
+        "cloudFiles.modifiedBefore":     "2025-06-16 00:00:00.000000 UTC+0",
         "cloudFiles.maxFilesPerTrigger": "1",
-        "pathGlobFilter": "powerPlay.json",
-        "cloudFiles.inferSchema": "true",
-        "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/powerPlay/_schema/",
-        "multiline": "true",
-        "badRecordsPath": "/Volumes/edsm/bronze/utility/powerPlay/_badRecords/"
+        "pathGlobFilter":                "powerPlay.json",
+        "cloudFiles.inferSchema":        "true",
+        "cloudFiles.schemaLocation":     "/Volumes/edsm/bronze/utility/powerPlay/_schema/",
+        "multiline":                     "true",
+        "badRecordsPath":                "/Volumes/edsm/bronze/utility/powerPlay/_badRecords/"
     },
     "writeStream_format": "delta",
     "writeStreamOptions": {
