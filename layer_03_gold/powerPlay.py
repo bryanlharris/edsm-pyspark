@@ -41,7 +41,7 @@ def powerPlay(spark, settings):
     ### This creates a column called primary_key which is a hash ###
     ################################################################
     df.createOrReplaceTempView("df")
-    supported=["boolean","tinyint","smallint","int","bigint",
+    supported=["string","boolean","tinyint","smallint","int","bigint",
                "float","double","decimal","date","timestamp"]
     columns = [
         f.name for f in df.schema.fields
