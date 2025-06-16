@@ -4,9 +4,9 @@
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {
         "cloudFiles.format":                "json",
-        "cloudFiles.validateOptions":       "false",
         "cloudFiles.maxFilesPerTrigger":    "1",
         "pathGlobFilter":                   "powerPlay.json",
+        "cloudFiles.inferColumnTypes":      "true",
         "cloudFiles.inferSchema":           "true",
         "cloudFiles.schemaLocation":        "/Volumes/edsm/bronze/utility/powerPlay/_schema/",
         "multiline":                        "true",
