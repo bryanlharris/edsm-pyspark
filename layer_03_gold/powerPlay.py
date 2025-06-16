@@ -106,7 +106,7 @@ def powerPlay(spark, settings):
         )
         delta.alias("d") \
             .merge(missing.alias("s"), f"s.{pk2}=d.{pk2}") \
-            .whenMatchedUpdate({'current_flag': lit('N'),
+            .whenMatchedUpdate(set={'current_flag': lit('N'),
                                 'deleted_on': current_timestamp(),
                                 'effective_dt': current_timestamp()}) \
             .execute()
