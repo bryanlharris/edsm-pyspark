@@ -13,10 +13,10 @@ def powerPlay(spark, settings):
     merge_condition         = settings.get("merge_condition")
 
     def upsert_to_gold(microBatchDF, batchId):
-        microBatchDF = microBatchDF.withColumn("created_on", current_timestamp())
+        microBatchDF = microBatchDF.withColumn("created_on", col("ingest_time"))
         microBatchDF = microBatchDF.withColumn("deleted_on", lit(None).cast("timestamp"))
         microBatchDF = microBatchDF.withColumn("current_flag", lit("Yes"))
-        microBatchDF = microBatchDF.withColumn("valid_from", current_timestamp())
+        microBatchDF = microBatchDF.withColumn("valid_from", col("ingest_time"))
         microBatchDF = microBatchDF.withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
     
         ignore_cols = (
@@ -38,19 +38,19 @@ def powerPlay(spark, settings):
             ON {merge_condition} AND t.current_flag='Yes'
             WHEN MATCHED AND t.row_hash<>s.row_hash THEN
                 UPDATE SET
-                    t.deleted_on=current_timestamp(),
+                    t.deleted_on=s.ingest_time,
                     t.current_flag='No',
-                    t.valid_to=current_timestamp()
+                    t.valid_to=s.ingest_time
         """)
 
         spark.sql(f"""
             INSERT INTO {dst_table_name}
             SELECT
                 s.* EXCEPT (current_flag, deleted_on, valid_from, created_on, valid_to),
-                current_timestamp() AS created_on,
+                s.ingest_time AS created_on,
                 NULL AS deleted_on,
                 'Yes' AS current_flag,
-                current_timestamp() AS valid_from,
+                s.ingest_time AS valid_from,
                 CAST('9999-12-31 23:59:59' AS TIMESTAMP) AS valid_to
             FROM updates s
             LEFT JOIN {dst_table_name} t
