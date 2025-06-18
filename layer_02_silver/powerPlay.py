@@ -16,16 +16,6 @@ def powerPlay(spark, settings):
     data_type_map               = settings.get("data_type_map")
 
     def upsert_to_silver(microBatchDF, batchId):
-        microBatchDF = microBatchDF.withColumn(
-            "row_hash",
-            sha2(
-                to_json(
-                    struct(*[col(c) for c in microBatchDF.columns if c not in ("ingest_time")])
-                ),
-                256
-            )
-        )
-
         # Sanity check
         create_table_if_not_exists(spark, microBatchDF, dst_table_name)
 
@@ -46,19 +36,15 @@ def powerPlay(spark, settings):
         .table(src_table_name)
         .transform(rename_columns, column_map)
         .transform(cast_data_types, data_type_map)
+        .withColumn("ingest_time", current_timestamp())
         .withColumn("file_path", col("source_metadata").getField("file_path"))
         .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
-        .withColumn("ingest_time", current_timestamp())
     )
 
+    ignore_cols = ( "date", "ingest_time", "file_path", "file_modification_time", "source_metadata" )
     df = df.withColumn(
             "row_hash",
-            sha2(
-                to_json(
-                    struct(*[col(c) for c in df.columns if c not in ("ingest_time")])
-                ),
-                256
-            )
+            sha2(to_json(struct(*[col(c) for c in df.columns if c not in ignore_cols])),256)
         )
 
     (
