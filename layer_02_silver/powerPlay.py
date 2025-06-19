@@ -1,6 +1,7 @@
 import json
 from delta.tables import DeltaTable
 from pyspark.sql.functions import struct, to_json, sha2, col, current_timestamp
+from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
 from functions import create_table_if_not_exists, rename_columns, cast_data_types
 
 def powerPlay(spark, settings):
