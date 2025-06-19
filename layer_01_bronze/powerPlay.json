@@ -1,6 +1,7 @@
 {
     "pipeline_function": "bronze.powerPlay",
     "dst_table_name": "edsm.bronze.powerPlay",
+    "build_history": "true",
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {
         "cloudFiles.format":                "json",

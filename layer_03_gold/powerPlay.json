@@ -2,6 +2,7 @@
     "pipeline_function": "gold.powerPlay",
     "src_table_name": "edsm.silver.powerPlay",
     "dst_table_name": "edsm.gold.powerPlay",
+    "build_history": "false",
     "merge_condition": "t.name = s.name and t.id = s.id and t.id64 = s.id64 and t.power = s.power",
     "readStreamOptions": {
         "rescuedDataColumn": "_rescued_data",

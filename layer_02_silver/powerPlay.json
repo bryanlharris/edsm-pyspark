@@ -2,6 +2,7 @@
     "pipeline_function": "silver.powerPlay",
     "src_table_name": "edsm.bronze.powerPlay",
     "dst_table_name": "edsm.silver.powerPlay",
+    "build_history": "true",
     "merge_condition": "t.name = s.name and t.id = s.id and t.id64 = s.id64 and t.power = s.power",
     "data_type_map": {
         "date": "timestamp"
