@@ -36,9 +36,20 @@ def powerPlay(spark, settings):
         .table(src_table_name)
         .transform(rename_columns, column_map)
         .transform(cast_data_types, data_type_map)
-        .withColumn("ingest_time", current_timestamp())
+        # .withColumn("ingest_time", current_timestamp())
         .withColumn("file_path", col("source_metadata").getField("file_path"))
         .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
+        .withColumn(
+            "ingest_time",
+            to_timestamp(
+                concat(
+                    regexp_extract(col("source_metadata.file_path"), "/landing/(\\d{8})/", 1),
+                    lit(" "),
+                    date_format(current_timestamp(), "HH:mm:ss"),
+                ),
+                "yyyyMMdd HH:mm:ss",
+            ),
+        )
     )
 
     ignore_cols = ( "date", "ingest_time", "file_path", "file_modification_time", "source_metadata" )

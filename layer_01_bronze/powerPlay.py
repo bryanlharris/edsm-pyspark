@@ -18,7 +18,7 @@ def powerPlay(spark, settings):
         .format("cloudFiles")
         .options(**readStreamOptions)
         .load(readStream_load)
-        .withColumn("ingest_time", current_timestamp())
+        # .withColumn("ingest_time", current_timestamp())
         .withColumn("source_metadata", expr("_metadata"))
         .withColumn(
             "ingest_time",
@@ -26,7 +26,7 @@ def powerPlay(spark, settings):
                 concat(
                     regexp_extract(col("source_metadata.file_path"), "/landing/(\\d{8})/", 1),
                     lit(" "),
-                    date_format(col("ingest_time"), "HH:mm:ss"),
+                    date_format(current_timestamp(), "HH:mm:ss"),
                 ),
                 "yyyyMMdd HH:mm:ss",
             ),
