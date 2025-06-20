@@ -19,10 +19,6 @@ def powerPlay(spark, settings):
         microBatchDF = microBatchDF.withColumn("valid_from", col("ingest_time"))
         microBatchDF = microBatchDF.withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
     
-        # ignore_cols = (
-        #     "date", "ingest_time", "file_path", "file_modification_time", "source_metadata",
-        #     "created_on", "deleted_on", "current_flag", "valid_from", "valid_to"
-        # )
         fields_to_hash = ["id", "id64", "name", "power", "powerState", "state"]
         microBatchDF = microBatchDF.withColumn(
             "row_hash",

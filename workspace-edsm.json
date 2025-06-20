@@ -1,5 +1,5 @@
 {
-  "name": "edsm-workspace",
+  "name": "workspace-edsm",
   "email_notifications": {
     "no_alert_for_skipped_runs": false
   },
@@ -164,42 +164,11 @@
       "timeout_seconds": 0,
       "email_notifications": {},
       "webhook_notifications": {}
-    },
-    {
-      "task_key": "history_loop",
-      "depends_on": [
-        {
-          "task_key": "gold_loop"
-        }
-      ],
-      "run_if": "ALL_SUCCESS",
-      "for_each_task": {
-        "inputs": "{{tasks.job_settings.values.history_settings}}",
-        "concurrency": 11,
-        "task": {
-          "task_key": "history",
-          "run_if": "ALL_SUCCESS",
-          "notebook_task": {
-            "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/06_history",
-            "base_parameters": {
-              "job_settings": "{{input}}"
-            },
-            "source": "WORKSPACE"
-          },
-          "max_retries": 0,
-          "min_retry_interval_millis": 900000,
-          "retry_on_timeout": false,
-          "disable_auto_optimization": true,
-          "timeout_seconds": 0,
-          "email_notifications": {},
-          "webhook_notifications": {}
-        }
-      },
-      "timeout_seconds": 0,
-      "email_notifications": {},
-      "webhook_notifications": {}
     }
   ],
+  "tags": {
+    "jobName": "edsm-workspace"
+  },
   "queue": {
     "enabled": true
   },

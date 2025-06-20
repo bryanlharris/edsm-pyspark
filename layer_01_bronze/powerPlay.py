@@ -18,7 +18,6 @@ def powerPlay(spark, settings):
         .format("cloudFiles")
         .options(**readStreamOptions)
         .load(readStream_load)
-        # .withColumn("ingest_time", current_timestamp())
         .withColumn("source_metadata", expr("_metadata"))
         .withColumn(
             "ingest_time",
