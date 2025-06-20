@@ -6,15 +6,14 @@ from functions import create_table_if_not_exists, rename_columns, cast_data_type
 
 def powerPlay(spark, settings):
     # Variables (json file)
-    src_table_name              = settings.get("src_table_name")
-    dst_table_name              = settings.get("dst_table_name")
-    readStreamOptions           = settings.get("readStreamOptions")
-    writeStreamOptions          = settings.get("writeStreamOptions")
-    pk_name                     = settings.get("pk", {}).get("name")
-    pk_columns                  = settings.get("pk", {}).get("columns")
-    merge_condition             = settings.get("merge_condition")
-    column_map                  = settings.get("column_map")
-    data_type_map               = settings.get("data_type_map")
+    src_table_name          = settings.get("src_table_name")
+    dst_table_name          = settings.get("dst_table_name")
+    readStreamOptions       = settings.get("readStreamOptions")
+    writeStreamOptions      = settings.get("writeStreamOptions")
+    composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
+    column_map              = settings.get("column_map")
+    data_type_map           = settings.get("data_type_map")
 
     def upsert_to_silver(microBatchDF, batchId):
         microBatchDF = (
@@ -35,7 +34,7 @@ def powerPlay(spark, settings):
             )
         )
 
-        fields_to_hash = ["id", "id64", "name", "power", "powerState", "state"]
+        fields_to_hash = composite_key + business_key
         microBatchDF = microBatchDF.withColumn(
             "row_hash",
             sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
@@ -44,13 +43,15 @@ def powerPlay(spark, settings):
         # Sanity check
         create_table_if_not_exists(spark, microBatchDF, dst_table_name)
 
+        merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
+        change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(
             f"""
             MERGE INTO {dst_table_name} t
             USING updates s
             ON {merge_condition}
-            WHEN MATCHED AND t.row_hash<>s.row_hash THEN UPDATE SET *
+            WHEN MATCHED AND ({change_condition}) THEN UPDATE SET *
             WHEN NOT MATCHED THEN INSERT *
             """
         )

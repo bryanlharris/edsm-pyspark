@@ -10,7 +10,8 @@ def powerPlay(spark, settings):
     dst_table_name          = settings.get("dst_table_name")
     readStreamOptions       = settings.get("readStreamOptions")
     writeStreamOptions      = settings.get("writeStreamOptions")
-    merge_condition         = settings.get("merge_condition")
+    composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
 
     def upsert_to_gold(microBatchDF, batchId):
         microBatchDF = microBatchDF.withColumn("created_on", col("ingest_time"))
@@ -19,7 +20,7 @@ def powerPlay(spark, settings):
         microBatchDF = microBatchDF.withColumn("valid_from", col("ingest_time"))
         microBatchDF = microBatchDF.withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
     
-        fields_to_hash = ["id", "id64", "name", "power", "powerState", "state"]
+        fields_to_hash = composite_key + business_key
         microBatchDF = microBatchDF.withColumn(
             "row_hash",
             sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
@@ -28,12 +29,14 @@ def powerPlay(spark, settings):
         # Sanity check
         create_table_if_not_exists(spark, microBatchDF, dst_table_name)
         
+        merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
+        change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(f"""
             MERGE INTO {dst_table_name} t
             USING updates s
             ON {merge_condition} AND t.current_flag='Yes'
-            WHEN MATCHED AND t.row_hash<>s.row_hash THEN
+            WHEN MATCHED AND ({change_condition}) THEN
                 UPDATE SET
                     t.deleted_on=s.ingest_time,
                     t.current_flag='No',
@@ -43,7 +46,7 @@ def powerPlay(spark, settings):
         spark.sql(f"""
             INSERT INTO {dst_table_name}
             SELECT
-                s.* EXCEPT (current_flag, deleted_on, valid_from, created_on, valid_to),
+                s.* EXCEPT (created_on, deleted_on, current_flag, valid_from, valid_to),
                 s.ingest_time AS created_on,
                 NULL AS deleted_on,
                 'Yes' AS current_flag,

@@ -3,7 +3,8 @@
     "src_table_name": "edsm.bronze.powerPlay",
     "dst_table_name": "edsm.silver.powerPlay",
     "build_history": "true",
-    "merge_condition": "t.name = s.name and t.id = s.id and t.id64 = s.id64 and t.power = s.power",
+    "composite_key": [ "name", "id", "id64", "power" ],
+    "business_key": [ "allegiance", "government", "powerState", "state" ],
     "data_type_map": {
         "date": "timestamp"
     },
