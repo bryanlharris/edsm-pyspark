@@ -3,7 +3,7 @@ from delta.tables import DeltaTable
 from pyspark.sql.functions import lit, struct, to_json, sha2, col, current_timestamp
 from functions import create_table_if_not_exists
 
-def powerPlay(spark, settings):
+def edsm_gold_load(spark, settings):
     # Variables (json file)
     src_table_name          = settings.get("src_table_name")
     dst_table_name          = settings.get("dst_table_name")
@@ -20,7 +20,7 @@ def powerPlay(spark, settings):
         .queryName(dst_table_name)
         .options(**writeStreamOptions)
         .trigger(availableNow=True)
-        .foreachBatch(powerPlay_upsert(spark, settings))
+        .foreachBatch(gold_upsert(spark, settings))
         .outputMode("update")
         .start()
     )
@@ -28,7 +28,7 @@ def powerPlay(spark, settings):
 
 
 
-def powerPlay_upsert(spark, settings):
+def gold_upsert(spark, settings):
     # Variables (json file)
     src_table_name          = settings.get("src_table_name")
     dst_table_name          = settings.get("dst_table_name")
@@ -43,12 +43,6 @@ def powerPlay_upsert(spark, settings):
         microBatchDF = microBatchDF.withColumn("current_flag", lit("Yes"))
         microBatchDF = microBatchDF.withColumn("valid_from", col("ingest_time"))
         microBatchDF = microBatchDF.withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
-    
-        # fields_to_hash = composite_key + business_key
-        # microBatchDF = microBatchDF.withColumn(
-        #     "row_hash",
-        #     sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
-        # )
 
         # Sanity check
         if batchId == 0:

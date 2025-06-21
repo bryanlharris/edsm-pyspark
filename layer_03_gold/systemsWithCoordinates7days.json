@@ -1,0 +1,12 @@
+{
+    "pipeline_function": "gold.edsm_gold_load",
+    "src_table_name": "edsm.silver.systemsWithCoordinates7days",
+    "dst_table_name": "edsm.gold.systemsWithCoordinates7days",
+    "build_history": "false",
+    "composite_key": [ "name", "id", "id64" ],
+    "business_key": [],
+    "readStreamOptions": {},
+    "writeStreamOptions": {
+        "checkpointLocation": "/Volumes/edsm/gold/utility/systemsWithCoordinates7days/_checkpoints/"
+    }
+}

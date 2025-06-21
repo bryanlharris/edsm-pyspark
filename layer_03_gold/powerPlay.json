@@ -1,11 +1,10 @@
 {
-    "pipeline_function": "gold.powerPlay",
+    "pipeline_function": "gold.edsm_gold_load",
     "src_table_name": "edsm.silver.powerPlay",
     "dst_table_name": "edsm.gold.powerPlay",
     "build_history": "false",
     "composite_key": [ "name", "id", "id64", "power" ],
     "business_key": [ "allegiance", "government", "powerState", "state" ],
-    "merge_condition": "t.name = s.name and t.id = s.id and t.id64 = s.id64 and t.power = s.power",
     "readStreamOptions": {},
     "writeStreamOptions": {
         "checkpointLocation": "/Volumes/edsm/gold/utility/powerPlay/_checkpoints/"

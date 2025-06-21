@@ -1,3 +1,3 @@
-from .powerPlay import powerPlay, powerPlay_upsert
+from .edsm_gold_load import edsm_gold_load, gold_upsert
 
-__all__ = ["powerPlay", "powerPlay_upsert"]
+__all__ = ["edsm_gold_load", "gold_upsert"]

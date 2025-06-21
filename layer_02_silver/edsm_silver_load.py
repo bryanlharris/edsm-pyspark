@@ -59,12 +59,6 @@ def silver_upsert(spark, settings):
             )
         )
 
-        # fields_to_hash = composite_key + business_key
-        # microBatchDF = microBatchDF.withColumn(
-        #     "row_hash",
-        #     sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
-        # )
-
         # Sanity check
         if batchId == 0:
             create_table_if_not_exists(spark, microBatchDF, dst_table_name)

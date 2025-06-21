@@ -1,0 +1,71 @@
+{
+    "pipeline_function": "bronze.edsm_bronze_load",
+    "dst_table_name": "edsm.bronze.codex",
+    "build_history": "true",
+    "readStream_load": "/Volumes/edsm/bronze/landing/",
+    "readStreamOptions": {
+        "cloudFiles.format": "json",
+        "cloudFiles.maxFilesPerTrigger": "1",
+        "pathGlobFilter": "codex.json",
+        "cloudFiles.inferColumnTypes": "false",
+        "inferSchema": "false",
+        "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/codex/_schema/",
+        "multiline": "true",
+        "badRecordsPath": "/Volumes/edsm/bronze/utility/codex/_badRecords/",
+        "cloudFiles.rescuedDataColumn": "_rescued_data"
+    },
+    "writeStream_format": "delta",
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "checkpointLocation": "/Volumes/edsm/bronze/utility/codex/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    },
+    "writeStream_outputMode": "append",
+    "file_schema": {
+        "fields": [
+            {
+                "metadata": {},
+                "name": "name",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "region",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "reportedOn",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "systemId",
+                "nullable": true,
+                "type": "long"
+            },
+            {
+                "metadata": {},
+                "name": "systemId64",
+                "nullable": true,
+                "type": "long"
+            },
+            {
+                "metadata": {},
+                "name": "systemName",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "type",
+                "nullable": true,
+                "type": "string"
+            }
+        ],
+        "type": "struct"
+    }
+}

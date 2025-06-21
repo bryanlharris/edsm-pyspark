@@ -1,0 +1,327 @@
+{
+    "pipeline_function": "bronze.edsm_bronze_load",
+    "dst_table_name": "edsm.bronze.stations",
+    "build_history": "true",
+    "readStream_load": "/Volumes/edsm/bronze/landing/",
+    "readStreamOptions": {
+        "cloudFiles.format": "json",
+        "cloudFiles.maxFilesPerTrigger": "1",
+        "pathGlobFilter": "stations.json",
+        "cloudFiles.inferColumnTypes": "false",
+        "inferSchema": "false",
+        "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/stations/_schema/",
+        "multiline": "true",
+        "badRecordsPath": "/Volumes/edsm/bronze/utility/stations/_badRecords/",
+        "cloudFiles.rescuedDataColumn": "_rescued_data"
+    },
+    "writeStream_format": "delta",
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "checkpointLocation": "/Volumes/edsm/bronze/utility/stations/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    },
+    "writeStream_outputMode": "append",
+    "file_schema": {
+        "fields": [
+            {
+                "metadata": {},
+                "name": "allegiance",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "body",
+                "nullable": true,
+                "type": {
+                    "fields": [
+                        {
+                            "metadata": {},
+                            "name": "id",
+                            "nullable": true,
+                            "type": "long"
+                        },
+                        {
+                            "metadata": {},
+                            "name": "latitude",
+                            "nullable": true,
+                            "type": "double"
+                        },
+                        {
+                            "metadata": {},
+                            "name": "longitude",
+                            "nullable": true,
+                            "type": "double"
+                        },
+                        {
+                            "metadata": {},
+                            "name": "name",
+                            "nullable": true,
+                            "type": "string"
+                        }
+                    ],
+                    "type": "struct"
+                }
+            },
+            {
+                "metadata": {},
+                "name": "commodities",
+                "nullable": true,
+                "type": {
+                    "containsNull": true,
+                    "elementType": {
+                        "fields": [
+                            {
+                                "metadata": {},
+                                "name": "buyPrice",
+                                "nullable": true,
+                                "type": "long"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "demand",
+                                "nullable": true,
+                                "type": "long"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "id",
+                                "nullable": true,
+                                "type": "string"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "name",
+                                "nullable": true,
+                                "type": "string"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "sellPrice",
+                                "nullable": true,
+                                "type": "long"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "stock",
+                                "nullable": true,
+                                "type": "long"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "stockBracket",
+                                "nullable": true,
+                                "type": "long"
+                            }
+                        ],
+                        "type": "struct"
+                    },
+                    "type": "array"
+                }
+            },
+            {
+                "metadata": {},
+                "name": "controllingFaction",
+                "nullable": true,
+                "type": {
+                    "fields": [
+                        {
+                            "metadata": {},
+                            "name": "id",
+                            "nullable": true,
+                            "type": "long"
+                        },
+                        {
+                            "metadata": {},
+                            "name": "name",
+                            "nullable": true,
+                            "type": "string"
+                        }
+                    ],
+                    "type": "struct"
+                }
+            },
+            {
+                "metadata": {},
+                "name": "distanceToArrival",
+                "nullable": true,
+                "type": "double"
+            },
+            {
+                "metadata": {},
+                "name": "economy",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "government",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "haveMarket",
+                "nullable": true,
+                "type": "boolean"
+            },
+            {
+                "metadata": {},
+                "name": "haveOutfitting",
+                "nullable": true,
+                "type": "boolean"
+            },
+            {
+                "metadata": {},
+                "name": "haveShipyard",
+                "nullable": true,
+                "type": "boolean"
+            },
+            {
+                "metadata": {},
+                "name": "id",
+                "nullable": true,
+                "type": "long"
+            },
+            {
+                "metadata": {},
+                "name": "marketId",
+                "nullable": true,
+                "type": "long"
+            },
+            {
+                "metadata": {},
+                "name": "name",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "otherServices",
+                "nullable": true,
+                "type": {
+                    "containsNull": true,
+                    "elementType": "string",
+                    "type": "array"
+                }
+            },
+            {
+                "metadata": {},
+                "name": "outfitting",
+                "nullable": true,
+                "type": {
+                    "containsNull": true,
+                    "elementType": {
+                        "fields": [
+                            {
+                                "metadata": {},
+                                "name": "id",
+                                "nullable": true,
+                                "type": "string"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "name",
+                                "nullable": true,
+                                "type": "string"
+                            }
+                        ],
+                        "type": "struct"
+                    },
+                    "type": "array"
+                }
+            },
+            {
+                "metadata": {},
+                "name": "secondEconomy",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "ships",
+                "nullable": true,
+                "type": {
+                    "containsNull": true,
+                    "elementType": {
+                        "fields": [
+                            {
+                                "metadata": {},
+                                "name": "id",
+                                "nullable": true,
+                                "type": "long"
+                            },
+                            {
+                                "metadata": {},
+                                "name": "name",
+                                "nullable": true,
+                                "type": "string"
+                            }
+                        ],
+                        "type": "struct"
+                    },
+                    "type": "array"
+                }
+            },
+            {
+                "metadata": {},
+                "name": "systemId",
+                "nullable": true,
+                "type": "long"
+            },
+            {
+                "metadata": {},
+                "name": "systemId64",
+                "nullable": true,
+                "type": "long"
+            },
+            {
+                "metadata": {},
+                "name": "systemName",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "type",
+                "nullable": true,
+                "type": "string"
+            },
+            {
+                "metadata": {},
+                "name": "updateTime",
+                "nullable": true,
+                "type": {
+                    "fields": [
+                        {
+                            "metadata": {},
+                            "name": "information",
+                            "nullable": true,
+                            "type": "string"
+                        },
+                        {
+                            "metadata": {},
+                            "name": "market",
+                            "nullable": true,
+                            "type": "string"
+                        },
+                        {
+                            "metadata": {},
+                            "name": "outfitting",
+                            "nullable": true,
+                            "type": "string"
+                        },
+                        {
+                            "metadata": {},
+                            "name": "shipyard",
+                            "nullable": true,
+                            "type": "string"
+                        }
+                    ],
+                    "type": "struct"
+                }
+            }
+        ],
+        "type": "struct"
+    }
+}
