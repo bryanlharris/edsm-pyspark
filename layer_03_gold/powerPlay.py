@@ -1,7 +1,6 @@
 import json
 from delta.tables import DeltaTable
-from pyspark.sql.functions import sha2, concat_ws, current_timestamp, lit
-from pyspark.sql.functions import struct, to_json, sha2, col, current_timestamp
+from pyspark.sql.functions import lit, struct, to_json, sha2, col, current_timestamp
 from functions import create_table_if_not_exists
 
 def powerPlay(spark, settings):
@@ -13,7 +12,32 @@ def powerPlay(spark, settings):
     composite_key           = settings.get("composite_key")
     business_key            = settings.get("business_key")
 
-    def upsert_to_gold(microBatchDF, batchId):
+    (
+        spark.readStream
+        .options(**readStreamOptions)
+        .table(src_table_name)
+        .writeStream
+        .queryName(dst_table_name)
+        .options(**writeStreamOptions)
+        .trigger(availableNow=True)
+        .foreachBatch(powerPlay_upsert(spark, settings))
+        .outputMode("update")
+        .start()
+    )
+
+
+
+
+def powerPlay_upsert(spark, settings):
+    # Variables (json file)
+    src_table_name          = settings.get("src_table_name")
+    dst_table_name          = settings.get("dst_table_name")
+    readStreamOptions       = settings.get("readStreamOptions")
+    writeStreamOptions      = settings.get("writeStreamOptions")
+    composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
+
+    def upsert(microBatchDF, batchId):
         microBatchDF = microBatchDF.withColumn("created_on", col("ingest_time"))
         microBatchDF = microBatchDF.withColumn("deleted_on", lit(None).cast("timestamp"))
         microBatchDF = microBatchDF.withColumn("current_flag", lit("Yes"))
@@ -27,7 +51,8 @@ def powerPlay(spark, settings):
         )
 
         # Sanity check
-        create_table_if_not_exists(spark, microBatchDF, dst_table_name)
+        if batchId == 0:
+            create_table_if_not_exists(spark, microBatchDF, dst_table_name)
         
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
         change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
@@ -57,22 +82,8 @@ def powerPlay(spark, settings):
                 ON {merge_condition} AND t.current_flag='Yes'
             WHERE t.current_flag IS NULL
         """)
-
-    (
-        spark.readStream
-        .options(**readStreamOptions)
-        .table(src_table_name)
-        .writeStream
-        .queryName(dst_table_name)
-        .options(**writeStreamOptions)
-        .trigger(availableNow=True)
-        .foreachBatch(upsert_to_gold)
-        .outputMode("update")
-        .start()
-    )
-
-
-
+    
+    return upsert
 
 
 

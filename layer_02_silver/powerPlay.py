@@ -15,7 +15,32 @@ def powerPlay(spark, settings):
     column_map              = settings.get("column_map")
     data_type_map           = settings.get("data_type_map")
 
-    def upsert_to_silver(microBatchDF, batchId):
+    (
+        spark.readStream
+        .options(**readStreamOptions)
+        .table(src_table_name)
+        .writeStream
+        .queryName(dst_table_name)
+        .options(**writeStreamOptions)
+        .trigger(availableNow=True)
+        .foreachBatch(powerPlay_upsert(spark, settings))
+        .outputMode("update")
+        .start()
+    )
+
+
+def powerPlay_upsert(spark, settings):
+    # Variables (json file)
+    src_table_name          = settings.get("src_table_name")
+    dst_table_name          = settings.get("dst_table_name")
+    readStreamOptions       = settings.get("readStreamOptions")
+    writeStreamOptions      = settings.get("writeStreamOptions")
+    composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
+    column_map              = settings.get("column_map")
+    data_type_map           = settings.get("data_type_map")
+
+    def upsert(microBatchDF, batchId):
         microBatchDF = (
             microBatchDF.transform(rename_columns, column_map)
             .transform(cast_data_types, data_type_map)
@@ -41,7 +66,8 @@ def powerPlay(spark, settings):
         )
 
         # Sanity check
-        create_table_if_not_exists(spark, microBatchDF, dst_table_name)
+        if batchId == 0:
+            create_table_if_not_exists(spark, microBatchDF, dst_table_name)
 
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
         change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
@@ -56,18 +82,8 @@ def powerPlay(spark, settings):
             """
         )
 
-    (
-        spark.readStream
-        .options(**readStreamOptions)
-        .table(src_table_name)
-        .writeStream
-        .queryName(dst_table_name)
-        .options(**writeStreamOptions)
-        .trigger(availableNow=True)
-        .foreachBatch(upsert_to_silver)
-        .outputMode("update")
-        .start()
-    )
+    return upsert
 
 
-    
+
+

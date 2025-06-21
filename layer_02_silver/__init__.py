@@ -1,3 +1,3 @@
-from .powerPlay import powerPlay
+from .powerPlay import powerPlay, powerPlay_upsert
 
-__all__ = ["powerPlay"]
+__all__ = ["powerPlay", "powerPlay_upsert"]
