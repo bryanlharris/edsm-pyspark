@@ -1,3 +1,3 @@
-from .powerPlay import powerPlay
+from .edsm_bronze_load import edsm_bronze_load
 
-__all__ = ["powerPlay"]
+__all__ = ["edsm_bronze_load"]

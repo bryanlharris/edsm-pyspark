@@ -6,10 +6,7 @@
     "composite_key": [ "name", "id", "id64", "power" ],
     "business_key": [ "allegiance", "government", "powerState", "state" ],
     "merge_condition": "t.name = s.name and t.id = s.id and t.id64 = s.id64 and t.power = s.power",
-    "readStreamOptions": {
-        "rescuedDataColumn": "_rescued_data",
-        "ignoreChanges": "true"
-    },
+    "readStreamOptions": {},
     "writeStreamOptions": {
         "checkpointLocation": "/Volumes/edsm/gold/utility/powerPlay/_checkpoints/"
     }

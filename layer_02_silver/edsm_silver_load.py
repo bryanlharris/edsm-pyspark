@@ -4,7 +4,7 @@ from pyspark.sql.functions import struct, to_json, sha2, col, current_timestamp
 from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
 from functions import create_table_if_not_exists, rename_columns, cast_data_types
 
-def powerPlay(spark, settings):
+def edsm_silver_load(spark, settings):
     # Variables (json file)
     src_table_name          = settings.get("src_table_name")
     dst_table_name          = settings.get("dst_table_name")
@@ -23,13 +23,13 @@ def powerPlay(spark, settings):
         .queryName(dst_table_name)
         .options(**writeStreamOptions)
         .trigger(availableNow=True)
-        .foreachBatch(powerPlay_upsert(spark, settings))
+        .foreachBatch(silver_upsert(spark, settings))
         .outputMode("update")
         .start()
     )
 
 
-def powerPlay_upsert(spark, settings):
+def silver_upsert(spark, settings):
     # Variables (json file)
     src_table_name          = settings.get("src_table_name")
     dst_table_name          = settings.get("dst_table_name")
@@ -59,18 +59,22 @@ def powerPlay_upsert(spark, settings):
             )
         )
 
-        fields_to_hash = composite_key + business_key
-        microBatchDF = microBatchDF.withColumn(
-            "row_hash",
-            sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
-        )
+        # fields_to_hash = composite_key + business_key
+        # microBatchDF = microBatchDF.withColumn(
+        #     "row_hash",
+        #     sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
+        # )
 
         # Sanity check
         if batchId == 0:
             create_table_if_not_exists(spark, microBatchDF, dst_table_name)
 
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
-        change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+        if business_key:
+            change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+        else:
+            change_condition = "FALSE"
+
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(
             f"""
@@ -83,6 +87,8 @@ def powerPlay_upsert(spark, settings):
         )
 
     return upsert
+
+
 
 
 

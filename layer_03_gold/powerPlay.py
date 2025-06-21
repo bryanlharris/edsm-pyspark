@@ -44,18 +44,22 @@ def powerPlay_upsert(spark, settings):
         microBatchDF = microBatchDF.withColumn("valid_from", col("ingest_time"))
         microBatchDF = microBatchDF.withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
     
-        fields_to_hash = composite_key + business_key
-        microBatchDF = microBatchDF.withColumn(
-            "row_hash",
-            sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
-        )
+        # fields_to_hash = composite_key + business_key
+        # microBatchDF = microBatchDF.withColumn(
+        #     "row_hash",
+        #     sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
+        # )
 
         # Sanity check
         if batchId == 0:
             create_table_if_not_exists(spark, microBatchDF, dst_table_name)
         
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
-        change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+        if business_key:
+            change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+        else:
+            change_condition = "FALSE"
+
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(f"""
             MERGE INTO {dst_table_name} t

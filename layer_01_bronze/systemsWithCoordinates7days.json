@@ -1,34 +1,27 @@
 {
     "pipeline_function": "bronze.edsm_bronze_load",
-    "dst_table_name": "edsm.bronze.powerPlay",
+    "dst_table_name": "edsm.bronze.systemsWithCoordinates7days",
     "build_history": "true",
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {
         "cloudFiles.format": "json",
         "cloudFiles.maxFilesPerTrigger": "1",
-        "pathGlobFilter": "powerPlay.json",
+        "pathGlobFilter": "systemsWithCoordinates7days.json",
         "cloudFiles.inferColumnTypes": "false",
         "inferSchema": "false",
-        "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/powerPlay/_schema/",
+        "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/systemsWithCoordinates7days/_schema/",
         "multiline": "true",
-        "badRecordsPath": "/Volumes/edsm/bronze/utility/powerPlay/_badRecords/",
-        "cloudFiles.rescuedDataColumn": "_rescued_data"
+        "badRecordsPath": "/Volumes/edsm/bronze/utility/systemsWithCoordinates7days/_badRecords/"
     },
     "writeStream_format": "delta",
     "writeStreamOptions": {
         "mergeSchema": "false",
-        "checkpointLocation": "/Volumes/edsm/bronze/utility/powerPlay/_checkpoints/",
+        "checkpointLocation": "/Volumes/edsm/bronze/utility/systemsWithCoordinates7days/_checkpoints/",
         "delta.columnMapping.mode": "name"
     },
     "writeStream_outputMode": "append",
     "file_schema": {
         "fields": [
-            {
-                "metadata": {},
-                "name": "allegiance",
-                "nullable": true,
-                "type": "string"
-            },
             {
                 "metadata": {},
                 "name": "coords",
@@ -65,12 +58,6 @@
             },
             {
                 "metadata": {},
-                "name": "government",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
                 "name": "id",
                 "nullable": true,
                 "type": "long"
@@ -84,24 +71,6 @@
             {
                 "metadata": {},
                 "name": "name",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "power",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "powerState",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "state",
                 "nullable": true,
                 "type": "string"
             }
