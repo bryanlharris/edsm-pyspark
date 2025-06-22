@@ -2,7 +2,7 @@ import json
 from pyspark.sql.functions import current_timestamp, expr, col
 from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
 from pyspark.sql.types import StructType, StringType
-from functions import create_table_if_not_exists, rename_columns_recursive, recursive_rename
+from functions import create_table_if_not_exists, rename_space_columns
 
 
 def edsm_bronze_load(spark, settings):
@@ -19,13 +19,13 @@ def edsm_bronze_load(spark, settings):
     schema = StructType.fromJson(settings["file_schema"])
 
     # Read & Transform
-    df = (
+    (
         spark.readStream
         .format("cloudFiles")
         .options(**readStreamOptions)
         .schema(schema)
         .load(readStream_load)
-        .transform(recursive_rename)
+        .transform(rename_space_columns)
         .withColumn("source_metadata", expr("_metadata"))
         .withColumn(
             "ingest_time",
@@ -39,19 +39,12 @@ def edsm_bronze_load(spark, settings):
             ),
         )
         .withColumn("_rescued_data", lit(None).cast(StringType()))
-    )
-
-    # Sanity check
-    create_table_if_not_exists(spark, df, dst_table_name)
-
-    # Write
-    query = (
-        df.writeStream
+        .writeStream
         .format(writeStream_format)
         .options(**writeStreamOptions)
         .outputMode(writeStream_outputMode)
         .trigger(availableNow=True)
-        .table(f"{dst_table_name}")
+        .table(dst_table_name)
     )
 
 

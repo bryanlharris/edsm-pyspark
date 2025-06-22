@@ -10,7 +10,7 @@
         "cloudFiles.inferColumnTypes": "false",
         "inferSchema": "false",
         "cloudFiles.schemaLocation": "/Volumes/edsm/bronze/utility/systemsWithCoordinates/_schema/",
-        "multiline": "true",
+        "multiline": "false",
         "badRecordsPath": "/Volumes/edsm/bronze/utility/systemsWithCoordinates/_badRecords/",
         "cloudFiles.rescuedDataColumn": "_rescued_data"
     },

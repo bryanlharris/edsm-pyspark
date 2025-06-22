@@ -1,0 +1,17 @@
+{
+    "pipeline_function": "silver.edsm_silver_load",
+    "src_table_name": "edsm.bronze.stations",
+    "dst_table_name": "edsm.silver.stations",
+    "build_history": "true",
+    "composite_key": [ "id", "body", "systemId" ],
+    "business_key": [ "allegiance", "commodities", "controllingFaction", "economy", "government", "haveMarket", "haveOutfitting", "haveShipyard", "otherServices", "outfitting", "secondEconomy", "ships", "type" ],
+    "data_type_map": {
+        "date": "timestamp"
+    },
+    "readStreamOptions": {},
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/stations/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    }
+}

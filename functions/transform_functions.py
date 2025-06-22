@@ -2,35 +2,22 @@
 from pyspark.sql.functions import when, col, to_timestamp, to_date, regexp_replace
 from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim, struct
 from pyspark.sql.functions import sha2, to_json, struct
+from pyspark.sql.types import StructType, ArrayType
+from pyspark.sql.functions import col, struct, transform
 import re
 
 
-def rename_columns_recursive(schema, prefix=""):
-    fields = []
-    for field in schema.fields:
-        name = field.name
-        clean_name = name.replace(" ", "_")
-        if hasattr(field.dataType, "fields"):
-            nested = rename_columns_recursive(field.dataType, prefix=prefix + clean_name + ".")
-            fields.append(struct(*nested).alias(clean_name))
-        else:
-            fields.append(col(prefix + name).alias(clean_name))
-    return fields
 
-def recursive_rename(df):
-    renamed_cols = rename_columns_recursive(df.schema)
-    return df.select(*renamed_cols)
+def rename_space_columns(df):
+    def _rec(c, t):
+        if isinstance(t, StructType):
+            return struct(*[_rec(c[f.name], f.dataType).alias(f.name.replace(" ", "_")) for f in t.fields])
+        if isinstance(t, ArrayType):
+            return transform(c, lambda x: _rec(x, t.elementType))
+        return c
 
+    return df.select(*[_rec(col(f.name), f.dataType).alias(f.name.replace(" ", "_")) for f in df.schema.fields])
 
-# def sha_key(df, name=None, columns=None):
-#     if name is None:
-#         name = "primary_key"
-#     if columns is None:
-#         pk_columns = [
-#             f.name for f in df.schema.fields 
-#             if f.dataType.simpleString() in [ "string", "int", "decimal", "date", "timestamp" ]
-#         ]
-#     return df.withColumn(name, sha2(concat_ws("-", *[coalesce(col(c).cast("string"), lit("")) for c in columns ]), 256))
 
 def row_hash(df, fields_to_hash, name="row_hash"):
     # fields_to_hash = composite_key + business_key

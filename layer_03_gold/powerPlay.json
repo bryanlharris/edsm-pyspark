@@ -3,10 +3,20 @@
     "src_table_name": "edsm.silver.powerPlay",
     "dst_table_name": "edsm.gold.powerPlay",
     "build_history": "false",
-    "composite_key": [ "name", "id", "id64", "power" ],
-    "business_key": [ "allegiance", "government", "powerState", "state" ],
+    "composite_key": [
+        "id",
+        "power"
+    ],
+    "business_key": [
+        "allegiance",
+        "government",
+        "powerState",
+        "state"
+    ],
     "readStreamOptions": {},
     "writeStreamOptions": {
+        "mergeSchema": "false",
+        "delta.columnMapping.mode": "name",
         "checkpointLocation": "/Volumes/edsm/gold/utility/powerPlay/_checkpoints/"
     }
 }

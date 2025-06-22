@@ -1,0 +1,14 @@
+{
+    "pipeline_function": "gold.edsm_gold_load",
+    "src_table_name": "edsm.silver.stations",
+    "dst_table_name": "edsm.gold.stations",
+    "build_history": "false",
+    "composite_key": [ "id", "body", "systemId" ],
+    "business_key": [ "allegiance", "commodities", "controllingFaction", "economy", "government", "haveMarket", "haveOutfitting", "haveShipyard", "otherServices", "outfitting", "secondEconomy", "ships", "type" ],
+    "readStreamOptions": {},
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "delta.columnMapping.mode": "name",
+        "checkpointLocation": "/Volumes/edsm/gold/utility/stations/_checkpoints/"
+    }
+}

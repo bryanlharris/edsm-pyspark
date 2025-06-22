@@ -1,7 +1,7 @@
 {
     "pipeline_function": "silver.edsm_silver_load",
-    "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
-    "dst_table_name": "edsm.silver.systemsWithCoordinates7days",
+    "src_table_name": "edsm.bronze.systemsWithCoordinates",
+    "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "build_history": "true",
     "composite_key": [ "id" ],
     "business_key": [],
@@ -11,7 +11,7 @@
     "readStreamOptions": {},
     "writeStreamOptions": {
         "mergeSchema": "false",
-        "checkpointLocation": "/Volumes/edsm/silver/utility/systemsWithCoordinates7days/_checkpoints/",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/systemsWithCoordinates/_checkpoints/",
         "delta.columnMapping.mode": "name"
     }
 }

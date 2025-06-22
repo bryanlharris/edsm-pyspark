@@ -1,17 +1,14 @@
 {
     "pipeline_function": "silver.edsm_silver_load",
-    "src_table_name": "edsm.bronze.powerPlay",
-    "dst_table_name": "edsm.silver.powerPlay",
+    "src_table_name": "edsm.bronze.bodies7days",
+    "dst_table_name": "edsm.silver.bodies7days",
     "build_history": "true",
     "composite_key": [
-        "id",
-        "power"
+        "id"
     ],
     "business_key": [
-        "allegiance",
-        "government",
-        "powerState",
-        "state"
+        "materials",
+        "updateTime"
     ],
     "data_type_map": {
         "date": "timestamp"
@@ -19,7 +16,7 @@
     "readStreamOptions": {},
     "writeStreamOptions": {
         "mergeSchema": "false",
-        "checkpointLocation": "/Volumes/edsm/silver/utility/powerPlay/_checkpoints/",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/bodies7days/_checkpoints/",
         "delta.columnMapping.mode": "name"
     }
 }

@@ -64,10 +64,7 @@ def silver_upsert(spark, settings):
             create_table_if_not_exists(spark, microBatchDF, dst_table_name)
 
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
-        if business_key:
-            change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
-        else:
-            change_condition = "FALSE"
+        change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key]) or "FALSE"
 
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(
