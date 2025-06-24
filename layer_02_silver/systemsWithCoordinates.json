@@ -1,10 +1,18 @@
 {
-    "pipeline_function": "silver.edsm_silver_load",
+    "read_function": "silver.edsm_silver_read",
+    "transform_function": "silver.edsm_silver_transform",
+    "write_function": "silver.edsm_silver_write",
     "src_table_name": "edsm.bronze.systemsWithCoordinates",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "build_history": "true",
     "composite_key": [ "id" ],
-    "business_key": [],
+    "business_key": [
+        "name",
+        "coords.x",
+        "coords.y",
+        "coords.z",
+        "date"
+    ],
     "data_type_map": {
         "date": "timestamp"
     },

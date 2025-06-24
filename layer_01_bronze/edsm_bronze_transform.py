@@ -1,11 +1,9 @@
-import json
 from pyspark.sql.functions import current_timestamp, expr, col
 from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
-from pyspark.sql.types import StructType, StringType
-from functions import create_table_if_not_exists, rename_space_columns
+from pyspark.sql.types import StringType
+from functions import rename_space_columns
 
-
-def edsm_bronze_load(spark, settings):
+def edsm_bronze_transform(spark, settings, df):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     readStreamOptions       = settings.get("readStreamOptions")
@@ -15,17 +13,9 @@ def edsm_bronze_load(spark, settings):
     writeStream_outputMode  = settings.get("writeStream_outputMode")
     file_schema             = settings.get("file_schema")
 
-    # Hard code schema is better than inference
-    schema = StructType.fromJson(settings["file_schema"])
-
-    # Read & Transform
-    (
-        spark.readStream
-        .format("cloudFiles")
-        .options(**readStreamOptions)
-        .schema(schema)
-        .load(readStream_load)
-        .transform(rename_space_columns)
+    # Transform
+    return (
+        df.transform(rename_space_columns)
         .withColumn("source_metadata", expr("_metadata"))
         .withColumn(
             "ingest_time",
@@ -39,12 +29,6 @@ def edsm_bronze_load(spark, settings):
             ),
         )
         .withColumn("_rescued_data", lit(None).cast(StringType()))
-        .writeStream
-        .format(writeStream_format)
-        .options(**writeStreamOptions)
-        .outputMode(writeStream_outputMode)
-        .trigger(availableNow=True)
-        .table(dst_table_name)
     )
 
 

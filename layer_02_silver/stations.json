@@ -1,5 +1,7 @@
 {
-    "pipeline_function": "silver.edsm_silver_load",
+    "read_function": "silver.edsm_silver_read",
+    "transform_function": "silver.edsm_silver_transform",
+    "write_function": "silver.edsm_silver_write",
     "src_table_name": "edsm.bronze.stations",
     "dst_table_name": "edsm.silver.stations",
     "build_history": "true",

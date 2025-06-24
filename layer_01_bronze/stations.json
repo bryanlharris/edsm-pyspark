@@ -1,5 +1,7 @@
 {
-    "pipeline_function": "bronze.edsm_bronze_load",
+    "read_function": "bronze.edsm_bronze_read",
+    "transform_function": "bronze.edsm_bronze_transform",
+    "write_function": "bronze.edsm_bronze_write",
     "dst_table_name": "edsm.bronze.stations",
     "build_history": "true",
     "readStream_load": "/Volumes/edsm/bronze/landing/",

@@ -1,5 +1,7 @@
 {
-    "pipeline_function": "gold.edsm_gold_load",
+    "read_function": "gold.edsm_gold_read",
+    "transform_function": "gold.edsm_gold_transform",
+    "write_function": "gold.edsm_gold_write",
     "src_table_name": "edsm.silver.powerPlay",
     "dst_table_name": "edsm.gold.powerPlay",
     "build_history": "false",
@@ -12,11 +14,5 @@
         "government",
         "powerState",
         "state"
-    ],
-    "readStreamOptions": {},
-    "writeStreamOptions": {
-        "mergeSchema": "false",
-        "delta.columnMapping.mode": "name",
-        "checkpointLocation": "/Volumes/edsm/gold/utility/powerPlay/_checkpoints/"
-    }
+    ]
 }
