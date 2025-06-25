@@ -1,7 +1,7 @@
 from pyspark.sql.functions import current_timestamp, expr, col
 from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
 from pyspark.sql.types import StringType
-from functions import rename_space_columns
+from functions import rename_space_columns, add_source_metadata, add_rescued_data
 
 def edsm_bronze_transform(spark, settings, df):
     # Variables
@@ -16,7 +16,8 @@ def edsm_bronze_transform(spark, settings, df):
     # Transform
     return (
         df.transform(rename_space_columns)
-        .withColumn("source_metadata", expr("_metadata"))
+        .transform(add_source_metadata)
+        .transform(add_rescued_data)
         .withColumn(
             "ingest_time",
             to_timestamp(
@@ -28,7 +29,6 @@ def edsm_bronze_transform(spark, settings, df):
                 "yyyyMMdd HH:mm:ss",
             ),
         )
-        .withColumn("_rescued_data", lit(None).cast(StringType()))
     )
 
 

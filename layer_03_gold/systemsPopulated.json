@@ -1,0 +1,16 @@
+{
+    "read_function": "gold.edsm_gold_read",
+    "transform_function": "gold.edsm_gold_transform",
+    "write_function": "gold.edsm_gold_write",
+    "src_table_name": "edsm.silver.systemsPopulated",
+    "dst_table_name": "edsm.gold.systemsPopulated",
+    "build_history": "false",
+    "composite_key": [ "id" ],
+    "business_key": [ "allegiance", "controllingFaction", "economy", "factions", "government", "population", "security", "state", "stations" ],
+    "readStreamOptions": {},
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "delta.columnMapping.mode": "name",
+        "checkpointLocation": "/Volumes/edsm/gold/utility/systemsPopulated/_checkpoints/"
+    }
+}

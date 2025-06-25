@@ -1,4 +1,5 @@
 
+from pyspark.sql.types import StructType, StructField, StringType, LongType, TimestampType
 from pyspark.sql.functions import when, col, to_timestamp, to_date, regexp_replace
 from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim, struct
 from pyspark.sql.functions import sha2, to_json, struct
@@ -6,6 +7,53 @@ from pyspark.sql.types import StructType, ArrayType
 from pyspark.sql.functions import col, struct, transform
 import re
 
+
+def add_rescued_data(df):
+    # rescued_data_type = StructType([
+    #     StructField("columnName", StringType(), True),
+    #     StructField("columnValue", StringType(), True)
+    # ])
+
+    rescued_data_type = StringType()
+
+    if '_rescued_data' in df.columns:
+        return df
+    else:
+        return df.withColumn("_rescued_data", lit(None).cast(rescued_data_type))
+
+
+
+def add_source_metadata(df):
+    metadata_type = StructType([
+        StructField("file_path", StringType(), True),
+        StructField("file_name", StringType(), True),
+        StructField("file_size", LongType(), True),
+        StructField("file_block_start", LongType(), True),
+        StructField("file_block_length", LongType(), True),
+        StructField("file_modification_time", TimestampType(), True)
+    ])
+    if '_metadata' in df.columns:
+        return df.withColumn("source_metadata", col("_metadata"))
+    else:
+        return df.withColumn("source_metadata", lit(None).cast(metadata_type))
+
+
+# def rename_space_columns(df):
+#     def _rec(c, t):
+#         if isinstance(t, StructType):
+#             return struct(*[_rec(c[f.name], f.dataType).alias(f.name.replace(" ", "_")) for f in t.fields])
+#         if isinstance(t, ArrayType):
+#             return transform(c, lambda x: _rec(x, t.elementType))
+#         return c
+
+#     special_columns = ["_metadata", "_rescued_data"]
+
+#     fields = [f for f in df.schema.fields if f.name not in special_columns]
+
+#     return df.select(
+#         *[_rec(col(f.name), f.dataType).alias(f.name.replace(" ", "_")) for f in fields],
+#         *[col(c) for c in df.columns if c in special_columns]
+#     )
 
 
 def rename_space_columns(df):

@@ -1,4 +1,5 @@
 import json
+import importlib
 from pathlib import Path
 from pyspark.sql.types import StructType
 
@@ -49,10 +50,10 @@ def create_tables_for_all_layers(spark):
 
 def create_table_if_not_exists(spark, df, dst_table_name):
     """Create a table from a dataframe if it doesn't exist"""
-    if not spark.catalog.tableExists(f"{dst_table_name}"):
+    if not spark.catalog.tableExists(dst_table_name):
         empty_df = spark.createDataFrame([], df.schema)
         empty_df.write.format("delta").option("delta.columnMapping.mode", "name").saveAsTable(dst_table_name)
-        spark.sql(f"ALTER TABLE {dst_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true)")
+        # spark.sql(f"ALTER TABLE {dst_table_name} SET TBLPROPERTIES (delta.enableChangeDataFeed = true)")
 
 
 def create_schema_if_not_exists(spark, catalog, schema):

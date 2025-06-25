@@ -5,20 +5,14 @@
     "src_table_name": "edsm.bronze.powerPlay",
     "dst_table_name": "edsm.silver.powerPlay",
     "build_history": "true",
-    "composite_key": [
-        "id",
-        "power"
-    ],
-    "business_key": [
-        "allegiance",
-        "government",
-        "powerState",
-        "state"
-    ],
+    "composite_key": ["id", "power"],
+    "business_key": ["allegiance", "government", "powerState", "state"],
     "data_type_map": {
         "date": "timestamp"
     },
-    "readStreamOptions": {},
+    "readStreamOptions": {
+        "startingVersion": 4
+    },
     "writeStreamOptions": {
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/silver/utility/powerPlay/_checkpoints/",
