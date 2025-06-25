@@ -2,10 +2,13 @@
     "read_function": "silver.edsm_silver_read",
     "transform_function": "silver.edsm_silver_transform",
     "write_function": "silver.edsm_silver_write",
+    "upsert_function": "silver.edsm_silver_upsert",
     "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
     "dst_table_name": "edsm.silver.systemsWithCoordinates7days",
     "build_history": "true",
-    "composite_key": [ "id" ],
+    "composite_key": [
+        "id"
+    ],
     "business_key": [
         "name",
         "coords.x",
@@ -16,7 +19,9 @@
     "data_type_map": {
         "date": "timestamp"
     },
-    "readStreamOptions": {},
+    "readStreamOptions": {
+        "startingVersion": 4
+    },
     "writeStreamOptions": {
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/silver/utility/systemsWithCoordinates7days/_checkpoints/",

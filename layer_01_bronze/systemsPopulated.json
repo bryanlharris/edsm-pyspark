@@ -1092,6 +1092,12 @@
                     },
                     "type": "array"
                 }
+            },
+            {
+                "metadata": {},
+                "name": "_rescued_data",
+                "nullable": true,
+                "type": "string"
             }
         ],
         "type": "struct"

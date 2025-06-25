@@ -2,15 +2,36 @@
     "read_function": "silver.edsm_silver_read",
     "transform_function": "silver.edsm_silver_transform",
     "write_function": "silver.edsm_silver_write",
+    "upsert_function": "silver.edsm_silver_upsert",
     "src_table_name": "edsm.bronze.stations",
     "dst_table_name": "edsm.silver.stations",
     "build_history": "true",
-    "composite_key": [ "id", "body", "systemId" ],
-    "business_key": [ "allegiance", "commodities", "controllingFaction", "economy", "government", "haveMarket", "haveOutfitting", "haveShipyard", "otherServices", "outfitting", "secondEconomy", "ships", "type" ],
+    "composite_key": [
+        "id",
+        "body",
+        "systemId"
+    ],
+    "business_key": [
+        "allegiance",
+        "commodities",
+        "controllingFaction",
+        "economy",
+        "government",
+        "haveMarket",
+        "haveOutfitting",
+        "haveShipyard",
+        "otherServices",
+        "outfitting",
+        "secondEconomy",
+        "ships",
+        "type"
+    ],
     "data_type_map": {
         "date": "timestamp"
     },
-    "readStreamOptions": {},
+    "readStreamOptions": {
+        "startingVersion": 14
+    },
     "writeStreamOptions": {
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/silver/utility/stations/_checkpoints/",

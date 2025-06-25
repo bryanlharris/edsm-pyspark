@@ -2,28 +2,16 @@
 from pyspark.sql.types import StructType, StructField, StringType, LongType, TimestampType
 from pyspark.sql.functions import when, col, to_timestamp, to_date, regexp_replace
 from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim, struct
-from pyspark.sql.functions import sha2, to_json, struct
+from pyspark.sql.functions import sha2, to_json, struct, expr
 from pyspark.sql.types import StructType, ArrayType
 from pyspark.sql.functions import col, struct, transform
 import re
 
 
-def add_rescued_data(df):
-    # rescued_data_type = StructType([
-    #     StructField("columnName", StringType(), True),
-    #     StructField("columnValue", StringType(), True)
-    # ])
-
-    rescued_data_type = StringType()
-
-    if '_rescued_data' in df.columns:
-        return df
-    else:
-        return df.withColumn("_rescued_data", lit(None).cast(rescued_data_type))
 
 
 
-def add_source_metadata(df):
+def add_source_metadata(df, settings):
     metadata_type = StructType([
         StructField("file_path", StringType(), True),
         StructField("file_name", StringType(), True),
@@ -32,10 +20,12 @@ def add_source_metadata(df):
         StructField("file_block_length", LongType(), True),
         StructField("file_modification_time", TimestampType(), True)
     ])
-    if '_metadata' in df.columns:
-        return df.withColumn("source_metadata", col("_metadata"))
+
+    if settings.get("use_metadata", "true").lower() == "true":
+        return df.withColumn("source_metadata", expr("_metadata"))
     else:
         return df.withColumn("source_metadata", lit(None).cast(metadata_type))
+
 
 
 # def rename_space_columns(df):
