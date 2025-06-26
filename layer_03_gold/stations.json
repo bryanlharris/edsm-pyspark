@@ -1,0 +1,19 @@
+{
+    "read_function": "functions.read_static_table",
+    "transform_function": "functions.scd2_transform",
+    "write_function": "functions.scd2_write",
+    "src_table_name": "edsm.silver.stations",
+    "dst_table_name": "edsm.gold.stations",
+    "ingest_time_column": "ingest_time",
+    "build_history": "false",
+    "composite_key": [
+        "id",
+        "power"
+    ],
+    "business_key": [
+        "allegiance",
+        "government",
+        "powerState",
+        "state"
+    ]
+}
