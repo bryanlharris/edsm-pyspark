@@ -1,0 +1,33 @@
+{
+    "pipeline_function": "silver.edsm_silver_load",
+    "src_table_name": "edsm.bronze.codex",
+    "dst_table_name": "edsm.silver.codex",
+    "build_history": "true",
+    "composite_key": [
+        "name",
+        "region",
+        "systemId",
+        "systemId64",
+        "systemName",
+        "type"
+    ],
+    "business_key": [
+        "name",
+        "region",
+        "systemId",
+        "systemId64",
+        "systemName",
+        "type"
+    ],
+    "use_row_hash": true,
+    "row_hash_col": "row_hash",
+    "data_type_map": {
+        "date": "timestamp"
+    },
+    "readStreamOptions": {},
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/codex/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "read_function": "functions.stream_read_table",
+    "transform_function": "functions.silver_standard_transform",
+    "write_function": "functions.stream_upsert_table",
+    "upsert_function": "functions.upsert_microbatch",
+    "src_table_name": "edsm.bronze.systemsPopulated",
+    "dst_table_name": "edsm.silver.systemsPopulated",
+    "build_history": "true",
+    "composite_key": [
+        "id"
+    ],
+    "business_key": [
+        "allegiance",
+        "controllingFaction",
+        "economy",
+        "factions",
+        "government",
+        "population",
+        "security",
+        "state",
+        "stations"
+    ],
+    "use_row_hash": true,
+    "row_hash_col": "row_hash",
+    "data_type_map": {
+        "date": "timestamp"
+    },
+    "readStreamOptions": {},
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/systemsPopulated/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    }
+}

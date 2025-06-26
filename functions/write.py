@@ -16,15 +16,16 @@ def stream_write_table(spark, settings, df):
     )
 
 
-from functions import create_table_if_not_exists
+from functions import create_table_if_not_exists, get_function
 
 def stream_upsert_table(spark, settings, df):
+    upsert_func = get_function(settings.get("upsert_function"))
     return (
         df.writeStream
         .queryName(settings.get("dst_table_name"))
         .options(**settings.get("writeStreamOptions"))
         .trigger(availableNow=True)
-        .foreachBatch(upsert_microbatch(spark, settings))
+        .foreachBatch(upsert_func(spark, settings))
         .outputMode("update")
         .start()
     )
@@ -33,6 +34,10 @@ def upsert_microbatch(spark, settings):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
+
+    use_row_hash            = settings.get("use_row_hash", False)
+    row_hash_col            = settings.get("row_hash_col", "row_hash")
     business_key            = settings.get("business_key")
 
     def upsert(microBatchDF, batchId):
@@ -46,7 +51,11 @@ def upsert_microbatch(spark, settings):
         # microBatchDF = microBatchDF.withColumn("rn", row_number().over(window)).filter("rn = 1").drop("rn")
 
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
-        change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+        # change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+        if use_row_hash:
+            change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
+        else:
+            change_condition = " or ".join([f"t.{k} <> s.{k}" for k in business_key])
 
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(
@@ -67,7 +76,7 @@ def scd2_write(spark, settings, df):
     dst_table_name          = settings.get("dst_table_name")
     composite_key           = settings.get("composite_key")
     business_key            = settings.get("business_key")
-    ingest_time_column      = settings["ingest_time_column"]
+    ingest_time_column      = settings.get("ingest_time_column")
     
     merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
     change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])

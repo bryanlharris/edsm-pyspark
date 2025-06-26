@@ -1,0 +1,41 @@
+{
+    "read_function": "functions.stream_read_table",
+    "transform_function": "functions.silver_row_hash_transform",
+    "write_function": "functions.stream_upsert_table",
+    "upsert_function": "functions.upsert_microbatch",
+    "src_table_name": "edsm.bronze.stations",
+    "dst_table_name": "edsm.silver.stations",
+    "build_history": "true",
+    "composite_key": [
+        "id",
+        "body",
+        "systemId"
+    ],
+    "business_key": [
+        "allegiance",
+        "commodities",
+        "controllingFaction",
+        "economy",
+        "government",
+        "haveMarket",
+        "haveOutfitting",
+        "haveShipyard",
+        "otherServices",
+        "outfitting",
+        "secondEconomy",
+        "ships",
+        "type"
+    ],
+    "use_row_hash": true,
+    "row_hash_col": "row_hash",
+    "data_type_map": {
+        "date": "timestamp"
+    },
+    "readStreamOptions": {
+    },
+    "writeStreamOptions": {
+        "mergeSchema": "false",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/stations/_checkpoints/",
+        "delta.columnMapping.mode": "name"
+    }
+}

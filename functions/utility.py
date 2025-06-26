@@ -4,6 +4,12 @@ from pathlib import Path
 from pyspark.sql.types import StructType
 
 
+def get_function(path):
+    module_path, func_name = path.rsplit(".", 1)
+    module = importlib.import_module(module_path)
+    return getattr(module, func_name)
+
+
 def create_table_if_not_exists(spark, df, dst_table_name):
     """Create a table from a dataframe if it doesn't exist"""
     if not spark.catalog.tableExists(dst_table_name):

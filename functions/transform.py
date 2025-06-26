@@ -42,6 +42,25 @@ def silver_standard_transform(spark, settings, df):
         .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
     )
 
+def silver_row_hash_transform(spark, settings, df):
+    # Variables (json file)
+    src_table_name          = settings.get("src_table_name")
+    dst_table_name          = settings.get("dst_table_name")
+    readStreamOptions       = settings.get("readStreamOptions")
+    writeStreamOptions      = settings.get("writeStreamOptions")
+    composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
+    column_map              = settings.get("column_map")
+    data_type_map           = settings.get("data_type_map")
+
+    return (
+        df.transform(rename_columns, column_map)
+        .transform(cast_data_types, data_type_map)
+        .withColumn("file_path", col("source_metadata").getField("file_path"))
+        .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
+        .transform(row_hash, business_key, name="row_hash")
+    )
+
 
 from pyspark.sql.functions import current_timestamp, expr, col
 from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format

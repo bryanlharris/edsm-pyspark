@@ -4,18 +4,18 @@
 import json
 import subprocess
 from pathlib import Path
-import layer_01_bronze as bronze
-import layer_02_silver as silver
-import layer_03_gold as gold
-import functions
-from functions import create_table_if_not_exists
+# import layer_01_bronze as bronze
+# import layer_02_silver as silver
+# import layer_03_gold as gold
+# import functions
+from functions import create_table_if_not_exists, get_function
 
-modules = {
-    "functions": functions,
-    "bronze": bronze,
-    "silver": silver,
-    "gold": gold
-}
+# modules = {
+#     "functions": functions,
+#     "bronze": bronze,
+#     "silver": silver,
+#     "gold": gold
+# }
 
 def rescue_silver_table(spark, table_name):
     settings_path = f"../layer_02_silver/{table_name}.json"
@@ -36,12 +36,14 @@ def rescue_silver_table(spark, table_name):
         raise ValueError(f"Skipping checkpoint deletion, unsupported path: {checkpointLocation}")
 
     ## Need to do this to all silver json settings, will do later
-    modname, funcname = settings["upsert_function"].split(".")
-    upsert_function = getattr(modules[modname], funcname)
-    upsert = upsert_function(spark, settings)
+    # modname, funcname = settings["upsert_function"].split(".")
+    # upsert_function = getattr(modules[modname], funcname)
+    # upsert = upsert_function(spark, settings)
+    upsert_function = get_function(settings["upsert_function"])
 
-    modname, funcname = settings["transform_function"].split(".")
-    transform_function = getattr(modules[modname], funcname)
+    # modname, funcname = settings["transform_function"].split(".")
+    # transform_function = getattr(modules[modname], funcname)
+    transform_function = get_function(settings["transform_function"])
 
     for version in range(0, max_version+1):
         if version == 0:
@@ -76,11 +78,14 @@ def rescue_gold_table(spark, table_name):
 
     spark.sql(f"DROP TABLE IF EXISTS {settings['dst_table_name']}")
 
-    modname, funcname = settings["transform_function"].split(".")
-    transform_function = getattr(modules[modname], funcname)
+    # modname, funcname = settings["transform_function"].split(".")
+    # transform_function = getattr(modules[modname], funcname)
 
-    modname, funcname = settings["write_function"].split(".")
-    write_function = getattr(modules[modname], funcname)
+    # modname, funcname = settings["write_function"].split(".")
+    # write_function = getattr(modules[modname], funcname)
+    
+    transform_function = get_function(settings["transform_function"])
+    write_function = get_function(settings["write_function"])
 
     for version in range(0, max_version + 1):
         df = spark.read.format("delta").option("versionAsOf", version).table(settings["src_table_name"])
