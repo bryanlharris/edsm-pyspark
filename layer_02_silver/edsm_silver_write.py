@@ -1,3 +1,5 @@
+from pyspark.sql.functions import row_number
+from pyspark.sql.window import Window
 from functions import create_table_if_not_exists
 
 def edsm_silver_write(spark, settings, df):
@@ -22,6 +24,9 @@ def edsm_silver_upsert(spark, settings):
         # Sanity check needs to be in its own place
         if batchId == 0:
             create_table_if_not_exists(spark, microBatchDF, dst_table_name)
+
+        # window = Window.partitionBy(*composite_key).orderBy(*business_key)
+        # microBatchDF = microBatchDF.withColumn("rn", row_number().over(window)).filter("rn = 1").drop("rn")
 
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
         change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])

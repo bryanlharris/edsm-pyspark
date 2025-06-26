@@ -8,6 +8,72 @@ from pyspark.sql.functions import col, struct, transform
 import re
 
 
+from pyspark.sql.functions import lit, col
+
+def scd2_transform(spark, settings, df):
+    ingest_time_column = settings["ingest_time_column"]
+    return (
+        df.withColumn("created_on", col(ingest_time_column))
+        .withColumn("deleted_on", lit(None).cast("timestamp"))
+        .withColumn("current_flag", lit("Yes"))
+        .withColumn("valid_from", col(ingest_time_column))
+        .withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
+    )
+
+
+from pyspark.sql.functions import col, concat, lit, regexp_extract, to_timestamp, date_format, current_timestamp
+
+
+def silver_standard_transform(spark, settings, df):
+    # Variables (json file)
+    src_table_name          = settings.get("src_table_name")
+    dst_table_name          = settings.get("dst_table_name")
+    readStreamOptions       = settings.get("readStreamOptions")
+    writeStreamOptions      = settings.get("writeStreamOptions")
+    composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
+    column_map              = settings.get("column_map")
+    data_type_map           = settings.get("data_type_map")
+
+    return (
+        df.transform(rename_columns, column_map)
+        .transform(cast_data_types, data_type_map)
+        .withColumn("file_path", col("source_metadata").getField("file_path"))
+        .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
+    )
+
+
+from pyspark.sql.functions import current_timestamp, expr, col
+from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
+from pyspark.sql.types import StringType
+
+def bronze_standard_transform(spark, settings, df):
+    # Variables
+    dst_table_name          = settings.get("dst_table_name")
+    readStreamOptions       = settings.get("readStreamOptions")
+    writeStreamOptions      = settings.get("writeStreamOptions")
+    readStream_load         = settings.get("readStream_load")
+    writeStream_format      = settings.get("writeStream_format")
+    writeStream_outputMode  = settings.get("writeStream_outputMode")
+    file_schema             = settings.get("file_schema")
+
+    # Transform
+    return (
+        df.transform(rename_space_columns)
+        .transform(add_source_metadata, settings)
+        .withColumn("ingest_time", current_timestamp())
+        .withColumn(
+            "derived_ingest_time",
+            to_timestamp(
+                concat(
+                    regexp_extract(col("source_metadata.file_path"), "/landing/(\\d{8})/", 1),
+                    lit(" "),
+                    date_format(current_timestamp(), "HH:mm:ss"),
+                ),
+                "yyyyMMdd HH:mm:ss",
+            ),
+        )
+    )
 
 
 
@@ -26,24 +92,6 @@ def add_source_metadata(df, settings):
     else:
         return df.withColumn("source_metadata", lit(None).cast(metadata_type))
 
-
-
-# def rename_space_columns(df):
-#     def _rec(c, t):
-#         if isinstance(t, StructType):
-#             return struct(*[_rec(c[f.name], f.dataType).alias(f.name.replace(" ", "_")) for f in t.fields])
-#         if isinstance(t, ArrayType):
-#             return transform(c, lambda x: _rec(x, t.elementType))
-#         return c
-
-#     special_columns = ["_metadata", "_rescued_data"]
-
-#     fields = [f for f in df.schema.fields if f.name not in special_columns]
-
-#     return df.select(
-#         *[_rec(col(f.name), f.dataType).alias(f.name.replace(" ", "_")) for f in fields],
-#         *[col(c) for c in df.columns if c in special_columns]
-#     )
 
 
 def rename_space_columns(df):

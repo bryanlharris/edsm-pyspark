@@ -1,7 +1,7 @@
 {
-    "read_function": "bronze.edsm_bronze_read",
-    "transform_function": "bronze.edsm_bronze_transform",
-    "write_function": "bronze.edsm_bronze_write",
+    "read_function": "functions.stream_read_cloudfiles",
+    "transform_function": "functions.bronze_standard_transform",
+    "write_function": "functions.stream_write_table",
     "dst_table_name": "edsm.bronze.bodies7days",
     "build_history": "true",
     "readStream_load": "/Volumes/edsm/bronze/landing/",

@@ -1,8 +1,8 @@
 {
-    "read_function": "silver.edsm_silver_read",
-    "transform_function": "silver.edsm_silver_transform",
-    "write_function": "silver.edsm_silver_write",
-    "upsert_function": "silver.edsm_silver_upsert",
+    "read_function": "functions.stream_read_table",
+    "transform_function": "functions.silver_standard_transform",
+    "write_function": "functions.stream_upsert_table",
+    "upsert_function": "functions.upsert_microbatch",
     "src_table_name": "edsm.bronze.systemsWithCoordinates",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "build_history": "true",
@@ -19,9 +19,7 @@
     "data_type_map": {
         "date": "timestamp"
     },
-    "readStreamOptions": {
-        "startingVersion": 2
-    },
+    "readStreamOptions": {},
     "writeStreamOptions": {
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/silver/utility/systemsWithCoordinates/_checkpoints/",

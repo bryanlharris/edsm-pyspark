@@ -1,6 +1,6 @@
 import json
 from pyspark.sql.functions import lit, expr
-from functions.utility_functions import create_table_if_not_exists
+from functions import create_table_if_not_exists
 
 def transaction_history(spark, full_table_name):
     transaction_table_name = f"{full_table_name}_transaction_history"

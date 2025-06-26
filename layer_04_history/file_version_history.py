@@ -1,4 +1,4 @@
-from functions.utility_functions import create_table_if_not_exists
+from functions import create_table_if_not_exists
 from pyspark.sql.functions import col
 
 def describe_and_filter_history(spark, full_table_name):
