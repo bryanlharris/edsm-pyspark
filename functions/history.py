@@ -1,5 +1,6 @@
+import json
 from functions import create_table_if_not_exists
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, lit, expr
 
 def describe_and_filter_history(spark, full_table_name):
     hist = spark.sql(f"describe history {full_table_name}")
@@ -52,3 +53,35 @@ def build_and_merge_file_history(spark, full_table_name):
             when matched then update set *
             when not matched then insert *
         """)
+
+
+
+
+def transaction_history(spark, full_table_name):
+    transaction_table_name = f"{full_table_name}_transaction_history"
+
+    # Create df
+    df = (
+        spark.sql(f"describe history {full_table_name}")
+        .withColumn("table_name", lit(full_table_name))
+        .withColumn('primary_key', expr(' coalesce(table_name, "") || "_" || coalesce(cast(version as string), "") '))
+        .selectExpr("table_name", "* except (table_name)")
+    )
+
+    # Sanity check
+    create_table_if_not_exists(spark, df, transaction_table_name)
+
+    df.createOrReplaceTempView("df")
+    spark.sql(f"""
+        merge into {transaction_table_name} as target
+        using df as source
+        on target.primary_key = source.primary_key
+        when matched then update set *
+        when not matched then insert *
+    """)
+
+
+
+
+
+
