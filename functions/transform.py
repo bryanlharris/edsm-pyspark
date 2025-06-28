@@ -3,7 +3,7 @@ from pyspark.sql.types import StructType, StructField, StringType, LongType, Tim
 from pyspark.sql.functions import concat, regexp_extract, date_format, current_timestamp
 from pyspark.sql.functions import when, col, to_timestamp, to_date, regexp_replace
 from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim, struct
-from pyspark.sql.functions import to_json, struct, expr, to_utc_timestamp
+from pyspark.sql.functions import to_json, expr, to_utc_timestamp
 from pyspark.sql.types import StructType, ArrayType
 from pyspark.sql.functions import transform
 import re
@@ -51,6 +51,18 @@ def silver_scd2_transform(df, settings, spark):
         df.transform(silver_standard_transform, settings, spark)
           .transform(scd2_column_initializer, settings, spark)
     )
+
+## This is the catchup transform, in case you skipped a couple
+## of days and your streaming update has >1 sets of data
+## Look in write.py for instructions how to use this
+def silver_scd2_catchup_transform(df, settings, spark):
+    latest = (
+        spark.read.table(settings["dst_table_name"])
+        .agg({"derived_ingest_time": "max"})
+        .collect()[0][0]
+    )
+
+    return df.filter(col("derived_ingest_time") > lit(latest))
 
 
 def scd2_column_initializer(df, settings, spark):
