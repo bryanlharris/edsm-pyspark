@@ -3,25 +3,26 @@
     "transform_function": "functions.silver_scd2_transform",
     "write_function": "functions.stream_write_scd2_table",
     "upsert_function": "functions.scd2_upsert",
-    "src_table_name": "edsm.bronze.bodies7days",
-    "dst_table_name": "edsm.silver.bodies7days",
+    "src_table_name": "edsm.bronze.systemsWithCoordinates",
+    "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "build_history": "false",
     "composite_key": [
         "id"
     ],
     "business_key": [
-        "materials",
-        "updateTime"
+        "name",
+        "coords.x",
+        "coords.y",
+        "coords.z",
+        "date"
     ],
-    "use_row_hash": true,
-    "row_hash_col": "row_hash",
     "data_type_map": {
         "date": "timestamp"
     },
     "readStreamOptions": {},
     "writeStreamOptions": {
         "mergeSchema": "false",
-        "checkpointLocation": "/Volumes/edsm/silver/utility/bodies7days/_checkpoints/",
+        "checkpointLocation": "/Volumes/edsm/silver/utility/systemsWithCoordinates/_checkpoints/",
         "delta.columnMapping.mode": "name"
     },
     "ingest_time_column": "derived_ingest_time"

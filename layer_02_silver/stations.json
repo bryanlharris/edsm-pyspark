@@ -5,7 +5,7 @@
     "upsert_function": "functions.scd2_upsert",
     "src_table_name": "edsm.bronze.stations",
     "dst_table_name": "edsm.silver.stations",
-    "build_history": "true",
+    "build_history": "false",
     "composite_key": [
         "id",
         "body",
