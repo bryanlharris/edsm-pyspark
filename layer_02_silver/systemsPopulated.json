@@ -1,8 +1,8 @@
 {
     "read_function": "functions.stream_read_table",
-    "transform_function": "functions.silver_standard_transform",
-    "write_function": "functions.stream_upsert_table",
-    "upsert_function": "functions.upsert_microbatch",
+    "transform_function": "functions.silver_scd2_transform",
+    "write_function": "functions.stream_scd2_table",
+    "upsert_function": "functions.scd2_upsert",
     "src_table_name": "edsm.bronze.systemsPopulated",
     "dst_table_name": "edsm.silver.systemsPopulated",
     "build_history": "true",
@@ -30,5 +30,6 @@
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/silver/utility/systemsPopulated/_checkpoints/",
         "delta.columnMapping.mode": "name"
-    }
+    },
+    "ingest_time_column": "derived_ingest_time"
 }

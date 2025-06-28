@@ -1,84 +1,18 @@
 
 from pyspark.sql.types import StructType, StructField, StringType, LongType, TimestampType
+from pyspark.sql.functions import concat, regexp_extract, date_format, current_timestamp
 from pyspark.sql.functions import when, col, to_timestamp, to_date, regexp_replace
 from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim, struct
-from pyspark.sql.functions import sha2, to_json, struct, expr
+from pyspark.sql.functions import to_json, struct, expr, to_utc_timestamp
 from pyspark.sql.types import StructType, ArrayType
-from pyspark.sql.functions import col, struct, transform
+from pyspark.sql.functions import transform
 import re
 
 
-from pyspark.sql.functions import lit, col
-
-def scd2_transform(spark, settings, df):
-    ingest_time_column = settings["ingest_time_column"]
+def bronze_standard_transform(df, settings, spark):
     return (
-        df.withColumn("created_on", col(ingest_time_column))
-        .withColumn("deleted_on", lit(None).cast("timestamp"))
-        .withColumn("current_flag", lit("Yes"))
-        .withColumn("valid_from", col(ingest_time_column))
-        .withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
-    )
-
-
-from pyspark.sql.functions import col, concat, lit, regexp_extract, to_timestamp, date_format, current_timestamp
-
-
-def silver_standard_transform(spark, settings, df):
-    # Variables (json file)
-    src_table_name          = settings.get("src_table_name")
-    dst_table_name          = settings.get("dst_table_name")
-    readStreamOptions       = settings.get("readStreamOptions")
-    writeStreamOptions      = settings.get("writeStreamOptions")
-    composite_key           = settings.get("composite_key")
-    business_key            = settings.get("business_key")
-    column_map              = settings.get("column_map")
-    data_type_map           = settings.get("data_type_map")
-
-    return (
-        df.transform(rename_columns, column_map)
-        .transform(cast_data_types, data_type_map)
-        .withColumn("file_path", col("source_metadata").getField("file_path"))
-        .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
-    )
-
-def silver_row_hash_transform(spark, settings, df):
-    # Variables (json file)
-    src_table_name          = settings.get("src_table_name")
-    dst_table_name          = settings.get("dst_table_name")
-    readStreamOptions       = settings.get("readStreamOptions")
-    writeStreamOptions      = settings.get("writeStreamOptions")
-    composite_key           = settings.get("composite_key")
-    business_key            = settings.get("business_key")
-    column_map              = settings.get("column_map")
-    data_type_map           = settings.get("data_type_map")
-
-    return (
-        df.transform(rename_columns, column_map)
-        .transform(cast_data_types, data_type_map)
-        .withColumn("file_path", col("source_metadata").getField("file_path"))
-        .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
-        .transform(row_hash, business_key, name="row_hash")
-    )
-
-
-from pyspark.sql.functions import current_timestamp, expr, col
-from pyspark.sql.functions import to_timestamp, concat, regexp_extract, lit, date_format
-from pyspark.sql.types import StringType
-
-def bronze_standard_transform(spark, settings, df):
-    # Variables
-    dst_table_name          = settings.get("dst_table_name")
-    readStreamOptions       = settings.get("readStreamOptions")
-    writeStreamOptions      = settings.get("writeStreamOptions")
-    readStream_load         = settings.get("readStream_load")
-    writeStream_format      = settings.get("writeStream_format")
-    writeStream_outputMode  = settings.get("writeStream_outputMode")
-    file_schema             = settings.get("file_schema")
-
-    # Transform
-    return (
-        df.transform(rename_space_columns)
+        df.transform(trim_columns)
+        .transform(rename_space_columns)
         .transform(add_source_metadata, settings)
         .withColumn("ingest_time", current_timestamp())
         .withColumn(
@@ -94,6 +28,40 @@ def bronze_standard_transform(spark, settings, df):
         )
     )
 
+
+def silver_standard_transform(df, settings, spark):
+    # Settings
+    business_key            = settings["business_key"]
+    column_map              = settings.get("column_map", None)
+    data_type_map           = settings.get("data_type_map", None)
+    use_row_hash            = settings.get("use_row_hash", False)
+    row_hash_col            = settings.get("row_hash_col", "row_hash")
+
+    return (
+        df.transform(rename_columns, column_map)
+        .transform(cast_data_types, data_type_map)
+        .withColumn("file_path", col("source_metadata").getField("file_path"))
+        .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
+        .transform(row_hash, business_key, "row_hash", use_row_hash)
+    )
+
+
+def silver_scd2_transform(df, settings, spark):
+    return (
+        df.transform(silver_standard_transform, settings, spark)
+          .transform(scd2_column_initializer, settings, spark)
+    )
+
+
+def scd2_column_initializer(df, settings, spark):
+    ingest_time_column = settings["ingest_time_column"]
+    return (
+        df.withColumn("created_on", col(ingest_time_column))
+        .withColumn("deleted_on", lit(None).cast("timestamp"))
+        .withColumn("current_flag", lit("Yes"))
+        .withColumn("valid_from", col(ingest_time_column))
+        .withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
+    )
 
 
 def add_source_metadata(df, settings):
@@ -112,7 +80,6 @@ def add_source_metadata(df, settings):
         return df.withColumn("source_metadata", lit(None).cast(metadata_type))
 
 
-
 def rename_space_columns(df):
     def _rec(c, t):
         if isinstance(t, StructType):
@@ -124,13 +91,14 @@ def rename_space_columns(df):
     return df.select(*[_rec(col(f.name), f.dataType).alias(f.name.replace(" ", "_")) for f in df.schema.fields])
 
 
-def row_hash(df, fields_to_hash, name="row_hash"):
-    # fields_to_hash = composite_key + business_key
-    df = df.withColumn(
+def row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
+    if not use_row_hash:
+        return df
+
+    return df.withColumn(
         name,
         sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
     )
-    return df
 
 
 def clean_column_names(df):
@@ -145,22 +113,23 @@ def clean_column_names(df):
 
 
 
-
 def trim_columns(df, cols=None):
     if cols:
-        target_cols = [c for c in cols if c in df.columns]
+        target_cols = set(c for c in cols if c in df.columns)
     else:
-        target_cols = [c for c, t in df.dtypes if t == 'string']
-    for c in target_cols:
-        df = df.withColumn(c, trim(col(c)))
-    return df
+        target_cols = set(c for c, t in df.dtypes if t == "string")
+
+    replacements = {c: trim(col(c)).alias(c) for c in target_cols}
+    new_cols = [replacements.get(c, col(c)) for c in df.columns]
+
+    return df.select(new_cols)
 
 
 def rename_columns(df, column_map=None):
     if not column_map:
         return df
     new_names = [column_map.get(c, c) for c in df.columns]
-    return df.select(renamed)
+    return df.toDF(*new_names)
 
 
 def cast_data_types(df, data_type_map=None):

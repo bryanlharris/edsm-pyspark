@@ -7,7 +7,6 @@
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {
         "cloudFiles.format": "json",
-        "cloudFiles.maxFilesPerTrigger": "1",
         "pathGlobFilter": "bodies7days.json",
         "cloudFiles.inferColumnTypes": "false",
         "inferSchema": "false",

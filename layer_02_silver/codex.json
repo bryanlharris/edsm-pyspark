@@ -1,5 +1,8 @@
 {
-    "pipeline_function": "silver.edsm_silver_load",
+    "read_function": "functions.stream_read_table",
+    "transform_function": "functions.silver_scd2_transform",
+    "write_function": "functions.stream_scd2_table",
+    "upsert_function": "functions.scd2_upsert",
     "src_table_name": "edsm.bronze.codex",
     "dst_table_name": "edsm.silver.codex",
     "build_history": "true",
@@ -19,8 +22,6 @@
         "systemName",
         "type"
     ],
-    "use_row_hash": true,
-    "row_hash_col": "row_hash",
     "data_type_map": {
         "date": "timestamp"
     },
@@ -29,5 +30,6 @@
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/silver/utility/codex/_checkpoints/",
         "delta.columnMapping.mode": "name"
-    }
+    },
+    "ingest_time_column": "derived_ingest_time"
 }

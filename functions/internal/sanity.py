@@ -1,6 +1,11 @@
 import os
 import ast
-from functions import get_function
+import json
+import importlib
+from glob import glob
+from pathlib import Path
+from pyspark.sql.types import StructType
+from functions import create_table_if_not_exists, get_function
 
 ## Rebuild __init__.py files before getting started
 def extract_function_names(filepath):
@@ -29,7 +34,7 @@ def generate_init_file(directory):
 def build_all_init(project_root):
     os.chdir(project_root)
     errs = []
-    for layer in ["functions", "layer_01_bronze", "layer_02_silver", "layer_03_gold", "layer_04_history"]:
+    for layer in [ "functions" ]:
         try:
             generate_init_file(layer)
         except Exception as e:
@@ -38,16 +43,6 @@ def build_all_init(project_root):
         raise RuntimeError("Errors in build_all_init: " + "; ".join(errs))
     print("Sanity check: Python __init__.py files rebuild check passed.")
 
-    
-
-
-import os
-import json
-import importlib
-from glob import glob
-from pathlib import Path
-from pyspark.sql.types import StructType
-from functions import create_table_if_not_exists
 
 def validate_settings(project_root, dbutils):
     os.chdir(project_root)
@@ -61,13 +56,6 @@ def validate_settings(project_root, dbutils):
     gold_files={f.split("/")[-1].replace(".json",""): f for f in glob("./layer_*_gold/*.json")}
 
     all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
-
-    # modules = {
-    #     "functions": importlib.import_module("functions"),
-    #     "bronze": importlib.import_module("layer_01_bronze"),
-    #     "silver": importlib.import_module("layer_02_silver"),
-    #     "gold": importlib.import_module("layer_03_gold")
-    # }
 
     layers=["bronze","silver","gold"]
     required_functions={
@@ -105,12 +93,6 @@ def initialize_empty_tables(project_root, spark):
     all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
 
     layers=["bronze","silver","gold"]
-    # modules = {
-    #     "functions": importlib.import_module("functions"),
-    #     "bronze": importlib.import_module("layer_01_bronze"),
-    #     "silver": importlib.import_module("layer_02_silver"),
-    #     "gold": importlib.import_module("layer_03_gold")
-    # }
 
     ## For each table and each layer, cascade transforms and create table
     for tbl in sorted(all_tables):
@@ -139,17 +121,15 @@ def initialize_empty_tables(project_root, spark):
                 schema=StructType.fromJson(settings["file_schema"])
                 df=spark.createDataFrame([], schema)
             try:
-                # modname, funcname=settings["transform_function"].split(".")
-                # transform_function=getattr(modules[modname], funcname)
                 transform_function = get_function(settings["transform_function"])
             except Exception:
                 errs.append(f"{path} missing transform_function for {tbl}, cannot create table")
                 skip_table=True
                 break
-            df=transform_function(spark, settings, df)
+            df=transform_function(df, settings, spark)
             dst=settings["dst_table_name"]
             if create_table_if_not_exists(spark, df, dst):
-                print(f"Table did not exist and was created: {dst}.")
+                print(f"\tINFO: Table did not exist and was created: {dst}.")
         if skip_table:
             continue
 

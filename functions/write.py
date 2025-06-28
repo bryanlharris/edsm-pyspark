@@ -1,4 +1,7 @@
-def stream_write_table(spark, settings, df):
+from functions import create_table_if_not_exists, get_function
+
+
+def stream_write_table(df, settings, spark):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     writeStreamOptions      = settings.get("writeStreamOptions")
@@ -16,21 +19,20 @@ def stream_write_table(spark, settings, df):
     )
 
 
-from functions import create_table_if_not_exists, get_function
 
-def stream_upsert_table(spark, settings, df):
+def stream_upsert_table(df, settings, spark):
     upsert_func = get_function(settings.get("upsert_function"))
     return (
         df.writeStream
         .queryName(settings.get("dst_table_name"))
         .options(**settings.get("writeStreamOptions"))
         .trigger(availableNow=True)
-        .foreachBatch(upsert_func(spark, settings))
+        .foreachBatch(upsert_func(settings, spark))
         .outputMode("update")
         .start()
     )
 
-def upsert_microbatch(spark, settings):
+def upsert_microbatch(settings, spark):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     composite_key           = settings.get("composite_key")
@@ -47,7 +49,10 @@ def upsert_microbatch(spark, settings):
 
         # from pyspark.sql.functions import row_number
         # from pyspark.sql.window import Window
-        # window = Window.partitionBy(*composite_key).orderBy(*business_key)
+        # if use_row_hash:
+        #     window = Window.partitionBy(*composite_key).orderBy(row_hash_col)
+        # else:
+        #     window = Window.partitionBy(*composite_key).orderBy(*business_key)
         # microBatchDF = microBatchDF.withColumn("rn", row_number().over(window)).filter("rn = 1").drop("rn")
 
         merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
@@ -71,7 +76,82 @@ def upsert_microbatch(spark, settings):
     return upsert
 
 
-def scd2_write(spark, settings, df):
+## Let's you have a silver SCD2 table based on streaming
+## (Bronze can have duplicates on the composite_key, it uses the latest)
+def stream_scd2_table(df, settings, spark):
+    composite_key = settings["composite_key"]
+    ingest_time_column = settings["ingest_time_column"]
+
+    from pyspark.sql.window import Window
+    from pyspark.sql.functions import row_number, col
+
+    window = Window.partitionBy(*composite_key).orderBy(col(ingest_time_column).desc())
+    df = (
+        df.withColumn("rn", row_number().over(window))
+          .filter("rn = 1")
+          .drop("rn")
+    )
+
+    upsert_func = get_function(settings.get("upsert_function"))
+    return (
+        df.writeStream
+        .queryName(settings["dst_table_name"])
+        .options(**settings["writeStreamOptions"])
+        .trigger(availableNow=True)
+        .foreachBatch(upsert_func(settings, spark))
+        .outputMode("update")
+        .start()
+    )
+
+def scd2_upsert(settings, spark):
+    # Variables
+    dst_table_name          = settings.get("dst_table_name")
+    composite_key           = settings.get("composite_key")
+    business_key            = settings.get("business_key")
+    ingest_time_column      = settings.get("ingest_time_column")
+    
+    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
+    # change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+    if use_row_hash:
+            change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
+        else:
+            change_condition = " or ".join([f"t.{k} <> s.{k}" for k in business_key])
+
+    def upsert(microBatchDF, batchId):
+        microBatchDF.createOrReplaceTempView("updates")
+        # Mark deletions only
+        spark.sql(f"""
+            MERGE INTO {dst_table_name} t
+            USING updates s
+            ON {merge_condition} AND t.current_flag='Yes'
+            WHEN MATCHED AND ({change_condition}) THEN
+                UPDATE SET
+                    t.deleted_on=s.{ingest_time_column},
+                    t.current_flag='No',
+                    t.valid_to=s.{ingest_time_column}
+        """)
+
+        spark.sql(f"""
+            INSERT INTO {dst_table_name}
+            SELECT
+                s.* EXCEPT (created_on, deleted_on, current_flag, valid_from, valid_to),
+                s.{ingest_time_column} AS created_on,
+                NULL AS deleted_on,
+                'Yes' AS current_flag,
+                s.{ingest_time_column} AS valid_from,
+                CAST('9999-12-31 23:59:59' AS TIMESTAMP) AS valid_to
+            FROM updates s
+            LEFT JOIN {dst_table_name} t
+                ON {merge_condition} AND t.current_flag='Yes'
+            WHERE t.current_flag IS NULL
+        """)
+
+    return upsert
+
+
+## Let's you have a gold SCD2 table based on static deduplicated silver
+## (Silver cannot have duplicates on the composite_key)
+def scd2_write(df, settings, spark):
     # Variables (json file)
     dst_table_name          = settings.get("dst_table_name")
     composite_key           = settings.get("composite_key")

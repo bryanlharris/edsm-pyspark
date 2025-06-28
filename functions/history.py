@@ -1,5 +1,5 @@
 import json
-from functions import create_table_if_not_exists
+from .utility import create_table_if_not_exists
 from pyspark.sql.functions import col, lit, expr
 
 def describe_and_filter_history(spark, full_table_name):
