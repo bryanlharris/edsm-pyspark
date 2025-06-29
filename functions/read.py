@@ -37,7 +37,7 @@ def stream_read_table(spark, settings):
     )
 
 
-def read_static_table(spark, settings):
+def read_table(spark, settings):
     return spark.read.table(settings["src_table_name"])
 
 

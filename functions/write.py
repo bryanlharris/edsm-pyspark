@@ -1,5 +1,17 @@
 from functions import create_table_if_not_exists, get_function, silver_scd2_transform
 from pyspark.sql.functions import col, row_number
+from pyspark.sql.window import Window
+
+
+def write_dedup_snapshot(df, settings, spark):
+    dst_table_name = settings["dst_table_name"]
+    business_key = settings["business_key"]
+    ingest_time_column = settings["ingest_time_column"]
+
+    window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
+    df = df.withColumn("row_num", row_number().over(window)).filter("row_num = 1").drop("row_num")
+    df.write.mode("overwrite").saveAsTable(dst_table_name)
+
 
 
 def stream_write_table(df, settings, spark):
