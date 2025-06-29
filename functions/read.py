@@ -39,7 +39,7 @@ def read_table(spark, settings):
     return spark.read.table(settings["src_table_name"])
 
 
-def read_windowed_snapshot(spark, settings):
+def read_snapshot_windowed(spark, settings):
     window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
     return (
         spark.read
@@ -51,7 +51,7 @@ def read_windowed_snapshot(spark, settings):
 
 
 def read_latest_ingest(spark, settings):
-    ingest_time_column = settings["derived_ingest_time"]
+    ingest_time_column = settings["ingest_time_column"]
     df = spark.read.table(settings["src_table_name"])
     max_time = df.agg({ingest_time_column: "max"}).collect()[0][0]
     return df.filter(df["ingest_time"] == max_time)

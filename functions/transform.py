@@ -19,7 +19,7 @@ def bronze_standard_transform(df, settings, spark):
             "derived_ingest_time",
             to_timestamp(
                 concat(
-                    regexp_extract(col("source_metadata.file_path"), "/landing/(\\d{8})/", 1),
+                    regexp_extract(col("source_metadata.file_path"), "/(\\d{8})/", 1),
                     lit(" "),
                     date_format(current_timestamp(), "HH:mm:ss"),
                 ),
@@ -111,6 +111,8 @@ def row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
         name,
         sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
     )
+# Should use add_row_hash in the future
+add_row_hash = row_hash
 
 
 def clean_column_names(df):

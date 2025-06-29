@@ -179,7 +179,7 @@ def stream_scd2_catchup_write(df, settings, spark):
     )
 
 def scd2_catchup_outer_upsert(settings, spark):
-    def upsert_fn(df, batchId):
+    def outer_upsert_fn(df, batchId):
         upsert = scd2_upsert(settings, spark)
 
         times = (
@@ -195,11 +195,10 @@ def scd2_catchup_outer_upsert(settings, spark):
             batch = silver_scd2_transform(batch, settings, spark)
             upsert(batch, batchId)
 
-    return upsert_fn
+    return outer_upsert_fn
 
 
-
-## Let's you have a gold SCD2 table based on static deduplicated silver
+## Let's you have a gold SCD2 table based on deduplicated silver
 ## (Silver cannot have duplicates on the composite_key)
 def scd2_write(df, settings, spark):
     # Variables (json file)
@@ -238,7 +237,8 @@ def scd2_write(df, settings, spark):
             ON {merge_condition} AND t.current_flag='Yes'
         WHERE t.current_flag IS NULL
     """)
-
+## Alias to a better name
+batch_scd2_write = scd2_write
 
 
 
