@@ -1,7 +1,7 @@
 {
-    "read_function": "functions.read_table",
+    "read_function": "functions.read_latest_ingest",
     "transform_function": "functions.silver_standard_transform",
-    "write_function": "functions.write_dedup_snapshot",
+    "write_function": "functions.overwrite_table",
     "src_table_name": "edsm.bronze.systemsWithCoordinates",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "build_history": "false",
