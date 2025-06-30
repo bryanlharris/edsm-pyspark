@@ -41,7 +41,7 @@ def silver_standard_transform(df, settings, spark):
         .transform(cast_data_types, data_type_map)
         .withColumn("file_path", col("source_metadata").getField("file_path"))
         .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
-        .transform(add_row_hash, surrogate_key, "row_hash", use_row_hash)
+        .transform(add_row_hash, surrogate_key, row_hash_col, use_row_hash)
     )
 
 
@@ -50,18 +50,6 @@ def silver_scd2_transform(df, settings, spark):
         df.transform(silver_standard_transform, settings, spark)
           .transform(add_scd2_columns, settings, spark)
     )
-
-## This is the catchup transform, in case you skipped a couple
-## of days and your streaming update has >1 sets of data
-## Look in write.py for instructions how to use this
-def silver_scd2_catchup_transform(df, settings, spark):
-    latest = (
-        spark.read.table(settings["dst_table_name"])
-        .agg({"derived_ingest_time": "max"})
-        .collect()[0][0]
-    )
-
-    return df.filter(col("derived_ingest_time") > lit(latest))
 
 
 def add_scd2_columns(df, settings, spark):
@@ -89,17 +77,6 @@ def add_source_metadata(df, settings):
         return df.withColumn("source_metadata", expr("_metadata"))
     else:
         return df.withColumn("source_metadata", lit(None).cast(metadata_type))
-
-
-# def rename_space_columns(df):
-#     def _rec(c, t):
-#         if isinstance(t, StructType):
-#             return struct(*[_rec(c[f.name], f.dataType).alias(f.name.replace(" ", "_")) for f in t.fields])
-#         if isinstance(t, ArrayType):
-#             return transform(c, lambda x: _rec(x, t.elementType))
-#         return c
-
-#     return df.select(*[_rec(col(f.name), f.dataType).alias(f.name.replace(" ", "_")) for f in df.schema.fields])
 
 
 def add_row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
