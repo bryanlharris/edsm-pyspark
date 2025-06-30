@@ -60,8 +60,8 @@ def validate_settings(project_root, dbutils):
     layers=["bronze","silver","gold"]
     required_functions={
         "bronze":["read_function","transform_function","write_function","dst_table_name","file_schema"],
-        "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name","composite_key","business_key"],
-        "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name","composite_key","business_key"]
+        "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name","business_key","surrogate_key"],
+        "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name","business_key","surrogate_key"]
     }
 
     optional_functions={

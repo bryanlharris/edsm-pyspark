@@ -6,10 +6,10 @@
     "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "build_history": "true",
-    "composite_key": [
+    "business_key": [
         "id"
     ],
-    "business_key": [
+    "surrogate_key": [
         "name",
         "coords.x",
         "coords.y",

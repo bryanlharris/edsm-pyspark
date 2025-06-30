@@ -6,10 +6,10 @@
     "src_table_name": "edsm.bronze.bodies7days",
     "dst_table_name": "edsm.silver.bodies7days",
     "build_history": "false",
-    "composite_key": [
+    "business_key": [
         "id"
     ],
-    "business_key": [
+    "surrogate_key": [
         "materials",
         "updateTime"
     ],

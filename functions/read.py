@@ -40,7 +40,7 @@ def read_table(spark, settings):
 
 
 def read_snapshot_windowed(spark, settings):
-    window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
+    window = Window.partitionBy(*surrogate_key).orderBy(col(ingest_time_column).desc())
     return (
         spark.read
         .table(settings["src_table_name"])

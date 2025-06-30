@@ -40,12 +40,12 @@ def stream_upsert_table(df, settings, spark):
 def upsert_microbatch(settings, spark):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
-    composite_key           = settings.get("composite_key")
-    business_key            = settings.get("business_key")
+    business_key           = settings.get("business_key")
+    surrogate_key            = settings.get("surrogate_key")
 
     use_row_hash            = settings.get("use_row_hash", False)
     row_hash_col            = settings.get("row_hash_col", "row_hash")
-    business_key            = settings.get("business_key")
+    surrogate_key            = settings.get("surrogate_key")
 
     def upsert(microBatchDF, batchId):
         # Sanity check needs to be in its own place
@@ -55,17 +55,17 @@ def upsert_microbatch(settings, spark):
         # from pyspark.sql.functions import row_number
         # from pyspark.sql.window import Window
         # if use_row_hash:
-        #     window = Window.partitionBy(*composite_key).orderBy(row_hash_col)
+        #     window = Window.partitionBy(*business_key).orderBy(row_hash_col)
         # else:
-        #     window = Window.partitionBy(*composite_key).orderBy(*business_key)
+        #     window = Window.partitionBy(*business_key).orderBy(*surrogate_key)
         # microBatchDF = microBatchDF.withColumn("rn", row_number().over(window)).filter("rn = 1").drop("rn")
 
-        merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
-        # change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+        merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
+        # change_condition = " or ".join([f"t.{k}<>s.{k}" for k in surrogate_key])
         if use_row_hash:
             change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
         else:
-            change_condition = " or ".join([f"t.{k} <> s.{k}" for k in business_key])
+            change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
         microBatchDF.createOrReplaceTempView("updates")
         spark.sql(
@@ -82,9 +82,9 @@ def upsert_microbatch(settings, spark):
 
 
 ## Let's you have a silver SCD2 table based on streaming
-## (Bronze can have duplicates on the composite_key, it uses the latest)
+## (Bronze can have duplicates on the business_key, it uses the latest)
 def stream_write_scd2_table(df, settings, spark):
-    composite_key = settings["composite_key"]
+    business_key = settings["business_key"]
     ingest_time_column = settings["ingest_time_column"]
 
     upsert_func = get_function(settings.get("upsert_function"))
@@ -101,24 +101,24 @@ def stream_write_scd2_table(df, settings, spark):
 def scd2_upsert(settings, spark):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
-    composite_key           = settings.get("composite_key")
-    business_key            = settings.get("business_key")
+    business_key           = settings.get("business_key")
+    surrogate_key            = settings.get("surrogate_key")
     ingest_time_column      = settings.get("ingest_time_column")
     use_row_hash            = settings.get("use_row_hash", False)
     row_hash_col            = settings.get("row_hash_col", "row_hash")
     
-    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
-    # change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
+    # change_condition = " or ".join([f"t.{k}<>s.{k}" for k in surrogate_key])
     if use_row_hash:
         change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
     else:
-        change_condition = " or ".join([f"t.{k} <> s.{k}" for k in business_key])
+        change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
     def upsert(microBatchDF, batchId):
         from pyspark.sql.window import Window
         from pyspark.sql.functions import row_number, col
 
-        window = Window.partitionBy(*composite_key).orderBy(col(ingest_time_column).desc())
+        window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
         microBatchDF = (
             microBatchDF.withColumn("rn", row_number().over(window))
             .filter("rn = 1")
@@ -156,7 +156,7 @@ def scd2_upsert(settings, spark):
     return upsert
 
 ## Let's you catch up a silver SCD2 table based on streaming
-## (Bronze assumed to have duplicates on the composite_key, it loops through them)
+## (Bronze assumed to have duplicates on the business_key, it loops through them)
 ## This is all untested by the way.
 # To use this, set your settings like this
 #     "read_function": "functions.stream_read_table",                   # normal readstream
@@ -164,7 +164,7 @@ def scd2_upsert(settings, spark):
 #     "write_function": "functions.stream_scd2_catchup_write",          # Streams entire batch (trigger=availableNow)
 #     "upsert_function": "functions.scd2_catchup_outer_upsert",         # outer upsert, loops through times, runs inner upsert one by one
 def stream_scd2_catchup_write(df, settings, spark):
-    composite_key = settings["composite_key"]
+    business_key = settings["business_key"]
     ingest_time_column = settings["ingest_time_column"]
 
     upsert_func = get_function(settings.get("upsert_function"))
@@ -199,16 +199,20 @@ def scd2_catchup_outer_upsert(settings, spark):
 
 
 ## Let's you have a gold SCD2 table based on deduplicated silver
-## (Silver cannot have duplicates on the composite_key)
-def scd2_write(df, settings, spark):
+## (Silver cannot have duplicates on the business_key)
+def batch_scd2_write(df, settings, spark):
     # Variables (json file)
     dst_table_name          = settings.get("dst_table_name")
-    composite_key           = settings.get("composite_key")
-    business_key            = settings.get("business_key")
+    business_key           = settings.get("business_key")
+    surrogate_key            = settings.get("surrogate_key")
     ingest_time_column      = settings.get("ingest_time_column")
+    use_row_hash            = settings.get("use_row_hash")
     
-    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in composite_key])
-    change_condition = " or ".join([f"t.{k}<>s.{k}" for k in business_key])
+    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
+    if use_row_hash:
+        change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
+    else:
+        change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
     df.createOrReplaceTempView("updates")
     # Mark deletions only
@@ -237,9 +241,30 @@ def scd2_write(df, settings, spark):
             ON {merge_condition} AND t.current_flag='Yes'
         WHERE t.current_flag IS NULL
     """)
-## Alias to a better name
-batch_scd2_write = scd2_write
 
+
+
+
+
+
+def write_upsert_snapshot(df, settings, spark):
+    dst_table = settings["dst_table_name"]
+    business_key = settings["business_key"]
+    ingest_time_col = settings["ingest_time_column"]
+
+    window = Window.partitionBy(*business_key).orderBy(col(ingest_time_col).desc())
+    df = df.withColumn("row_num", row_number().over(window)).filter("row_num = 1").drop("row_num")
+    df.createOrReplaceTempView("updates")
+
+    merge_condition = " AND ".join([f"target.{k} = source.{k}" for k in business_key])
+
+    spark.sql(f"""
+    MERGE INTO {dst_table} AS target
+    USING updates AS source
+    ON {merge_condition}
+    WHEN MATCHED THEN UPDATE SET *
+    WHEN NOT MATCHED THEN INSERT *
+    """)
 
 
 

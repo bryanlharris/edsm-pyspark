@@ -6,12 +6,12 @@
     "src_table_name": "edsm.bronze.stations",
     "dst_table_name": "edsm.silver.stations",
     "build_history": "false",
-    "composite_key": [
+    "business_key": [
         "id",
         "body",
         "systemId"
     ],
-    "business_key": [
+    "surrogate_key": [
         "allegiance",
         "commodities",
         "controllingFaction",

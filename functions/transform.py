@@ -11,8 +11,7 @@ import re
 
 def bronze_standard_transform(df, settings, spark):
     return (
-        df.transform(trim_columns)
-        .transform(rename_space_columns)
+        df.transform(clean_column_names)
         .transform(add_source_metadata, settings)
         .withColumn("ingest_time", current_timestamp())
         .withColumn(
@@ -31,7 +30,7 @@ def bronze_standard_transform(df, settings, spark):
 
 def silver_standard_transform(df, settings, spark):
     # Settings
-    business_key            = settings["business_key"]
+    surrogate_key            = settings["surrogate_key"]
     column_map              = settings.get("column_map", None)
     data_type_map           = settings.get("data_type_map", None)
     use_row_hash            = settings.get("use_row_hash", False)
@@ -42,14 +41,14 @@ def silver_standard_transform(df, settings, spark):
         .transform(cast_data_types, data_type_map)
         .withColumn("file_path", col("source_metadata").getField("file_path"))
         .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
-        .transform(row_hash, business_key, "row_hash", use_row_hash)
+        .transform(add_row_hash, surrogate_key, "row_hash", use_row_hash)
     )
 
 
 def silver_scd2_transform(df, settings, spark):
     return (
         df.transform(silver_standard_transform, settings, spark)
-          .transform(scd2_column_initializer, settings, spark)
+          .transform(add_scd2_columns, settings, spark)
     )
 
 ## This is the catchup transform, in case you skipped a couple
@@ -65,7 +64,7 @@ def silver_scd2_catchup_transform(df, settings, spark):
     return df.filter(col("derived_ingest_time") > lit(latest))
 
 
-def scd2_column_initializer(df, settings, spark):
+def add_scd2_columns(df, settings, spark):
     ingest_time_column = settings["ingest_time_column"]
     return (
         df.withColumn("created_on", col(ingest_time_column))
@@ -92,18 +91,18 @@ def add_source_metadata(df, settings):
         return df.withColumn("source_metadata", lit(None).cast(metadata_type))
 
 
-def rename_space_columns(df):
-    def _rec(c, t):
-        if isinstance(t, StructType):
-            return struct(*[_rec(c[f.name], f.dataType).alias(f.name.replace(" ", "_")) for f in t.fields])
-        if isinstance(t, ArrayType):
-            return transform(c, lambda x: _rec(x, t.elementType))
-        return c
+# def rename_space_columns(df):
+#     def _rec(c, t):
+#         if isinstance(t, StructType):
+#             return struct(*[_rec(c[f.name], f.dataType).alias(f.name.replace(" ", "_")) for f in t.fields])
+#         if isinstance(t, ArrayType):
+#             return transform(c, lambda x: _rec(x, t.elementType))
+#         return c
 
-    return df.select(*[_rec(col(f.name), f.dataType).alias(f.name.replace(" ", "_")) for f in df.schema.fields])
+#     return df.select(*[_rec(col(f.name), f.dataType).alias(f.name.replace(" ", "_")) for f in df.schema.fields])
 
 
-def row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
+def add_row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
     if not use_row_hash:
         return df
 
@@ -111,23 +110,33 @@ def row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
         name,
         sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
     )
-# Should use add_row_hash in the future
-add_row_hash = row_hash
 
 
 def clean_column_names(df):
-    column_map = {}
-    for col_name in df.columns:
-        new_name = col_name.strip().lower()
-        new_name = re.sub(r"\s+", "_", new_name)
-        new_name = re.sub(r"[^0-9a-zA-Z_]+", "", new_name)
-        new_name = re.sub(r"_+", "_", new_name)
-        column_map[col_name] = new_name
-    return df.transform(rename_columns, column_map)
+    def clean(name):
+        name = name.strip().lower()
+        name = re.sub(r"\s+", "_", name)
+        name = re.sub(r"[^0-9a-zA-Z_]+", "", name)
+        name = re.sub(r"_+", "_", name)
+        return name
+
+    def _rec(c, t):
+        if isinstance(t, StructType):
+            return struct(*[
+                _rec(c[f.name], f.dataType).alias(clean(f.name))
+                for f in t.fields
+            ])
+        if isinstance(t, ArrayType):
+            return transform(c, lambda x: _rec(x, t.elementType))
+        return c
+
+    return df.select(*[
+        _rec(col(f.name), f.dataType).alias(clean(f.name))
+        for f in df.schema.fields
+    ])
 
 
-
-def trim_columns(df, cols=None):
+def trim_column_values(df, cols=None):
     if cols:
         target_cols = set(c for c in cols if c in df.columns)
     else:

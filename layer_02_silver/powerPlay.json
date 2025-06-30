@@ -7,11 +7,11 @@
     "dst_table_name": "edsm.silver.powerPlay",
     "build_history": "false",
     "ingest_time_column": "derived_ingest_time",
-    "composite_key": [
+    "business_key": [
         "id",
         "power"
     ],
-    "business_key": [
+    "surrogate_key": [
         "allegiance",
         "government",
         "powerState",
