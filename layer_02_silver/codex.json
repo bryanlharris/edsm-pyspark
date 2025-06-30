@@ -1,0 +1,28 @@
+{
+    "read_function": "functions.read_table",
+    "transform_function": "functions.silver_standard_transform",
+    "write_function": "functions.overwrite_table",
+    "src_table_name": "edsm.bronze.codex",
+    "dst_table_name": "edsm.silver.codex",
+    "build_history": "false",
+    "business_key": [
+        "name",
+        "region",
+        "systemId",
+        "systemId64",
+        "systemName",
+        "type"
+    ],
+    "surrogate_key": [
+        "name",
+        "region",
+        "systemId",
+        "systemId64",
+        "systemName",
+        "type"
+    ],
+    "data_type_map": {
+        "date": "timestamp"
+    },
+    "ingest_time_column": "derived_ingest_time"
+}

@@ -81,11 +81,11 @@ def upsert_microbatch(settings, spark):
     return upsert
 
 
-## Let's you have a silver SCD2 table based on streaming
-## (Bronze can have duplicates on the business_key, it uses the latest)
+## Why do I have this???
+## It's the same as the other stream_upsert_table
 def stream_write_scd2_table(df, settings, spark):
-    business_key = settings["business_key"]
-    ingest_time_column = settings["ingest_time_column"]
+    # business_key = settings["business_key"]
+    # ingest_time_column = settings["ingest_time_column"]
 
     upsert_func = get_function(settings.get("upsert_function"))
     return (
@@ -108,7 +108,6 @@ def scd2_upsert(settings, spark):
     row_hash_col            = settings.get("row_hash_col", "row_hash")
     
     merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
-    # change_condition = " or ".join([f"t.{k}<>s.{k}" for k in surrogate_key])
     if use_row_hash:
         change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
     else:

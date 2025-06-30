@@ -5,7 +5,7 @@
     "upsert_function": "functions.upsert_microbatch",
     "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
-    "build_history": "true",
+    "build_history": "false",
     "business_key": [
         "id"
     ],
