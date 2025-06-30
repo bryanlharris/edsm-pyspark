@@ -65,7 +65,9 @@ def validate_settings(project_root, dbutils):
     }
 
     optional_functions={
-        "silver": ["upsert_function"]
+        "bronze": [],
+        "silver": ["upsert_function"],
+        "gold": []
     }
 
     errs = []
