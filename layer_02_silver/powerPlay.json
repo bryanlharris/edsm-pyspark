@@ -2,7 +2,7 @@
     "read_function": "functions.stream_read_table",
     "transform_function": "functions.silver_scd2_transform",
     "write_function": "functions.stream_upsert_table",
-    "upsert_function": "functions.scd2_upsert",
+    "upsert_function": "functions.microbatch_scd2_upsert",
     "src_table_name": "edsm.bronze.powerPlay",
     "dst_table_name": "edsm.silver.powerPlay",
     "build_history": "false",

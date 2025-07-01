@@ -84,26 +84,26 @@ def add_source_metadata(df, settings):
 def make_null_safe(col_expr, dtype):
     if isinstance(dtype, StructType):
         return struct(*[
-            make_null_safe(col_expr[c.name], c.dataType).alias(c.name)
-            for c in dtype.fields
+            make_null_safe(col_expr[f.name], f.dataType).alias(f.name)
+            for f in dtype.fields
         ])
     elif isinstance(dtype, ArrayType):
-        element = make_null_safe(col("element"), dtype.elementType)
         return when(col_expr.isNull(), array().cast(dtype)) \
-            .otherwise(expr(f"transform({col_expr._jc.toString()}, element -> {element._jc.toString()})"))
+            .otherwise(transform(col_expr, lambda x: make_null_safe(x, dtype.elementType)))
     elif isinstance(dtype, MapType):
-        # Skip full map support unless needed
-        return col_expr  # pass-through
+        return col_expr
     else:
         return when(col_expr.isNull(), lit("")).otherwise(col_expr.cast("string"))
 
+
 def normalize_for_hash(df, fields):
     schema = df.schema
+    fields_present = [f for f in fields if f in df.columns]
     return df.withColumn(
         "__normalized_struct__",
         struct(*[
             make_null_safe(col(f), schema[f].dataType).alias(f)
-            for f in fields
+            for f in fields_present
         ])
     )
 
