@@ -36,7 +36,7 @@ def stream_upsert_table(df, settings, spark):
         .start()
     )
 
-def upsert_microbatch(settings, spark):
+def microbatch_upsert(settings, spark):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     business_key           = settings.get("business_key")
@@ -79,7 +79,7 @@ def upsert_microbatch(settings, spark):
 
     return upsert
 
-def scd2_upsert(settings, spark):
+def microbatch_scd2_upsert(settings, spark):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     business_key           = settings.get("business_key")
