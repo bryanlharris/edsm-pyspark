@@ -12,14 +12,13 @@ def stream_write_table(df, settings, spark):
     dst_table_name          = settings.get("dst_table_name")
     writeStreamOptions      = settings.get("writeStreamOptions")
     writeStream_format      = settings.get("writeStream_format")
-    writeStream_outputMode  = settings.get("writeStream_outputMode")
 
     # Write
     (
         df.writeStream
         .format(writeStream_format)
         .options(**writeStreamOptions)
-        .outputMode(writeStream_outputMode)
+        .outputMode("append")
         .trigger(availableNow=True)
         .table(dst_table_name)
     )
@@ -79,24 +78,6 @@ def upsert_microbatch(settings, spark):
         )
 
     return upsert
-
-
-## Why do I have this???
-## It's the same as the other stream_upsert_table
-def stream_write_scd2_table(df, settings, spark):
-    # business_key = settings["business_key"]
-    # ingest_time_column = settings["ingest_time_column"]
-
-    upsert_func = get_function(settings.get("upsert_function"))
-    return (
-        df.writeStream
-        .queryName(settings["dst_table_name"])
-        .options(**settings["writeStreamOptions"])
-        .trigger(availableNow=True)
-        .foreachBatch(upsert_func(settings, spark))
-        .outputMode("update")
-        .start()
-    )
 
 def scd2_upsert(settings, spark):
     # Variables

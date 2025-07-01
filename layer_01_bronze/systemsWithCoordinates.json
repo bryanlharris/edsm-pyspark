@@ -22,7 +22,6 @@
         "checkpointLocation": "/Volumes/edsm/bronze/utility/systemsWithCoordinates/_checkpoints/",
         "delta.columnMapping.mode": "name"
     },
-    "writeStream_outputMode": "append",
     "file_schema": {
         "fields": [
             {

@@ -6,6 +6,8 @@ from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim, struct
 from pyspark.sql.functions import to_json, expr, to_utc_timestamp
 from pyspark.sql.types import StructType, ArrayType
 from pyspark.sql.functions import transform
+from pyspark.sql.functions import array
+from pyspark.sql.types import *
 import re
 
 
@@ -79,14 +81,39 @@ def add_source_metadata(df, settings):
         return df.withColumn("source_metadata", lit(None).cast(metadata_type))
 
 
+def make_null_safe(col_expr, dtype):
+    if isinstance(dtype, StructType):
+        return struct(*[
+            make_null_safe(col_expr[c.name], c.dataType).alias(c.name)
+            for c in dtype.fields
+        ])
+    elif isinstance(dtype, ArrayType):
+        element = make_null_safe(col("element"), dtype.elementType)
+        return when(col_expr.isNull(), array().cast(dtype)) \
+            .otherwise(expr(f"transform({col_expr._jc.toString()}, element -> {element._jc.toString()})"))
+    elif isinstance(dtype, MapType):
+        # Skip full map support unless needed
+        return col_expr  # pass-through
+    else:
+        return when(col_expr.isNull(), lit("")).otherwise(col_expr.cast("string"))
+
+def normalize_for_hash(df, fields):
+    schema = df.schema
+    return df.withColumn(
+        "__normalized_struct__",
+        struct(*[
+            make_null_safe(col(f), schema[f].dataType).alias(f)
+            for f in fields
+        ])
+    )
+
 def add_row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
     if not use_row_hash:
         return df
 
-    return df.withColumn(
-        name,
-        sha2(to_json(struct(*[col(c) for c in fields_to_hash])),256)
-    )
+    df = normalize_for_hash(df, fields_to_hash)
+
+    return df.withColumn(name, sha2(to_json(col("__normalized_struct__")), 256)).drop("__normalized_struct__")
 
 
 def clean_column_names(df):
