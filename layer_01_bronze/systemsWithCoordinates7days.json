@@ -84,5 +84,6 @@
             }
         ],
         "type": "struct"
-    }
+    },
+    "history_schema": "history"
 }

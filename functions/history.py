@@ -14,8 +14,9 @@ def describe_and_filter_history(spark, full_table_name):
     version_list = sorted(version_list)
     return version_list
 
-def build_and_merge_file_history(spark, full_table_name):
-    file_version_table_name = f"{full_table_name}_file_version_history"
+def build_and_merge_file_history(spark, full_table_name, history_schema):
+    catalog, schema, table = full_table_name.split(".")
+    file_version_table_name = f"{catalog}.{history_schema}.{table}_file_version_history"
     prev_files = set()
     file_version_history_records = []
     version_list = describe_and_filter_history(spark, full_table_name)
@@ -34,51 +35,41 @@ def build_and_merge_file_history(spark, full_table_name):
         new_files = set(file_path_list) - prev_files
         prev_files.update(new_files)
         if len(new_files) > 0:
-            file_version_history_records.append((f"{full_table_name}_{version}", list(new_files)))
+            file_version_history_records.append((version, list(new_files)))
 
     if len(file_version_history_records) > 0:
-
-        # Create df
-        df = spark.createDataFrame(file_version_history_records, "primary_key STRING, file_path ARRAY<STRING>")
-
-        # Sanity check
+        df = spark.createDataFrame(file_version_history_records, "version LONG, file_path ARRAY<STRING>")
         create_table_if_not_exists(spark, df, file_version_table_name)
-
-        # Write
         df.createOrReplaceTempView("df")
         spark.sql(f"""
             merge into {file_version_table_name} as target
             using df as source
-            on target.primary_key = source.primary_key
+            on target.version = source.version
             when matched then update set *
             when not matched then insert *
         """)
 
-
-
-
-def transaction_history(spark, full_table_name):
-    transaction_table_name = f"{full_table_name}_transaction_history"
-
-    # Create df
+def transaction_history(spark, full_table_name, history_schema):
+    catalog, schema, table = full_table_name.split(".")
+    transaction_table_name = f"{catalog}.{history_schema}.{table}_transaction_history"
     df = (
         spark.sql(f"describe history {full_table_name}")
         .withColumn("table_name", lit(full_table_name))
-        .withColumn('primary_key', expr(' coalesce(table_name, "") || "_" || coalesce(cast(version as string), "") '))
         .selectExpr("table_name", "* except (table_name)")
     )
-
-    # Sanity check
     create_table_if_not_exists(spark, df, transaction_table_name)
-
     df.createOrReplaceTempView("df")
     spark.sql(f"""
         merge into {transaction_table_name} as target
         using df as source
-        on target.primary_key = source.primary_key
+        on target.version = source.version
         when matched then update set *
         when not matched then insert *
     """)
+
+
+
+
 
 
 
