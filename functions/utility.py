@@ -70,3 +70,5 @@ def inspect_checkpoint_folder(settings, table_name, spark):
 
 
 
+
+
