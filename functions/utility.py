@@ -51,9 +51,9 @@ def inspect_checkpoint_folder(settings, table_name, spark):
 
     for path in sorted_files:
         batch_id = Path(path).name
-        result = subprocess.run(["sed", "-n", "3p", path], capture_output=True, text=True)
+        result = subprocess.run(["grep", "reservoirVersion", path], capture_output=True, text=True)
         version = json.loads(result.stdout)["reservoirVersion"]
-        print(f"  Silver Batch {batch_id} → Bronze version {version}")
+        print(f"  Silver Batch {batch_id} → Bronze version {version - 1}")
 
 
 
