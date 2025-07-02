@@ -26,7 +26,6 @@
         "date": "timestamp"
     },
     "readStreamOptions": {
-        "startingVersion": 5
     },
     "writeStreamOptions": {
         "mergeSchema": "false",
