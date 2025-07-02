@@ -25,7 +25,9 @@
     "data_type_map": {
         "date": "timestamp"
     },
-    "readStreamOptions": {},
+    "readStreamOptions": {
+        "startingVersion": 5
+    },
     "writeStreamOptions": {
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/silver/utility/systemsPopulated/_checkpoints/",

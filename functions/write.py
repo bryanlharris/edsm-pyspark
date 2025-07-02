@@ -95,6 +95,9 @@ def microbatch_scd2_upsert(settings, spark):
         change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
     def upsert(microBatchDF, batchId):
+        print(f"Starting batchId: {batchId}, count: {microBatchDF.count()}")
+        microBatchDF.show(5, truncate=False)
+
         from pyspark.sql.window import Window
         from pyspark.sql.functions import row_number, col
 
@@ -136,21 +139,30 @@ def microbatch_scd2_upsert(settings, spark):
     return upsert
 
 
-## Let's you have a gold SCD2 table based on deduplicated silver
-## (Silver cannot have duplicates on the business_key)
 def batch_scd2_write(df, settings, spark):
     # Variables (json file)
     dst_table_name          = settings.get("dst_table_name")
-    business_key           = settings.get("business_key")
-    surrogate_key            = settings.get("surrogate_key")
+    business_key            = settings.get("business_key")
+    surrogate_key           = settings.get("surrogate_key")
     ingest_time_column      = settings.get("ingest_time_column")
     use_row_hash            = settings.get("use_row_hash")
+    row_hash_col            = settings.get("row_hash_col", "row_hash")
     
     merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
     if use_row_hash:
         change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
     else:
         change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
+
+    from pyspark.sql.window import Window
+    from pyspark.sql.functions import row_number, col
+
+    window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
+    df = (
+        df.withColumn("rn", row_number().over(window))
+        .filter("rn = 1")
+        .drop("rn")
+    )
 
     df.createOrReplaceTempView("updates")
     # Mark deletions only

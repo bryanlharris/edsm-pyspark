@@ -29,7 +29,6 @@ def bronze_standard_transform(df, settings, spark):
         )
     )
 
-
 def silver_standard_transform(df, settings, spark):
     # Settings
     surrogate_key            = settings["surrogate_key"]
@@ -93,7 +92,7 @@ def make_null_safe(col_expr, dtype):
     elif isinstance(dtype, MapType):
         return col_expr
     else:
-        return when(col_expr.isNull(), lit("")).otherwise(col_expr.cast("string"))
+        return when(col_expr.isNull(), lit(None).cast(dtype)).otherwise(col_expr)
 
 
 def normalize_for_hash(df, fields):
