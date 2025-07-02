@@ -56,7 +56,7 @@ def read_latest_ingest(spark, settings):
     ingest_time_column = settings["ingest_time_column"]
     df = spark.read.table(settings["src_table_name"])
     max_time = df.agg({ingest_time_column: "max"}).collect()[0][0]
-    return df.filter(df["ingest_time"] == max_time)
+    return df.filter(df[ingest_time_column] == max_time)
 
 
 
