@@ -64,11 +64,6 @@ def validate_settings(project_root, dbutils):
         "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name"]
     }
 
-    optional_functions={
-        "bronze": [],
-        "silver": ["upsert_function"],
-        "gold": []
-    }
 
     write_key_requirements = {
         "functions.stream_upsert_table": [
@@ -93,10 +88,6 @@ def validate_settings(project_root, dbutils):
             for k in required_functions[layer]:
                 if k not in settings:
                     errs.append(f"{path} missing {k}")
-            for k in optional_functions[layer]:
-                if k in settings:
-                    print(f"Found optional function in {path}: {k}")
-
             write_fn = settings.get("write_function")
             if write_fn in write_key_requirements:
                 for req_key in write_key_requirements[write_fn]:
