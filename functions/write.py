@@ -138,7 +138,7 @@ def microbatch_upsert_scd2(settings, spark):
 
     return upsert
 
-def batch_write_scd2(df, settings, spark):
+def batch_upsert_scd2(df, settings, spark):
     # Variables (json file)
     dst_table_name          = settings.get("dst_table_name")
     business_key            = settings.get("business_key")
