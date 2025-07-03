@@ -1,13 +1,32 @@
 
-from pyspark.sql.types import StructType, StructField, StringType, LongType, TimestampType
-from pyspark.sql.functions import concat, regexp_extract, date_format, current_timestamp
-from pyspark.sql.functions import when, col, to_timestamp, to_date, regexp_replace
-from pyspark.sql.functions import sha2, concat_ws, coalesce, lit, trim, struct
-from pyspark.sql.functions import to_json, expr, to_utc_timestamp
-from pyspark.sql.types import StructType, ArrayType
-from pyspark.sql.functions import transform
-from pyspark.sql.functions import array
-from pyspark.sql.types import *
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    LongType,
+    TimestampType,
+    ArrayType,
+    MapType,
+)
+from pyspark.sql.functions import (
+    concat,
+    regexp_extract,
+    date_format,
+    current_timestamp,
+    when,
+    col,
+    to_timestamp,
+    to_date,
+    regexp_replace,
+    sha2,
+    lit,
+    trim,
+    struct,
+    to_json,
+    expr,
+    transform,
+    array,
+)
 import re
 
 
