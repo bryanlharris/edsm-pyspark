@@ -16,7 +16,6 @@
         "badRecordsPath": "/Volumes/edsm/bronze/utility/systemsWithoutCoordinates/_badRecords/",
         "cloudFiles.rescuedDataColumn": "_rescued_data"
     },
-    "writeStream_format": "delta",
     "writeStreamOptions": {
         "mergeSchema": "false",
         "checkpointLocation": "/Volumes/edsm/bronze/utility/systemsWithoutCoordinates/_checkpoints/",
