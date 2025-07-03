@@ -60,14 +60,28 @@ def validate_settings(project_root, dbutils):
     layers=["bronze","silver","gold"]
     required_functions={
         "bronze":["read_function","transform_function","write_function","dst_table_name","file_schema"],
-        "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name","business_key","surrogate_key"],
-        "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name","business_key","surrogate_key"]
+        "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name"],
+        "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name"]
     }
 
     optional_functions={
         "bronze": [],
         "silver": ["upsert_function"],
         "gold": []
+    }
+
+    write_key_requirements = {
+        "functions.stream_upsert_table": [
+            "business_key",
+            "surrogate_key",
+            "upsert_function",
+        ],
+        "functions.batch_upsert_scd2": [
+            "business_key",
+            "surrogate_key",
+            "upsert_function",
+        ],
+        "functions.write_upsert_snapshot": ["business_key"],
     }
 
     errs = []
@@ -82,6 +96,12 @@ def validate_settings(project_root, dbutils):
             for k in optional_functions[layer]:
                 if k in settings:
                     print(f"Found optional function in {path}: {k}")
+
+            write_fn = settings.get("write_function")
+            if write_fn in write_key_requirements:
+                for req_key in write_key_requirements[write_fn]:
+                    if req_key not in settings:
+                        errs.append(f"{path} missing {req_key} for write_function {write_fn}")
 
     if errs:
         raise RuntimeError("Sanity check failed: "+", ".join(errs))
