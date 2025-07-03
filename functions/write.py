@@ -11,12 +11,11 @@ def stream_write_table(df, settings, spark):
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     writeStreamOptions      = settings.get("writeStreamOptions")
-    writeStream_format      = settings.get("writeStream_format")
 
     # Write
     (
         df.writeStream
-        .format(writeStream_format)
+        .format("delta")
         .options(**writeStreamOptions)
         .outputMode("append")
         .trigger(availableNow=True)
