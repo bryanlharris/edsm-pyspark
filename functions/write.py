@@ -1,4 +1,5 @@
-from functions import create_table_if_not_exists, get_function, silver_scd2_transform
+from functions.utility import create_table_if_not_exists, get_function
+from functions.transform import silver_scd2_transform
 from pyspark.sql.functions import col, row_number
 from pyspark.sql.window import Window
 

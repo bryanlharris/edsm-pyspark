@@ -42,29 +42,10 @@
       "email_notifications": {}
     },
     {
-      "task_key": "rebuild_init_files",
-      "depends_on": [
+      "task_key": "sanity_check",
+        "depends_on": [
         {
           "task_key": "job_settings"
-        }
-      ],
-      "run_if": "ALL_SUCCESS",
-      "notebook_task": {
-        "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/01_rebuild_init_files",
-        "source": "WORKSPACE"
-      },
-      "max_retries": 0,
-      "min_retry_interval_millis": 900000,
-      "retry_on_timeout": false,
-      "disable_auto_optimization": true,
-      "timeout_seconds": 0,
-      "email_notifications": {}
-    },
-    {
-      "task_key": "sanity_check",
-      "depends_on": [
-        {
-          "task_key": "rebuild_init_files"
         }
       ],
       "run_if": "ALL_SUCCESS",
