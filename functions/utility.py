@@ -62,19 +62,26 @@ def inspect_checkpoint_folder(settings, table_name, spark):
         print(f"  Silver Batch {batch_id} → Bronze version {version - 1}")
 
 
+def create_bad_records_table(spark, settings, dbutils):
+    """Create a delta table from the JSON files located in ``badRecordsPath``.
 
+    If the path does not exist, any existing table ``<dst_table_name>_bad_records``
+    is dropped.  If the table exists after this function runs, an exception is
+    raised to signal that bad records were found.
+    """
 
+    dst_table_name = settings.get("dst_table_name")
+    bad_records_path = settings.get("readStreamOptions", {}).get("badRecordsPath")
 
+    if not dst_table_name or not bad_records_path:
+        return
 
+    try:
+        dbutils.fs.ls(bad_records_path)
+        df = spark.read.json(bad_records_path)
+        df.write.mode("overwrite").format("delta").saveAsTable(f"{dst_table_name}_bad_records")
+    except Exception:
+        spark.sql(f"DROP TABLE IF EXISTS {dst_table_name}_bad_records")
 
-
-
-
-
-
-
-
-
-
-
-
+    if spark.catalog.tableExists(f"{dst_table_name}_bad_records"):
+        raise Exception(f"Bad records table exists: {dst_table_name}_bad_records")
