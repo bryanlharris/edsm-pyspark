@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 from pyspark.sql.functions import col
-from functions import create_table_if_not_exists, get_function
+from functions.utility import create_table_if_not_exists, get_function
 
 
 def rescue_silver_table_timestamp(spark, table_name):
