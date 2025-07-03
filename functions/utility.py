@@ -24,6 +24,12 @@ def create_schema_if_not_exists(spark, catalog, schema):
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
 
 
+def schema_exists(spark, catalog, schema):
+    """Return True if the schema exists in the given catalog"""
+    df = spark.sql(f"SHOW SCHEMAS IN {catalog} LIKE '{schema}'")
+    return df.count() > 0
+
+
 def create_volume_if_not_exists(spark, catalog, schema, volume):
     s3_path = f"s3://edsm/volumes/{catalog}/{schema}/{volume}"
     spark.sql(f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'")
