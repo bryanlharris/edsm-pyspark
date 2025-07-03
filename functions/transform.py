@@ -31,6 +31,7 @@ import re
 
 
 def bronze_standard_transform(df, settings, spark):
+    derived_ingest_time_regex = settings.get("derived_ingest_time_regex", "/(\\d{8})/")
     return (
         df.transform(clean_column_names)
         .transform(add_source_metadata, settings)
@@ -39,7 +40,7 @@ def bronze_standard_transform(df, settings, spark):
             "derived_ingest_time",
             to_timestamp(
                 concat(
-                    regexp_extract(col("source_metadata.file_path"), "/(\\d{8})/", 1),
+                    regexp_extract(col("source_metadata.file_path"), derived_ingest_time_regex, 1),
                     lit(" "),
                     date_format(current_timestamp(), "HH:mm:ss"),
                 ),
