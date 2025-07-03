@@ -13,6 +13,8 @@ from .write import *  # noqa:F401,F403
 from .transform import *  # noqa:F401,F403
 from .history import *  # noqa:F401,F403
 from .utility import *  # noqa:F401,F403
+from .rescue import *  # noqa:F401,F403
+from .sanity import *  # noqa:F401,F403
 
 __all__ = [
     name
