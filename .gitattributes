@@ -1,3 +1,1 @@
-layer_01_bronze/*.json merge=ours
-layer_02_silver/*.json merge=ours
-layer_03_gold/*.json merge=ours
+*.json merge=ours
