@@ -36,9 +36,6 @@
       "run_if": "ALL_SUCCESS",
       "notebook_task": {
         "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/00_job_settings",
-        "base_parameters": {
-          "task_name": "{{task.name}}"
-        },
         "source": "WORKSPACE"
       },
       "timeout_seconds": 0,
@@ -73,9 +70,6 @@
       "run_if": "ALL_SUCCESS",
       "notebook_task": {
         "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/02_sanity_check",
-        "base_parameters": {
-          "task_name": "{{task.name}}"
-        },
         "source": "WORKSPACE"
       },
       "max_retries": 0,
@@ -103,8 +97,7 @@
             "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/03_ingest",
             "base_parameters": {
               "job_settings": "{{input}}",
-              "color": "bronze",
-              "task_name": "{{task.name}}"
+              "color": "bronze"
             },
             "source": "WORKSPACE"
           },
@@ -137,8 +130,7 @@
             "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/06_bad_records",
             "base_parameters": {
               "job_settings": "{{input}}",
-              "color": "bronze",
-              "task_name": "{{task.name}}"
+              "color": "bronze"
             },
             "source": "WORKSPACE"
           },
@@ -171,8 +163,7 @@
             "notebook_path": "/Workspace/Users/bryanlharris@me.com/edsm/03_ingest",
             "base_parameters": {
               "job_settings": "{{input}}",
-              "color": "silver",
-              "task_name": "{{task.name}}"
+              "color": "silver"
             },
             "source": "WORKSPACE"
           },
