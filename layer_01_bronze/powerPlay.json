@@ -3,7 +3,7 @@
     "transform_function": "functions.bronze_standard_transform",
     "write_function": "functions.stream_write_table",
     "dst_table_name": "edsm.bronze.powerPlay",
-    "derived_ingest_time_regex": "/(\d{8})/",
+    "derived_ingest_time_regex": "/(\\d{8})/",
     "build_history": "true",
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {
