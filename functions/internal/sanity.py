@@ -6,26 +6,6 @@ from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
 from functions.utility import create_table_if_not_exists, get_function
-# import os
-# import json
-# import importlib
-# from pathlib import Path
-# from pyspark.sql.types import StructType
-
-
-# def get_function(path):
-#     module_path, func_name = path.rsplit(".", 1)
-#     module = importlib.import_module(module_path)
-#     return getattr(module, func_name)
-
-
-# def create_table_if_not_exists(spark, df, dst_table_name):
-#     """Create a table from a dataframe if it doesn't exist"""
-#     if not spark.catalog.tableExists(dst_table_name):
-#         empty_df = spark.createDataFrame([], df.schema)
-#         empty_df.write.format("delta").option("delta.columnMapping.mode", "name").saveAsTable(dst_table_name)
-#         return True
-#     return False
 
 ## Rebuild __init__.py files before getting started
 def extract_function_names(filepath):
