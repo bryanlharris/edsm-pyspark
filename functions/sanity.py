@@ -35,7 +35,7 @@ def validate_settings(project_root, dbutils):
     all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
 
     layers=["bronze","silver","gold"]
-    required_functions={
+    required_keys={
         "bronze":["read_function","transform_function","write_function","dst_table_name","file_schema"],
         "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name"],
         "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name"]
@@ -62,7 +62,7 @@ def validate_settings(project_root, dbutils):
     for layer, files in [("bronze", bronze_files), ("silver", silver_files), ("gold", gold_files)]:
         for tbl, path in files.items():
             settings=json.loads(open(path).read())
-            for k in required_functions[layer]:
+            for k in required_keys[layer]:
                 if k not in settings:
                     errs.append(f"{path} missing {k}")
             write_fn = settings.get("write_function")
