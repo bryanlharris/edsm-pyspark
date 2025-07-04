@@ -79,82 +79,15 @@ def microbatch_upsert_fn(settings, spark):
 
     return upsert
 
-def microbatch_upsert_scd2_fn(settings, spark):
-    # Variables
-    dst_table_name          = settings.get("dst_table_name")
-    business_key           = settings.get("business_key")
-    surrogate_key            = settings.get("surrogate_key")
-    ingest_time_column      = settings.get("ingest_time_column")
-    use_row_hash            = settings.get("use_row_hash", False)
-    row_hash_col            = settings.get("row_hash_col", "row_hash")
-    
-    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
-    if use_row_hash:
-        change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
-    else:
-        change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
-    def upsert(microBatchDF, batchId):
-        print(f"Starting batchId: {batchId}, count: {microBatchDF.count()}")
-        microBatchDF.show(5, truncate=False)
-
-        from pyspark.sql.window import Window
-        from pyspark.sql.functions import row_number, col
-
-        window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
-        microBatchDF = (
-            microBatchDF.withColumn("rn", row_number().over(window))
-            .filter("rn = 1")
-            .drop("rn")
-        )
-
-        microBatchDF.createOrReplaceTempView("updates")
-        # Mark deletions only
-        spark.sql(f"""
-            MERGE INTO {dst_table_name} t
-            USING updates s
-            ON {merge_condition} AND t.current_flag='Yes'
-            WHEN MATCHED AND ({change_condition}) THEN
-                UPDATE SET
-                    t.deleted_on=s.{ingest_time_column},
-                    t.current_flag='No',
-                    t.valid_to=s.{ingest_time_column}
-        """)
-
-        spark.sql(f"""
-            INSERT INTO {dst_table_name}
-            SELECT
-                s.* EXCEPT (created_on, deleted_on, current_flag, valid_from, valid_to),
-                s.{ingest_time_column} AS created_on,
-                NULL AS deleted_on,
-                'Yes' AS current_flag,
-                s.{ingest_time_column} AS valid_from,
-                CAST('9999-12-31 23:59:59' AS TIMESTAMP) AS valid_to
-            FROM updates s
-            LEFT JOIN {dst_table_name} t
-                ON {merge_condition} AND t.current_flag='Yes'
-            WHERE t.current_flag IS NULL
-        """)
-
-    return upsert
-
-def batch_upsert_scd2(df, settings, spark):
-    # Variables (json file)
-    dst_table_name          = settings.get("dst_table_name")
-    business_key            = settings.get("business_key")
-    surrogate_key           = settings.get("surrogate_key")
-    ingest_time_column      = settings.get("ingest_time_column")
-    use_row_hash            = settings.get("use_row_hash")
-    row_hash_col            = settings.get("row_hash_col", "row_hash")
-    
-    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
-    if use_row_hash:
-        change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
-    else:
-        change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
-
-    from pyspark.sql.window import Window
-    from pyspark.sql.functions import row_number, col
+def _scd2_upsert(df, settings, spark):
+    """Common logic for performing SCD2 merge operations."""
+    dst_table_name = settings.get("dst_table_name")
+    business_key = settings.get("business_key")
+    surrogate_key = settings.get("surrogate_key")
+    ingest_time_column = settings.get("ingest_time_column")
+    use_row_hash = settings.get("use_row_hash", False)
+    row_hash_col = settings.get("row_hash_col", "row_hash")
 
     window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
     df = (
@@ -163,9 +96,16 @@ def batch_upsert_scd2(df, settings, spark):
         .drop("rn")
     )
 
+    merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
+    if use_row_hash:
+        change_condition = f"t.{row_hash_col} <> s.{row_hash_col}"
+    else:
+        change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
+
     df.createOrReplaceTempView("updates")
-    # Mark deletions only
-    spark.sql(f"""
+
+    spark.sql(
+        f"""
         MERGE INTO {dst_table_name} t
         USING updates s
         ON {merge_condition} AND t.current_flag='Yes'
@@ -174,9 +114,11 @@ def batch_upsert_scd2(df, settings, spark):
                 t.deleted_on=s.{ingest_time_column},
                 t.current_flag='No',
                 t.valid_to=s.{ingest_time_column}
-    """)
+        """
+    )
 
-    spark.sql(f"""
+    spark.sql(
+        f"""
         INSERT INTO {dst_table_name}
         SELECT
             s.* EXCEPT (created_on, deleted_on, current_flag, valid_from, valid_to),
@@ -189,7 +131,21 @@ def batch_upsert_scd2(df, settings, spark):
         LEFT JOIN {dst_table_name} t
             ON {merge_condition} AND t.current_flag='Yes'
         WHERE t.current_flag IS NULL
-    """)
+        """
+    )
+
+
+def microbatch_upsert_scd2_fn(settings, spark):
+    def upsert(microBatchDF, batchId):
+        print(f"Starting batchId: {batchId}, count: {microBatchDF.count()}")
+        microBatchDF.show(5, truncate=False)
+
+        _scd2_upsert(microBatchDF, settings, spark)
+
+    return upsert
+
+def batch_upsert_scd2(df, settings, spark):
+    _scd2_upsert(df, settings, spark)
 
 
 
