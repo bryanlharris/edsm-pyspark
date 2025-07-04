@@ -1,4 +1,3 @@
-
 """Expose key functions at the package level.
 
 The JSON settings files reference functions using the ``functions.*`` path.
@@ -15,10 +14,6 @@ from .history import *  # noqa:F401,F403
 from .utility import *  # noqa:F401,F403
 from .rescue import *  # noqa:F401,F403
 from .sanity import *  # noqa:F401,F403
+from .job import *  # noqa:F401,F403
 
-__all__ = [
-    name
-    for name in globals().keys()
-    if not name.startswith("_")
-]
-
+__all__ = [name for name in globals().keys() if not name.startswith("_")]
