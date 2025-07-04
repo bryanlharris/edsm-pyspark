@@ -1,19 +1,30 @@
-"""Expose key functions at the package level.
+"""Expose functional submodules.
 
-The JSON settings files reference functions using the ``functions.*`` path.
-To make those references work with :func:`importlib.import_module` used in
-``utility.get_function`` we re-export the relevant functions here.  Without
-these imports ``get_function('functions.<name>')`` fails because the
-attribute does not exist on the ``functions`` package.
+Callers should reference functions using fully qualified module paths,
+for example ``functions.read.stream_read_cloudfiles``.  Importing these
+submodules here allows :func:`importlib.import_module` to resolve modules
+such as ``functions.read`` while avoiding re-exporting function names at the
+package level.
 """
 
-from .read import *  # noqa:F401,F403
-from .write import *  # noqa:F401,F403
-from .transform import *  # noqa:F401,F403
-from .history import *  # noqa:F401,F403
-from .utility import *  # noqa:F401,F403
-from .rescue import *  # noqa:F401,F403
-from .sanity import *  # noqa:F401,F403
-from .job import *  # noqa:F401,F403
+from . import (
+    read,
+    write,
+    transform,
+    history,
+    utility,
+    rescue,
+    sanity,
+    job,
+)
 
-__all__ = [name for name in globals().keys() if not name.startswith("_")]
+__all__ = [
+    "read",
+    "write",
+    "transform",
+    "history",
+    "utility",
+    "rescue",
+    "sanity",
+    "job",
+]
