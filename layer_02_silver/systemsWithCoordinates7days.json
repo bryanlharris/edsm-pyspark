@@ -3,8 +3,6 @@
     "transform_function": "functions.transform.silver_standard_transform",
     "write_function": "functions.write.stream_upsert_table",
     "upsert_function": "functions.write.microbatch_upsert_fn",
-    "foreach_batch": true,
-    "scd2": false,
     "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "build_history": "false",
