@@ -1,7 +1,7 @@
 {
-    "read_function": "functions.stream_read_cloudfiles",
-    "transform_function": "functions.bronze_standard_transform",
-    "write_function": "functions.stream_write_table",
+    "read_function": "functions.read.stream_read_cloudfiles",
+    "transform_function": "functions.transform.bronze_standard_transform",
+    "write_function": "functions.write.stream_write_table",
     "dst_table_name": "edsm.bronze.systemsWithoutCoordinates",
     "derived_ingest_time_regex": "/(\\d{8})/",
     "add_derived_ingest_time": "true",
