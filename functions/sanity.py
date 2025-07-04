@@ -4,16 +4,33 @@ from glob import glob
 from pyspark.sql.types import StructType
 from functions.utility import create_table_if_not_exists, get_function
 
+
+def _discover_settings_files(project_root):
+    """Return dictionaries of settings files for each layer."""
+    os.chdir(project_root)
+    bronze_files = {
+        f.split("/")[-1].replace(".json", ""): f
+        for f in glob("./layer_*_bronze/*.json")
+    }
+    silver_files = {
+        f.split("/")[-1].replace(".json", ""): f
+        for f in glob("./layer_*_silver/*.json")
+    }
+    gold_files = {
+        f.split("/")[-1].replace(".json", ""): f
+        for f in glob("./layer_*_gold/*.json")
+    }
+
+    return bronze_files, silver_files, gold_files
+
 def validate_settings(project_root, dbutils):
     os.chdir(project_root)
     ## Check that all json settings files have the minimum required keys AKA functions before proceeding
-    bronze_inputs=dbutils.jobs.taskValues.get(taskKey="job_settings",key="bronze")
-    silver_inputs=dbutils.jobs.taskValues.get(taskKey="job_settings",key="silver")
-    gold_inputs=dbutils.jobs.taskValues.get(taskKey="job_settings",key="gold")
+    bronze_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="bronze")
+    silver_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver")
+    gold_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="gold")
 
-    bronze_files={f.split("/")[-1].replace(".json",""): f for f in glob("./layer_*_bronze/*.json")}
-    silver_files={f.split("/")[-1].replace(".json",""): f for f in glob("./layer_*_silver/*.json")}
-    gold_files={f.split("/")[-1].replace(".json",""): f for f in glob("./layer_*_gold/*.json")}
+    bronze_files, silver_files, gold_files = _discover_settings_files(project_root)
 
     all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
 
@@ -62,10 +79,7 @@ def validate_settings(project_root, dbutils):
 
 def initialize_empty_tables(project_root, spark):
     errs = []
-    os.chdir(project_root)
-    bronze_files={f.split("/")[-1].replace(".json",""): f for f in glob("./layer_*_bronze/*.json")}
-    silver_files={f.split("/")[-1].replace(".json",""): f for f in glob("./layer_*_silver/*.json")}
-    gold_files={f.split("/")[-1].replace(".json",""): f for f in glob("./layer_*_gold/*.json")}
+    bronze_files, silver_files, gold_files = _discover_settings_files(project_root)
 
     all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
 
