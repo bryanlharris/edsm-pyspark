@@ -3,6 +3,8 @@
     "transform_function": "functions.transform.silver_scd2_transform",
     "write_function": "functions.write.stream_upsert_table",
     "upsert_function": "functions.write.microbatch_upsert_scd2_fn",
+    "foreach_batch": true,
+    "scd2": true,
     "src_table_name": "edsm.bronze.powerPlay",
     "dst_table_name": "edsm.silver.powerPlay",
     "build_history": "false",
