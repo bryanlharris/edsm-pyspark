@@ -4,6 +4,7 @@
     "write_function": "functions.stream_write_table",
     "dst_table_name": "edsm.bronze.systemsWithCoordinates",
     "derived_ingest_time_regex": "/(\\d{8})/",
+    "add_derived_ingest_time": "true",
     "build_history": "true",
     "readStream_load": "/Volumes/edsm/bronze/landing/",
     "readStreamOptions": {

@@ -32,11 +32,15 @@ import re
 
 def bronze_standard_transform(df, settings, spark):
     derived_ingest_time_regex = settings.get("derived_ingest_time_regex", "/(\\d{8})/")
-    return (
+    add_derived = settings.get("add_derived_ingest_time", "false").lower() == "true"
+    df = (
         df.transform(clean_column_names)
         .transform(add_source_metadata, settings)
         .withColumn("ingest_time", current_timestamp())
-        .withColumn(
+    )
+
+    if add_derived:
+        df = df.withColumn(
             "derived_ingest_time",
             to_timestamp(
                 concat(
@@ -47,7 +51,8 @@ def bronze_standard_transform(df, settings, spark):
                 "yyyyMMdd HH:mm:ss",
             ),
         )
-    )
+
+    return df
 
 def silver_standard_transform(df, settings, spark):
     # Settings
