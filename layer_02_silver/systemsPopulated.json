@@ -20,7 +20,7 @@
         "state",
         "stations"
     ],
-    "use_row_hash": true,
+    "use_row_hash": "true",
     "row_hash_col": "row_hash",
     "data_type_map": {
         "date": "timestamp"

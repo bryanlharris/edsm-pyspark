@@ -59,7 +59,7 @@ def silver_standard_transform(df, settings, spark):
     surrogate_key            = settings["surrogate_key"]
     column_map              = settings.get("column_map", None)
     data_type_map           = settings.get("data_type_map", None)
-    use_row_hash            = settings.get("use_row_hash", False)
+    use_row_hash            = str(settings.get("use_row_hash", "false")).lower() == "true"
     row_hash_col            = settings.get("row_hash_col", "row_hash")
 
     return (

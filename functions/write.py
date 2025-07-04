@@ -43,7 +43,7 @@ def _simple_merge(df, settings, spark):
     business_key = settings.get("business_key")
     surrogate_key = settings.get("surrogate_key")
 
-    use_row_hash = settings.get("use_row_hash", False)
+    use_row_hash = str(settings.get("use_row_hash", "false")).lower() == "true"
     row_hash_col = settings.get("row_hash_col", "row_hash")
 
     merge_condition = " and ".join([f"t.{k} = s.{k}" for k in business_key])
@@ -114,7 +114,7 @@ def _scd2_upsert(df, settings, spark):
     business_key = settings.get("business_key")
     surrogate_key = settings.get("surrogate_key")
     ingest_time_column = settings.get("ingest_time_column")
-    use_row_hash = settings.get("use_row_hash", False)
+    use_row_hash = str(settings.get("use_row_hash", "false")).lower() == "true"
     row_hash_col = settings.get("row_hash_col", "row_hash")
 
     window = Window.partitionBy(*business_key).orderBy(col(ingest_time_column).desc())
