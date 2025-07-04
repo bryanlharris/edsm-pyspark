@@ -1,6 +1,8 @@
 import os
 import json
 import importlib
+import subprocess
+from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
 
@@ -38,12 +40,6 @@ def create_volume_if_not_exists(spark, catalog, schema, volume):
 def truncate_table_if_exists(spark, table_name):
     if spark.catalog.tableExists(table_name):
         spark.sql(f"TRUNCATE TABLE {table_name}")
-
-
-import json
-import subprocess
-from glob import glob
-from pathlib import Path
 
 def inspect_checkpoint_folder(settings, table_name, spark):
     checkpoint_path = settings.get("writeStreamOptions", {}).get("checkpointLocation")
