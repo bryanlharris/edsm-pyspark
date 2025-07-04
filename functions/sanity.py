@@ -43,17 +43,17 @@ def validate_settings(project_root, dbutils):
 
 
     write_key_requirements = {
-        "functions.stream_upsert_table": [
+        "functions.write.stream_upsert_table": [
             "business_key",
             "surrogate_key",
             "upsert_function",
         ],
-        "functions.batch_upsert_scd2": [
+        "functions.write.batch_upsert_scd2": [
             "business_key",
             "surrogate_key",
             "upsert_function",
         ],
-        "functions.write_upsert_snapshot": ["business_key"],
+        "functions.write.write_upsert_snapshot": ["business_key"],
     }
 
     errs = []
