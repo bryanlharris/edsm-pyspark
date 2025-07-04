@@ -5,16 +5,16 @@ from pathlib import Path
 import requests
 
 
-def save_job_configuration(dbutils, project_root):
+def save_job_configuration(dbutils, path="/Volumes/edsm/bronze/utility/jobs"):
     """Retrieve the current job's configuration as JSON and save it.
 
     Parameters
     ----------
     dbutils : Databricks dbutils
         Utility object used to fetch context information.
-    project_root : str or Path
-        Root directory of the project. The job JSON is written to
-        ``<project_root>/jobs/<job-name>.json``.
+    path : str or Path, optional
+        Destination directory for the saved JSON. Defaults to
+        ``/Volumes/edsm/bronze/utility/jobs``.
     """
     ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
     job_id = ctx.jobId().getOrElse(None)
@@ -33,6 +33,6 @@ def save_job_configuration(dbutils, project_root):
     job_config = resp.json()
     job_name = job_config.get("settings", {}).get("name", f"job-{job_id}")
 
-    dst = Path(project_root) / "jobs" / f"{job_name}.json"
+    dst = Path(path) / f"{job_name}.json"
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(json.dumps(job_config, indent=4))
