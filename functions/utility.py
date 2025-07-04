@@ -8,6 +8,17 @@ from pyspark.sql.types import StructType
 
 
 def get_function(path):
+    """Return a callable from a dotted module path.
+
+    ``path`` should be a fully qualified object name such as
+    ``"functions.read.stream_read_cloudfiles"``.  The string is split
+    once from the right with ``path.rsplit(".", 1)`` so any dots before
+    the last one become part of the module path and the final segment is
+    the attribute name.  A ``ValueError`` is raised if no ``'.'`` is present.
+    ``ModuleNotFoundError`` or ``AttributeError`` propagate when the
+    module or attribute cannot be imported.
+    """
+
     module_path, func_name = path.rsplit(".", 1)
     module = importlib.import_module(module_path)
     return getattr(module, func_name)
