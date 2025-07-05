@@ -204,9 +204,14 @@ def create_bad_records_table(spark, settings, dbutils):
         return
 
     try:
-        dbutils.fs.ls(bad_records_path)
-        df = spark.read.json(bad_records_path)
-        df.write.mode("overwrite").format("delta").saveAsTable(f"{dst_table_name}_bad_records")
+        path = Path(bad_records_path)
+        if path.is_dir() and any(path.iterdir()):
+            df = spark.read.json(bad_records_path)
+            df.write.mode("overwrite").format("delta").saveAsTable(
+                f"{dst_table_name}_bad_records"
+            )
+        else:
+            raise FileNotFoundError
     except Exception:
         spark.sql(f"DROP TABLE IF EXISTS {dst_table_name}_bad_records")
 
