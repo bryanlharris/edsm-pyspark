@@ -6,5 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "edsm"
 version = "0.1.0"
 description = "EDSM data ingestion utilities"
+
+[tool.setuptools]
 packages = ["functions", "scripts"]
 include-package-data = true

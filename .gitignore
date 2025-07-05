@@ -2,3 +2,5 @@
 **/*scratch*
 **/disabled/**
 **/archive/**
+dist/**
+edsm.egg-info/
