@@ -2,7 +2,7 @@ import json
 from .utility import create_table_if_not_exists
 from pyspark.sql.functions import col, lit, expr
 
-def describe_and_filter_history(spark, full_table_name):
+def describe_and_filter_history(full_table_name, spark):
     """Return ordered versions that correspond to streaming updates or merges."""
 
     hist = spark.sql(f"describe history {full_table_name}")
@@ -16,14 +16,14 @@ def describe_and_filter_history(spark, full_table_name):
     version_list = sorted(version_list)
     return version_list
 
-def build_and_merge_file_history(spark, full_table_name, history_schema):
+def build_and_merge_file_history(full_table_name, history_schema, spark):
     """Create a file history table tracking new files across versions."""
 
     catalog, schema, table = full_table_name.split(".")
     file_version_table_name = f"{catalog}.{history_schema}.{table}_file_version_history"
     prev_files = set()
     file_version_history_records = []
-    version_list = describe_and_filter_history(spark, full_table_name)
+    version_list = describe_and_filter_history(full_table_name, spark)
 
     for version in version_list:
         this_version_df = (
@@ -43,7 +43,7 @@ def build_and_merge_file_history(spark, full_table_name, history_schema):
 
     if len(file_version_history_records) > 0:
         df = spark.createDataFrame(file_version_history_records, "version LONG, file_path ARRAY<STRING>")
-        create_table_if_not_exists(spark, df, file_version_table_name)
+        create_table_if_not_exists(df, file_version_table_name, spark)
         df.createOrReplaceTempView("df")
         spark.sql(f"""
             merge into {file_version_table_name} as target
@@ -53,7 +53,7 @@ def build_and_merge_file_history(spark, full_table_name, history_schema):
             when not matched then insert *
         """)
 
-def transaction_history(spark, full_table_name, history_schema):
+def transaction_history(full_table_name, history_schema, spark):
     """Record the Delta transaction history for ``full_table_name``."""
 
     catalog, schema, table = full_table_name.split(".")
@@ -63,7 +63,7 @@ def transaction_history(spark, full_table_name, history_schema):
         .withColumn("table_name", lit(full_table_name))
         .selectExpr("table_name", "* except (table_name)")
     )
-    create_table_if_not_exists(spark, df, transaction_table_name)
+    create_table_if_not_exists(df, transaction_table_name, spark)
     df.createOrReplaceTempView("df")
     spark.sql(f"""
         merge into {transaction_table_name} as target

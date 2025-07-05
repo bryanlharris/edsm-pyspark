@@ -91,7 +91,7 @@ def upsert_table(df, settings, spark, *, scd2=False, foreach_batch=False, batch_
     """
 
     if foreach_batch and batch_id == 0:
-        create_table_if_not_exists(spark, df, settings.get("dst_table_name"))
+        create_table_if_not_exists(df, settings.get("dst_table_name"), spark)
 
     if scd2:
         _scd2_upsert(df, settings, spark)
