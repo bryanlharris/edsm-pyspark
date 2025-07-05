@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from functions.utility import get_function
+from functions.project_root import PROJECT_ROOT
 
 
 def main():
@@ -8,7 +9,7 @@ def main():
     result = merge({"a": 1}, {"b": 2})
     print("Merge result:", result)
 
-    json_path = Path(__file__).resolve().parents[1] / "layer_01_bronze" / "codex.json"
+    json_path = PROJECT_ROOT / "layer_01_bronze" / "codex.json"
     with open(json_path, "r", encoding="utf-8") as fh:
         data = json.load(fh)
     print("Loaded JSON job_type:", data.get("job_type"))
