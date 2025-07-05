@@ -10,3 +10,6 @@ description = "EDSM data ingestion utilities"
 [tool.setuptools]
 packages = ["functions", "scripts"]
 include-package-data = true
+
+[project.scripts]
+edsm-ingest = "scripts.ingest:main"
