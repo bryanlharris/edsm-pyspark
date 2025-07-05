@@ -26,6 +26,11 @@ JOB_TYPE_MAP = {
         "write_function": "functions.write.stream_upsert_table",
         "upsert_function": "functions.write.microbatch_upsert_fn",
     },
+    "silver_scd2_batch": {
+        "read_function": "functions.read.read_table",
+        "transform_function": "functions.transform.silver_scd2_transform",
+        "write_function": "functions.write.batch_upsert_scd2",
+    },
     "silver_standard_batch": {
         "read_function": "functions.read.read_table",
         "transform_function": "functions.transform.silver_standard_transform",
