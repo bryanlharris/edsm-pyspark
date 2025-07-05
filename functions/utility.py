@@ -144,7 +144,7 @@ def get_function(path):
     return getattr(module, func_name)
 
 
-def create_table_if_not_exists(spark, df, dst_table_name):
+def create_table_if_not_exists(df, dst_table_name, spark):
     """Create a table from a dataframe if it doesn't exist"""
     if not spark.catalog.tableExists(dst_table_name):
         empty_df = spark.createDataFrame([], df.schema)
@@ -153,18 +153,18 @@ def create_table_if_not_exists(spark, df, dst_table_name):
     return False
 
 
-def create_schema_if_not_exists(spark, catalog, schema):
+def create_schema_if_not_exists(catalog, schema, spark):
     """Create the schema if it is missing."""
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
 
 
-def schema_exists(spark, catalog, schema):
+def schema_exists(catalog, schema, spark):
     """Return True if the schema exists in the given catalog"""
     df = spark.sql(f"SHOW SCHEMAS IN {catalog} LIKE '{schema}'")
     return df.count() > 0
 
 
-def create_volume_if_not_exists(spark, catalog, schema, volume):
+def create_volume_if_not_exists(catalog, schema, volume, spark):
     """Create an external volume pointing to the expected S3 path."""
 
     s3_path = f"s3://edsm/volumes/{catalog}/{schema}/{volume}"
@@ -173,13 +173,13 @@ def create_volume_if_not_exists(spark, catalog, schema, volume):
     )
 
 
-def truncate_table_if_exists(spark, table_name):
+def truncate_table_if_exists(table_name, spark):
     """Truncate ``table_name`` if it already exists."""
 
     if spark.catalog.tableExists(table_name):
         spark.sql(f"TRUNCATE TABLE {table_name}")
 
-def inspect_checkpoint_folder(settings, table_name, spark):
+def inspect_checkpoint_folder(table_name, settings, spark):
     """Print batch to version mapping from a Delta checkpoint folder."""
 
     checkpoint_path = settings.get("writeStreamOptions", {}).get("checkpointLocation")
@@ -198,7 +198,7 @@ def inspect_checkpoint_folder(settings, table_name, spark):
         print(f"  Silver Batch {batch_id} → Bronze version {version - 1}")
 
 
-def create_bad_records_table(spark, settings):
+def create_bad_records_table(settings, spark):
     """Create a delta table from the JSON files located in ``badRecordsPath``.
 
     If the path does not exist, any existing table ``<dst_table_name>_bad_records``

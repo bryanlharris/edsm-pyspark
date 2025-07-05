@@ -4,7 +4,7 @@ from pyspark.sql.types import StructType
 from pyspark.sql.functions import col, row_number
 from pyspark.sql.window import Window
 
-def stream_read_cloudfiles(spark, settings):
+def stream_read_cloudfiles(settings, spark):
     """Read streaming data from a cloudFiles source.
 
     Parameters
@@ -39,7 +39,7 @@ def stream_read_cloudfiles(spark, settings):
     )
 
 
-def stream_read_table(spark, settings):
+def stream_read_table(settings, spark):
     """Create a streaming DataFrame from an existing Delta table."""
 
     # Variables (json file)
@@ -53,12 +53,12 @@ def stream_read_table(spark, settings):
     )
 
 
-def read_table(spark, settings):
+def read_table(settings, spark):
     """Read a Delta table in batch mode."""
     return spark.read.table(settings["src_table_name"])
 
 
-def read_snapshot_windowed(spark, settings):
+def read_snapshot_windowed(settings, spark):
     """Return the most recent record for each key based on an ingest column."""
 
     surrogate_key           = settings["surrogate_key"]
@@ -73,7 +73,7 @@ def read_snapshot_windowed(spark, settings):
     )
 
 
-def read_latest_ingest(spark, settings):
+def read_latest_ingest(settings, spark):
     """Load only the records from the latest ingest time."""
     ingest_time_column = settings["ingest_time_column"]
     df = spark.read.table(settings["src_table_name"])

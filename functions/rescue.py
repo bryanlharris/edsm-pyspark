@@ -5,7 +5,7 @@ from pyspark.sql.functions import col
 from functions.utility import create_table_if_not_exists, get_function, apply_job_type
 
 
-def rescue_silver_table(mode, spark, table_name):
+def rescue_silver_table(mode, table_name, spark):
     """Rescue a silver table using either timestamps or version numbers.
 
     Parameters
@@ -42,7 +42,7 @@ def rescue_silver_table(mode, spark, table_name):
             batch = df.filter(col("derived_ingest_time") == timestamp)
             batch = transform_function(batch, settings, spark)
             if i == 0:
-                create_table_if_not_exists(spark, batch, settings["dst_table_name"])
+                create_table_if_not_exists(batch, settings["dst_table_name"], spark)
             upsert(batch, i)
             print(f"{table_name}: Upserted batch {i} for time {timestamp}")
         print(f"{table_name}: Rescue completed in {len(times)} batches")
@@ -56,7 +56,7 @@ def rescue_silver_table(mode, spark, table_name):
             if version == 0:
                 df = spark.read.format("delta").option("versionAsOf", version).table(settings["src_table_name"])
                 df = transform_function(df, settings, spark)
-                create_table_if_not_exists(spark, df, settings["dst_table_name"])
+                create_table_if_not_exists(df, settings["dst_table_name"], spark)
                 print(f"{table_name}: Current version {version}")
                 continue
 
@@ -72,19 +72,19 @@ def rescue_silver_table(mode, spark, table_name):
         print(f"{table_name}: Updated settings with startingVersion {max_version}")
 
 
-def rescue_silver_table_timestamp(spark, table_name):
+def rescue_silver_table_timestamp(table_name, spark):
     """Backwards compatible wrapper for ``rescue_silver_table`` using timestamps."""
-    rescue_silver_table("timestamp", spark, table_name)
+    rescue_silver_table("timestamp", table_name, spark)
 
 
-def rescue_silver_table_versionAsOf(spark, table_name):
+def rescue_silver_table_versionAsOf(table_name, spark):
     """Backwards compatible wrapper for ``rescue_silver_table`` using Delta versions."""
-    rescue_silver_table("versionAsOf", spark, table_name)
+    rescue_silver_table("versionAsOf", table_name, spark)
 
 
 
 
-def rescue_gold_table(spark, table_name):
+def rescue_gold_table(table_name, spark):
     """Rebuild a gold table by replaying all versions of the source."""
     settings = json.loads(Path(f"../layer_03_gold/{table_name}.json").read_text())
     settings = apply_job_type(settings)
@@ -104,7 +104,7 @@ def rescue_gold_table(spark, table_name):
         df = transform_function(df, settings, spark)
 
         if version == 0:
-            create_table_if_not_exists(spark, df, settings["dst_table_name"])
+            create_table_if_not_exists(df, settings["dst_table_name"], spark)
         else:
             write_function(df, settings, spark)
 
