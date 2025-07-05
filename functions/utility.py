@@ -198,7 +198,7 @@ def inspect_checkpoint_folder(settings, table_name, spark):
         print(f"  Silver Batch {batch_id} → Bronze version {version - 1}")
 
 
-def create_bad_records_table(spark, settings, dbutils):
+def create_bad_records_table(spark, settings):
     """Create a delta table from the JSON files located in ``badRecordsPath``.
 
     If the path does not exist, any existing table ``<dst_table_name>_bad_records``
