@@ -96,6 +96,26 @@ def apply_job_type(settings):
                 },
             }
             defaults = _merge_dicts(defaults, dynamic)
+        elif job_type.startswith("silver") or job_type.startswith("gold"):
+            dynamic = {"build_history": "false", "ingest_time_column": "ingest_time"}
+
+            if "streaming" in job_type:
+                dst = settings.get("dst_table_name")
+                if not dst:
+                    raise KeyError("dst_table_name must be provided for streaming job types")
+                catalog, color, table = dst.split(".", 2)
+                base_volume = f"/Volumes/{catalog}/{color}/utility/{table}"
+                stream_defaults = {
+                    "readStreamOptions": {},
+                    "writeStreamOptions": {
+                        "mergeSchema": "false",
+                        "checkpointLocation": f"{base_volume}/_checkpoints/",
+                        "delta.columnMapping.mode": "name",
+                    },
+                }
+                dynamic = _merge_dicts(dynamic, stream_defaults)
+
+            defaults = _merge_dicts(defaults, dynamic)
 
         settings = _merge_dicts(defaults, settings)
 
