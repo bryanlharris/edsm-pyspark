@@ -4,20 +4,35 @@
 import argparse
 import json
 from pathlib import Path
+import importlib.resources as resources
 
 from pyspark.sql import SparkSession
 
 from functions.utility import get_function, create_bad_records_table, apply_job_type
 
 
+LAYER_PACKAGE_MAP = {
+    "bronze": "layer_01_bronze",
+    "silver": "layer_02_silver",
+}
+
+
 def load_settings(color: str, table: str, project_root: str) -> dict:
     root = Path(project_root)
     pattern = f"layer_*_{color}/{table}.json"
     path = next(root.glob(pattern), None)
-    if path is None:
-        raise FileNotFoundError(f"No settings file matching {pattern}")
-    with open(path) as f:
-        settings = json.load(f)
+    if path and path.is_file():
+        with open(path) as f:
+            settings = json.load(f)
+    else:
+        package = LAYER_PACKAGE_MAP.get(color)
+        if not package:
+            raise FileNotFoundError(f"No settings file matching {pattern}")
+        try:
+            with resources.open_text(package, f"{table}.json") as f:
+                settings = json.load(f)
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(f"No settings file matching {pattern}") from exc
     return apply_job_type(settings)
 
 

@@ -17,5 +17,9 @@ dependencies = [
 edsm-ingest = "scripts.ingest:main"
 
 [tool.setuptools.packages.find]
-include = ["functions", "scripts"]
+include = ["functions", "scripts", "layer_01_bronze", "layer_02_silver"]
+
+[tool.setuptools.package-data]
+"layer_01_bronze" = ["*.json"]
+"layer_02_silver" = ["*.json"]
 
