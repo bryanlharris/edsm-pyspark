@@ -31,6 +31,8 @@ import re
 
 
 def bronze_standard_transform(df, settings, spark):
+    """Apply standard bronze layer transformations."""
+
     derived_ingest_time_regex = settings.get("derived_ingest_time_regex", "/(\\d{8})/")
     add_derived = settings.get("add_derived_ingest_time", "false").lower() == "true"
     df = (
@@ -55,6 +57,8 @@ def bronze_standard_transform(df, settings, spark):
     return df
 
 def silver_standard_transform(df, settings, spark):
+    """Apply common silver layer cleaning logic."""
+
     # Settings
     surrogate_key            = settings["surrogate_key"]
     column_map              = settings.get("column_map", None)
@@ -72,6 +76,8 @@ def silver_standard_transform(df, settings, spark):
 
 
 def silver_scd2_transform(df, settings, spark):
+    """Prepare a DataFrame for SCD2 upserts in the silver layer."""
+
     return (
         df.transform(silver_standard_transform, settings, spark)
           .transform(add_scd2_columns, settings, spark)
@@ -79,6 +85,8 @@ def silver_scd2_transform(df, settings, spark):
 
 
 def add_scd2_columns(df, settings, spark):
+    """Attach standard SCD2 tracking columns."""
+
     ingest_time_column = settings["ingest_time_column"]
     return (
         df.withColumn("created_on", col(ingest_time_column))
@@ -90,6 +98,7 @@ def add_scd2_columns(df, settings, spark):
 
 
 def add_source_metadata(df, settings):
+    """Attach ingestion metadata to a DataFrame."""
     metadata_type = StructType([
         StructField("file_path", StringType(), True),
         StructField("file_name", StringType(), True),
@@ -106,6 +115,7 @@ def add_source_metadata(df, settings):
 
 
 def make_null_safe(col_expr, dtype):
+    """Ensure nested fields exist so hashing comparisons are stable."""
     if isinstance(dtype, StructType):
         return struct(*[
             make_null_safe(col_expr[f.name], f.dataType).alias(f.name)
@@ -121,6 +131,8 @@ def make_null_safe(col_expr, dtype):
 
 
 def normalize_for_hash(df, fields):
+    """Normalize fields to stable structures for hashing."""
+
     schema = df.schema
     fields_present = [f for f in fields if f in df.columns]
     return df.withColumn(
@@ -132,6 +144,8 @@ def normalize_for_hash(df, fields):
     )
 
 def add_row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
+    """Compute a hash over selected fields and store it in ``name``."""
+
     if not use_row_hash:
         return df
 
@@ -141,6 +155,7 @@ def add_row_hash(df, fields_to_hash, name="row_hash", use_row_hash=False):
 
 
 def clean_column_names(df):
+    """Normalize column names by removing spaces and invalid characters."""
     def clean(name):
         name = name.strip().lower()
         name = re.sub(r"\s+", "_", name)
@@ -165,6 +180,8 @@ def clean_column_names(df):
 
 
 def trim_column_values(df, cols=None):
+    """Strip whitespace from string columns."""
+
     if cols:
         target_cols = set(c for c in cols if c in df.columns)
     else:
@@ -177,6 +194,8 @@ def trim_column_values(df, cols=None):
 
 
 def rename_columns(df, column_map=None):
+    """Rename DataFrame columns using ``column_map``."""
+
     if not column_map:
         return df
     new_names = [column_map.get(c, c) for c in df.columns]
@@ -184,6 +203,8 @@ def rename_columns(df, column_map=None):
 
 
 def cast_data_types(df, data_type_map=None):
+    """Cast columns to the provided data types."""
+
     if not data_type_map:
         return df
     

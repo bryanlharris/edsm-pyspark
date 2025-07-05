@@ -23,6 +23,8 @@ def _discover_settings_files(project_root):
     return bronze_files, silver_files, gold_files
 
 def validate_settings(project_root, dbutils):
+    """Ensure all settings files contain required keys before processing."""
+
     ## Check that all json settings files have the minimum required keys AKA functions before proceeding
     bronze_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="bronze")
     silver_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver")
@@ -77,6 +79,8 @@ def validate_settings(project_root, dbutils):
 
 
 def initialize_empty_tables(project_root, spark):
+    """Create empty Delta tables based on settings definitions."""
+
     errs = []
     bronze_files, silver_files, gold_files = _discover_settings_files(project_root)
 

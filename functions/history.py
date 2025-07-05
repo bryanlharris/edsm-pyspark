@@ -3,6 +3,8 @@ from .utility import create_table_if_not_exists
 from pyspark.sql.functions import col, lit, expr
 
 def describe_and_filter_history(spark, full_table_name):
+    """Return ordered versions that correspond to streaming updates or merges."""
+
     hist = spark.sql(f"describe history {full_table_name}")
     update_or_merge_version_rows = (
         hist.filter((col("operation") == "STREAMING UPDATE") | (col("operation") == "MERGE"))
@@ -15,6 +17,8 @@ def describe_and_filter_history(spark, full_table_name):
     return version_list
 
 def build_and_merge_file_history(spark, full_table_name, history_schema):
+    """Create a file history table tracking new files across versions."""
+
     catalog, schema, table = full_table_name.split(".")
     file_version_table_name = f"{catalog}.{history_schema}.{table}_file_version_history"
     prev_files = set()
@@ -50,6 +54,8 @@ def build_and_merge_file_history(spark, full_table_name, history_schema):
         """)
 
 def transaction_history(spark, full_table_name, history_schema):
+    """Record the Delta transaction history for ``full_table_name``."""
+
     catalog, schema, table = full_table_name.split(".")
     transaction_table_name = f"{catalog}.{history_schema}.{table}_transaction_history"
     df = (
