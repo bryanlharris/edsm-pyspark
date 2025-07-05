@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from pyspark.sql.types import StructType
-from functions.utility import create_table_if_not_exists, get_function
+from functions.utility import create_table_if_not_exists, get_function, apply_job_type
 
 
 def _discover_settings_files(project_root):
@@ -60,6 +60,7 @@ def validate_settings(project_root, dbutils):
     for layer, files in [("bronze", bronze_files), ("silver", silver_files), ("gold", gold_files)]:
         for tbl, path in files.items():
             settings=json.loads(open(path).read())
+            settings = apply_job_type(settings)
             for k in required_keys[layer]:
                 if k not in settings:
                     errs.append(f"{path} missing {k}")
@@ -101,6 +102,7 @@ def initialize_empty_tables(project_root, spark):
             elif layer=="gold":
                 path=gold_files[tbl]
             settings=json.loads(open(path).read())
+            settings = apply_job_type(settings)
             if layer=="bronze":
                 settings["use_metadata"] = "false"
                 if "file_schema" not in settings:

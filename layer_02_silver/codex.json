@@ -1,7 +1,6 @@
 {
-    "read_function": "functions.read.read_table",
-    "transform_function": "functions.transform.silver_standard_transform",
-    "write_function": "functions.write.overwrite_table",
+    "simple_settings": "true",
+    "job_type": "silver_standard_batch",
     "src_table_name": "edsm.bronze.codex",
     "dst_table_name": "edsm.silver.codex",
     "build_history": "false",
