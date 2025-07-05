@@ -8,7 +8,10 @@
     "business_key": [
         "id"
     ],
-    "surrogate_key": [],
+    "surrogate_key": [
+        "date",
+        "estimatedCoordinates"
+    ],
     "data_type_map": {
         "date": "timestamp"
     },
