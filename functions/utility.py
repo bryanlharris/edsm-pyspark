@@ -154,6 +154,7 @@ def create_table_if_not_exists(spark, df, dst_table_name):
 
 
 def create_schema_if_not_exists(spark, catalog, schema):
+    """Create the schema if it is missing."""
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
 
 
@@ -164,15 +165,23 @@ def schema_exists(spark, catalog, schema):
 
 
 def create_volume_if_not_exists(spark, catalog, schema, volume):
+    """Create an external volume pointing to the expected S3 path."""
+
     s3_path = f"s3://edsm/volumes/{catalog}/{schema}/{volume}"
-    spark.sql(f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'")
+    spark.sql(
+        f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
+    )
 
 
 def truncate_table_if_exists(spark, table_name):
+    """Truncate ``table_name`` if it already exists."""
+
     if spark.catalog.tableExists(table_name):
         spark.sql(f"TRUNCATE TABLE {table_name}")
 
 def inspect_checkpoint_folder(settings, table_name, spark):
+    """Print batch to version mapping from a Delta checkpoint folder."""
+
     checkpoint_path = settings.get("writeStreamOptions", {}).get("checkpointLocation")
     checkpoint_path = checkpoint_path.rstrip("/")
     offsets_path = f"{checkpoint_path}/offsets"

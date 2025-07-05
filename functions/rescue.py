@@ -85,6 +85,7 @@ def rescue_silver_table_versionAsOf(spark, table_name):
 
 
 def rescue_gold_table(spark, table_name):
+    """Rebuild a gold table by replaying all versions of the source."""
     settings = json.loads(Path(f"../layer_03_gold/{table_name}.json").read_text())
     settings = apply_job_type(settings)
     settings["ingest_time_column"] = "derived_ingest_time"

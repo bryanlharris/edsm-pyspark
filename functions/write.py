@@ -5,10 +5,14 @@ from pyspark.sql.window import Window
 
 
 def overwrite_table(df, settings, spark):
+    """Overwrite the destination table with ``df``."""
+
     df.write.mode("overwrite").saveAsTable(settings["dst_table_name"])
 
 
 def stream_write_table(df, settings, spark):
+    """Write a streaming DataFrame directly to a Delta table."""
+
     # Variables
     dst_table_name          = settings.get("dst_table_name")
     writeStreamOptions      = settings.get("writeStreamOptions")
@@ -25,6 +29,8 @@ def stream_write_table(df, settings, spark):
 
 
 def stream_upsert_table(df, settings, spark):
+    """Apply an upsert function to each streaming micro-batch."""
+
     upsert_func = get_function(settings.get("upsert_function"))
     return (
         df.writeStream
@@ -192,6 +198,7 @@ def batch_upsert_scd2(df, settings, spark):
 
 
 def write_upsert_snapshot(df, settings, spark):
+    """Write the latest records per business key into a snapshot table."""
     dst_table = settings["dst_table_name"]
     business_key = settings["business_key"]
     ingest_time_col = settings["ingest_time_column"]

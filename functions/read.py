@@ -5,6 +5,22 @@ from pyspark.sql.functions import col, row_number
 from pyspark.sql.window import Window
 
 def stream_read_cloudfiles(spark, settings):
+    """Read streaming data from a cloudFiles source.
+
+    Parameters
+    ----------
+    spark : SparkSession
+        Active Spark session used to construct the reader.
+    settings : dict
+        Dictionary of options containing ``readStreamOptions`` and
+        ``readStream_load`` values as well as the ``file_schema`` definition.
+
+    Returns
+    -------
+    DataFrame
+        A streaming DataFrame configured with the provided schema and options.
+    """
+
     # Variables
     readStreamOptions       = settings.get("readStreamOptions")
     readStream_load         = settings.get("readStream_load")
@@ -24,6 +40,8 @@ def stream_read_cloudfiles(spark, settings):
 
 
 def stream_read_table(spark, settings):
+    """Create a streaming DataFrame from an existing Delta table."""
+
     # Variables (json file)
     src_table_name          = settings.get("src_table_name")
     readStreamOptions       = settings.get("readStreamOptions")
@@ -36,10 +54,13 @@ def stream_read_table(spark, settings):
 
 
 def read_table(spark, settings):
+    """Read a Delta table in batch mode."""
     return spark.read.table(settings["src_table_name"])
 
 
 def read_snapshot_windowed(spark, settings):
+    """Return the most recent record for each key based on an ingest column."""
+
     surrogate_key           = settings["surrogate_key"]
     ingest_time_column      = settings["ingest_time_column"]
     window = Window.partitionBy(*surrogate_key).orderBy(col(ingest_time_column).desc())
@@ -53,6 +74,7 @@ def read_snapshot_windowed(spark, settings):
 
 
 def read_latest_ingest(spark, settings):
+    """Load only the records from the latest ingest time."""
     ingest_time_column = settings["ingest_time_column"]
     df = spark.read.table(settings["src_table_name"])
     max_time = df.agg({ingest_time_column: "max"}).collect()[0][0]
