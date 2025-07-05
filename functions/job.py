@@ -5,7 +5,7 @@ from pathlib import Path
 import requests
 
 
-def save_job_configuration(dbutils, path="/Volumes/edsm/bronze/utility/jobs"):
+def save_job_configuration(dbutils, path=None):
     """Retrieve the current job's configuration as JSON and save it.
 
     Parameters
@@ -14,9 +14,16 @@ def save_job_configuration(dbutils, path="/Volumes/edsm/bronze/utility/jobs"):
         Utility object used to fetch context information.
     path : str or Path, optional
         Destination directory for the saved JSON. Defaults to
-        ``/Volumes/edsm/bronze/utility/jobs``.
+        ``/Volumes/<catalog>/bronze/utility/jobs`` where ``catalog`` is read
+        from the ``catalog`` job widget.
     """
     ctx = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
+    if path is None:
+        try:
+            catalog = dbutils.widgets.get("catalog")
+        except Exception:
+            catalog = "edsm"
+        path = f"/Volumes/{catalog}/bronze/utility/jobs"
     job_id = ctx.jobId().getOrElse(None)
     if job_id is None:
         raise RuntimeError("Not running inside a job")
