@@ -17,5 +17,5 @@ dependencies = [
 edsm-ingest = "scripts.ingest:main"
 
 [tool.setuptools.packages.find]
-include = ["functions"]
+include = ["functions", "scripts"]
 
