@@ -19,6 +19,10 @@ spark-submit scripts/ingest.py \
     --project_root {{input.project_root}}
 ```
 
+When installed from the wheel you can also call the console script
+`edsm-ingest` instead of invoking `scripts/ingest.py` directly.  The
+arguments are the same.
+
 The script loads the JSON settings, applies `apply_job_type` to expand any
 `simple_settings` values and then runs the pipeline defined by the functions
 listed in the file. Before running the functions the script will print the job
