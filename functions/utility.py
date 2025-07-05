@@ -34,7 +34,7 @@ JOB_TYPE_MAP = {
     "silver_standard_batch": {
         "read_function": "functions.read.read_table",
         "transform_function": "functions.transform.silver_standard_transform",
-        "write_function": "functions.write.overwrite_table",
+        "write_function": "functions.write.write_upsert_snapshot",
     },
 }
 
