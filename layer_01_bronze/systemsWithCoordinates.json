@@ -5,6 +5,8 @@
     "derived_ingest_time_regex": "/(\\d{8})/",
     "add_derived_ingest_time": "true",
     "readStreamOptions": {
+        "cloudFiles.format": "json",
+        "encoding": "utf-8",
         "cloudFiles.maxFilesPerTrigger": "1",
         "pathGlobFilter": "systemsWithCoordinates.json",
         "multiline": "false"
