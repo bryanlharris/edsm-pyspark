@@ -3,7 +3,6 @@
     "job_type": "silver_scd2_streaming",
     "src_table_name": "edsm.bronze.stations",
     "dst_table_name": "edsm.silver.stations",
-    "build_history": "false",
     "business_key": [
         "id",
         "body",
@@ -28,12 +27,6 @@
     "row_hash_col": "row_hash",
     "data_type_map": {
         "date": "timestamp"
-    },
-    "readStreamOptions": {},
-    "writeStreamOptions": {
-        "mergeSchema": "false",
-        "checkpointLocation": "/Volumes/edsm/silver/utility/stations/_checkpoints/",
-        "delta.columnMapping.mode": "name"
     },
     "ingest_time_column": "derived_ingest_time"
 }
