@@ -6,6 +6,101 @@ from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
 
+# Map short ``job_type`` names to ingest function combinations. These names are
+# used when ``simple_settings`` is enabled in a settings file.
+JOB_TYPE_MAP = {
+    "bronze_standard_streaming": {
+        "read_function": "functions.read.stream_read_cloudfiles",
+        "transform_function": "functions.transform.bronze_standard_transform",
+        "write_function": "functions.write.stream_write_table",
+    },
+    "silver_scd2_streaming": {
+        "read_function": "functions.read.stream_read_table",
+        "transform_function": "functions.transform.silver_scd2_transform",
+        "write_function": "functions.write.stream_upsert_table",
+        "upsert_function": "functions.write.microbatch_upsert_scd2_fn",
+    },
+    "silver_standard_streaming": {
+        "read_function": "functions.read.stream_read_table",
+        "transform_function": "functions.transform.silver_standard_transform",
+        "write_function": "functions.write.stream_upsert_table",
+        "upsert_function": "functions.write.microbatch_upsert_fn",
+    },
+    "silver_standard_batch": {
+        "read_function": "functions.read.read_table",
+        "transform_function": "functions.transform.silver_standard_transform",
+        "write_function": "functions.write.overwrite_table",
+    },
+}
+
+
+def _merge_dicts(base, override):
+    """Recursively merge two dictionaries.
+
+    ``override`` values take precedence over ``base``. Nested dictionaries are
+    merged rather than replaced.
+    """
+
+    result = base.copy()
+    for key, value in override.items():
+        if (
+            key in result
+            and isinstance(result[key], dict)
+            and isinstance(value, dict)
+        ):
+            result[key] = _merge_dicts(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def apply_job_type(settings):
+    """Expand ``job_type`` into explicit function names.
+
+    When ``settings`` includes ``simple_settings`` set to ``true`` (case
+    insensitive), the corresponding functions from ``JOB_TYPE_MAP`` are merged
+    into the settings dictionary. Existing keys in ``settings`` take precedence.
+    For the ``bronze_standard_streaming`` job type, additional defaults derived
+    from ``dst_table_name`` are merged in, and nested dictionaries are combined.
+    """
+
+    if str(settings.get("simple_settings", "false")).lower() == "true":
+        job_type = settings.get("job_type")
+        if not job_type:
+            raise KeyError("job_type must be provided when simple_settings is true")
+        try:
+            defaults = JOB_TYPE_MAP[job_type]
+        except KeyError as exc:
+            raise KeyError(f"Unknown job_type: {job_type}") from exc
+
+        if job_type == "bronze_standard_streaming":
+            dst = settings.get("dst_table_name")
+            if not dst:
+                raise KeyError("dst_table_name must be provided for bronze_standard_streaming")
+            catalog, _, table = dst.split(".", 2)
+            base_volume = f"/Volumes/{catalog}/bronze/utility/{table}"
+            dynamic = {
+                "build_history": "true",
+                "readStream_load": f"/Volumes/{catalog}/bronze/landing/",
+                "readStreamOptions": {
+                    "cloudFiles.inferColumnTypes": "false",
+                    "inferSchema": "false",
+                    "cloudFiles.schemaLocation": f"{base_volume}/_schema/",
+                    "badRecordsPath": f"{base_volume}/_badRecords/",
+                    "cloudFiles.rescuedDataColumn": "_rescued_data",
+                },
+                "writeStreamOptions": {
+                    "mergeSchema": "false",
+                    "checkpointLocation": f"{base_volume}/_checkpoints/",
+                    "delta.columnMapping.mode": "name",
+                },
+            }
+            defaults = _merge_dicts(defaults, dynamic)
+
+        settings = _merge_dicts(defaults, settings)
+
+    return settings
+
 
 def get_function(path):
     """Return a callable from a dotted module path.

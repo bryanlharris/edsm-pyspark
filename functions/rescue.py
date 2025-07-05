@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 from pyspark.sql.functions import col
-from functions.utility import create_table_if_not_exists, get_function
+from functions.utility import create_table_if_not_exists, get_function, apply_job_type
 
 
 def rescue_silver_table(mode, spark, table_name):
@@ -21,6 +21,7 @@ def rescue_silver_table(mode, spark, table_name):
 
     settings_path = f"../layer_02_silver/{table_name}.json"
     settings = json.loads(Path(settings_path).read_text())
+    settings = apply_job_type(settings)
 
     transform_function = get_function(settings["transform_function"])
     upsert_function = get_function(settings["upsert_function"])
@@ -85,6 +86,7 @@ def rescue_silver_table_versionAsOf(spark, table_name):
 
 def rescue_gold_table(spark, table_name):
     settings = json.loads(Path(f"../layer_03_gold/{table_name}.json").read_text())
+    settings = apply_job_type(settings)
     settings["ingest_time_column"] = "derived_ingest_time"
 
     history = spark.sql(f"DESCRIBE HISTORY {settings['src_table_name']}")
