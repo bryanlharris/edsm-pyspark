@@ -10,9 +10,10 @@ from pyspark.sql import SparkSession
 from functions.utility import get_function, create_bad_records_table, apply_job_type
 
 
-def load_settings(color: str, table: str) -> dict:
-    pattern = f"./layer_*_{color}/{table}.json"
-    path = next(Path().glob(pattern), None)
+def load_settings(color: str, table: str, project_root: str) -> dict:
+    root = Path(project_root)
+    pattern = f"layer_*_{color}/{table}.json"
+    path = next(root.glob(pattern), None)
     if path is None:
         raise FileNotFoundError(f"No settings file matching {pattern}")
     with open(path) as f:
@@ -20,8 +21,17 @@ def load_settings(color: str, table: str) -> dict:
     return apply_job_type(settings)
 
 
-def run_pipeline(spark: SparkSession, color: str, table: str) -> None:
-    settings = load_settings(color, table)
+def run_pipeline(
+    spark: SparkSession, color: str, table: str, project_root: str
+) -> None:
+    settings = load_settings(color, table, project_root)
+
+    job_settings = {"table": table, "project_root": project_root}
+    settings_message = f"\n\nDictionary from {color}_settings.json:\n\n"
+    settings_message += json.dumps(job_settings, indent=4)
+    settings_message += f"\n\nContents of {table}.json:\n\n"
+    settings_message += json.dumps(settings, indent=4)
+    print(settings_message)
 
     if "pipeline_function" in settings:
         pipeline_fn = get_function(settings["pipeline_function"])
@@ -45,10 +55,15 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Ingest table using project settings")
     parser.add_argument("--color", required=True, help="Layer color (bronze, silver, gold)")
     parser.add_argument("--table", required=True, help="Table name to ingest")
+    parser.add_argument(
+        "--project_root",
+        default=".",
+        help="Path to the project root containing layer settings",
+    )
     args = parser.parse_args(argv)
 
     spark = SparkSession.builder.getOrCreate()
-    run_pipeline(spark, args.color, args.table)
+    run_pipeline(spark, args.color, args.table, args.project_root)
 
 
 if __name__ == "__main__":

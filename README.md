@@ -8,16 +8,23 @@ same logic can be executed from a regular Python script.
 
 Use `scripts/ingest.py` to run the read/transform/write pipeline for a single
 settings file.  The script expects the layer colour and table name so it can
-locate `layer_*_<color>/<table>.json`.
+locate `layer_*_<color>/<table>.json`.  By default the file is searched for in
+the current working directory, but a different project root can be specified
+with `--project_root`.
 
 ```bash
-spark-submit scripts/ingest.py --color bronze --table stations
+spark-submit scripts/ingest.py \
+    --color bronze \
+    --table {{input.table}} \
+    --project_root {{input.project_root}}
 ```
 
 The script loads the JSON settings, applies `apply_job_type` to expand any
 `simple_settings` values and then runs the pipeline defined by the functions
-listed in the file. If the colour is `bronze` the script will also check for bad
-records using `create_bad_records_table`.
+listed in the file. Before running the functions the script will print the job
+settings dictionary and the contents of the table's JSON file so that the
+configuration is visible. If the colour is `bronze` the script will also check
+for bad records using `create_bad_records_table`.
 
 ## Migrating from the Notebook
 
