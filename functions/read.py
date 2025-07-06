@@ -48,6 +48,7 @@ def stream_read_table(settings, spark):
 
     return (
         spark.readStream
+        .format("delta")
         .options(**readStreamOptions)
         .table(src_table_name)
     )
