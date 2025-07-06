@@ -1,12 +1,12 @@
 import json
-from pathlib import Path
 from pyspark.sql.types import StructType
 from functions.utility import create_table_if_not_exists, get_function, apply_job_type
+from functions.project_root import PROJECT_ROOT
 
 
-def _discover_settings_files(project_root):
+def _discover_settings_files():
     """Return dictionaries of settings files for each layer."""
-    project_root = Path(project_root)
+    project_root = PROJECT_ROOT
     bronze_files = {
         f.stem: str(f)
         for f in project_root.glob("layer_*_bronze/*.json")
@@ -22,7 +22,7 @@ def _discover_settings_files(project_root):
 
     return bronze_files, silver_files, gold_files
 
-def validate_settings(project_root, dbutils):
+def validate_settings(dbutils):
     """Ensure all settings files contain required keys before processing."""
 
     ## Check that all json settings files have the minimum required keys AKA functions before proceeding
@@ -30,7 +30,7 @@ def validate_settings(project_root, dbutils):
     silver_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver")
     gold_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="gold")
 
-    bronze_files, silver_files, gold_files = _discover_settings_files(project_root)
+    bronze_files, silver_files, gold_files = _discover_settings_files()
 
     all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
 
@@ -78,11 +78,11 @@ def validate_settings(project_root, dbutils):
         print("Sanity check: Validate settings check passed.")
 
 
-def initialize_empty_tables(project_root, spark):
+def initialize_empty_tables(spark):
     """Create empty Delta tables based on settings definitions."""
 
     errs = []
-    bronze_files, silver_files, gold_files = _discover_settings_files(project_root)
+    bronze_files, silver_files, gold_files = _discover_settings_files()
 
     all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
 
