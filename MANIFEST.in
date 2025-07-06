@@ -1,4 +1,0 @@
-recursive-include dashboards *.ipynb
-recursive-include utilities *.ipynb
-recursive-include layer_01_bronze *.json
-recursive-include layer_02_silver *.json
