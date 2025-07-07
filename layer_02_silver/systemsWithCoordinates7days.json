@@ -1,6 +1,6 @@
 {
     "simple_settings": "true",
-    "job_type": "silver_standard_streaming",
+    "job_type": "silver_upsert_streaming",
     "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
     "dst_table_name": "edsm.silver.systemsWithCoordinates",
     "business_key": [
