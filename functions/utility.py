@@ -82,11 +82,11 @@ def apply_job_type(settings):
             dst = settings.get("dst_table_name")
             if not dst:
                 raise KeyError("dst_table_name must be provided for bronze_standard_streaming")
-            catalog, _, table = dst.split(".", 2)
-            base_volume = f"/Volumes/{catalog}/bronze/utility/{table}"
+            catalog, schema, table = dst.split(".", 2)
+            base_volume = f"/Volumes/{catalog}/{schema}/utility/{table}"
             dynamic = {
                 "build_history": "true",
-                "readStream_load": f"/Volumes/{catalog}/bronze/landing/",
+                "readStream_load": f"/Volumes/{catalog}/{schema}/landing/",
                 "readStreamOptions": {
                     "cloudFiles.inferColumnTypes": "false",
                     "inferSchema": "false",
