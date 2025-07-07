@@ -20,11 +20,16 @@ JOB_TYPE_MAP = {
         "write_function": "functions.write.stream_upsert_table",
         "upsert_function": "functions.write.microbatch_upsert_scd2_fn",
     },
-    "silver_standard_streaming": {
+    "silver_upsert_streaming": {
         "read_function": "functions.read.stream_read_table",
         "transform_function": "functions.transform.silver_standard_transform",
         "write_function": "functions.write.stream_upsert_table",
         "upsert_function": "functions.write.microbatch_upsert_fn",
+    },
+    "silver_standard_streaming": {
+        "read_function": "functions.read.stream_read_table",
+        "transform_function": "functions.transform.silver_standard_transform",
+        "write_function": "functions.write.stream_write_table",
     },
     "silver_scd2_batch": {
         "read_function": "functions.read.read_table",
