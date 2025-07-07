@@ -21,9 +21,36 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
 
     catalog, schema, table = full_table_name.split(".")
     file_version_table_name = f"{catalog}.{history_schema}.{table}_file_version_history"
-    prev_files = set()
+    if spark.catalog.tableExists(file_version_table_name):
+        last_version = (
+            spark.table(file_version_table_name)
+            .agg({"version": "max"})
+            .collect()[0][0]
+        )
+    else:
+        last_version = -1
+
+    version_list = [
+        v for v in describe_and_filter_history(full_table_name, spark) if v > last_version
+    ]
+
+    if last_version >= 0:
+        prev_files = {
+            row.file_path
+            for row in (
+                spark.read
+                .format("delta")
+                .option("versionAsOf", last_version)
+                .table(full_table_name)
+                .select(col("source_metadata.file_path").alias("file_path"))
+                .dropDuplicates()
+                .collect()
+            )
+        }
+    else:
+        prev_files = set()
+
     file_version_history_records = []
-    version_list = describe_and_filter_history(full_table_name, spark)
 
     for version in version_list:
         this_version_df = (
