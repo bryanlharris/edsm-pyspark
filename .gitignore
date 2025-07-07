@@ -4,3 +4,4 @@
 **/archive/**
 dist/**
 edsm.egg-info/
+__pycache__/
