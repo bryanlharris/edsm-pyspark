@@ -1,5 +1,5 @@
 import json
-from .utility import create_table_if_not_exists
+from .utility import create_table_if_not_exists, truncate_table_if_exists
 from pyspark.sql.functions import col, lit, expr
 
 def describe_and_filter_history(full_table_name, spark):
@@ -28,6 +28,16 @@ def build_and_merge_file_history(full_table_name, history_schema, spark):
             .collect()[0][0]
         )
     else:
+        last_version = -1
+
+    current_max_version = (
+        spark.sql(f"describe history {full_table_name}")
+        .agg({"version": "max"})
+        .collect()[0][0]
+    )
+
+    if last_version > current_max_version:
+        truncate_table_if_exists(file_version_table_name, spark)
         last_version = -1
 
     version_list = [
