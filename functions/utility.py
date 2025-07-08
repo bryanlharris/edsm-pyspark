@@ -12,7 +12,7 @@ def print_settings(job_settings, settings, color, table):
 
     settings_message = f"\n\nDictionary from {color}_settings.json:\n\n"
     settings_message += json.dumps(job_settings, indent=4)
-    settings_message += f"\n\nContents of {table}.json:\n\n"
+    settings_message += f"\n\nDerived contents of {table}.json:\n\n"
     settings_message += json.dumps(settings, indent=4)
     print(settings_message)
 
