@@ -73,26 +73,19 @@ def count_records(
         DataFrame to count. May be streaming or batch.
     spark : SparkSession
     checkpoint_location : str, optional
-        Path to the standard checkpoint folder for the streaming job.
-        When provided, or when the Spark configuration
-        ``spark.dqx.checkpointLocation`` is set, the helper creates a
-        sibling directory named ``_dqx_checkpoints/<id>`` to track progress
-        while counting records. The folder is removed automatically when
-        the count completes.
+        Path to the ``_dqx_checkpoints`` folder used when counting records
+        from a streaming DataFrame.  ``count_records`` appends a unique
+        run ID to this directory and removes it when the operation
+        completes.  The argument is required for streaming DataFrames.
     """
 
     if getattr(df, "isStreaming", False):
+        if checkpoint_location is None:
+            raise ValueError("checkpoint_location must be provided for streaming DataFrames")
         run_id = uuid.uuid4().hex
         name = f"_dqx_count_{run_id}"
-        spark_conf = getattr(getattr(spark, "conf", None), "get", None)
-        configured = spark_conf("spark.dqx.checkpointLocation", None) if spark_conf else None
-        base = checkpoint_location or configured
-        if not base:
-            raise ValueError(
-                "checkpoint_location or spark.dqx.checkpointLocation must be provided"
-            )
-        location = f"{base.rstrip('/')}/{run_id}/"
-        cleanup = True
+        location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
+
         (
             df.writeStream
             .format("memory")
@@ -104,8 +97,7 @@ def count_records(
         )
         count = spark.sql(f"SELECT COUNT(*) FROM {name}").collect()[0][0]
         spark.catalog.dropTempView(name)
-        if cleanup:
-            shutil.rmtree(location, ignore_errors=True)
+        shutil.rmtree(location, ignore_errors=True)
         return int(count)
 
     return int(df.count())

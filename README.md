@@ -24,5 +24,4 @@ count_records(df, spark, checkpoint_location=chkpt)
 ```
 
 The helper appends a unique run ID inside this directory and removes the
-folder after counting.  You can also set the Spark configuration
-`spark.dqx.checkpointLocation` instead of passing the argument.
+folder after counting.
