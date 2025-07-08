@@ -9,6 +9,7 @@ when the helper is executed.
 from __future__ import annotations
 
 from typing import Tuple, Any
+import uuid
 
 
 def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
@@ -57,3 +58,23 @@ def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
     dq_engine = DQEngineCore(_DummyWS(), spark)
     good_df, bad_df = dq_engine.apply_checks_by_metadata_and_split(df, checks)
     return good_df, bad_df
+
+
+def count_records(df: Any, spark: Any) -> int:
+    """Return the number of rows in ``df`` supporting streaming inputs."""
+
+    if getattr(df, "isStreaming", False):
+        name = f"_dqx_count_{uuid.uuid4().hex}"
+        (
+            df.writeStream
+            .format("memory")
+            .queryName(name)
+            .trigger(availableNow=True)
+            .start()
+            .awaitTermination()
+        )
+        count = spark.sql(f"SELECT COUNT(*) FROM {name}").collect()[0][0]
+        spark.catalog.dropTempView(name)
+        return int(count)
+
+    return int(df.count())
