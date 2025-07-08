@@ -85,6 +85,7 @@ def count_records(
         run_id = uuid.uuid4().hex
         name = f"_dqx_count_{run_id}"
         location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
+
         (
             df.writeStream
             .format("memory")
