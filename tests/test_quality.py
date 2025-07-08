@@ -3,6 +3,7 @@ import types
 import pathlib
 import importlib.util
 import unittest
+import unittest.mock
 
 # Insert repo root into path
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -33,12 +34,21 @@ class DummyWriteStream:
         self.df = df
         self.spark = spark
         self.name = None
+        self.opts = {}
     def format(self, fmt):
         return self
     def queryName(self, name):
         self.name = name
         return self
     def trigger(self, **kwargs):
+        return self
+    def option(self, *args, **kwargs):
+        if len(args) == 2 and not kwargs:
+            self.opts[args[0]] = args[1]
+        self.opts.update(kwargs)
+        return self
+    def options(self, **kwargs):
+        self.opts.update(kwargs)
         return self
     def start(self):
         self.spark.storage[self.name] = getattr(self.df, "rows", [])
@@ -83,9 +93,21 @@ class QualityTests(unittest.TestCase):
     def test_count_records_streaming(self):
         spark = DummySpark()
         df = DummyStreamingDF([1, 2, 3], spark)
-        result = quality.count_records(df, spark)
-        self.assertEqual(result, 3)
-        self.assertEqual(spark.storage, {})
+        with unittest.mock.patch.object(quality.uuid, 'uuid4') as mock_uuid, \
+             unittest.mock.patch.object(quality.shutil, 'rmtree') as mock_rm:
+            mock_uuid.return_value.hex = 'abcd'
+            result = quality.count_records(
+                df, spark, checkpoint_location='/tmp/_dqx_checkpoints/'
+            )
+            self.assertEqual(result, 3)
+            self.assertEqual(
+                spark.storage, {}
+            )
+            self.assertEqual(
+                df.writeStream.opts.get('checkpointLocation'),
+                '/tmp/_dqx_checkpoints/abcd/'
+            )
+            mock_rm.assert_called_with('/tmp/_dqx_checkpoints/abcd/', ignore_errors=True)
 
 if __name__ == '__main__':
     unittest.main()

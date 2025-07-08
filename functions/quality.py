@@ -8,8 +8,10 @@ when the helper is executed.
 """
 from __future__ import annotations
 
-from typing import Tuple, Any
+from typing import Tuple, Any, Optional
 import uuid
+import os
+import shutil
 
 
 def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
@@ -60,21 +62,50 @@ def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
     return good_df, bad_df
 
 
-def count_records(df: Any, spark: Any) -> int:
-    """Return the number of rows in ``df`` supporting streaming inputs."""
+def count_records(
+    df: Any, spark: Any, *, checkpoint_location: Optional[str] | None = None
+) -> int:
+    """Return the number of rows in ``df`` supporting streaming inputs.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame to count. May be streaming or batch.
+    spark : SparkSession
+    checkpoint_location : str, optional
+        Path to the standard checkpoint folder for the streaming job.
+        When provided, or when the Spark configuration
+        ``spark.dqx.checkpointLocation`` is set, the helper creates a
+        sibling directory named ``_dqx_checkpoints/<id>`` to track progress
+        while counting records. The folder is removed automatically when
+        the count completes.
+    """
 
     if getattr(df, "isStreaming", False):
-        name = f"_dqx_count_{uuid.uuid4().hex}"
+        run_id = uuid.uuid4().hex
+        name = f"_dqx_count_{run_id}"
+        spark_conf = getattr(getattr(spark, "conf", None), "get", None)
+        configured = spark_conf("spark.dqx.checkpointLocation", None) if spark_conf else None
+        base = checkpoint_location or configured
+        if not base:
+            raise ValueError(
+                "checkpoint_location or spark.dqx.checkpointLocation must be provided"
+            )
+        location = f"{base.rstrip('/')}/{run_id}/"
+        cleanup = True
         (
             df.writeStream
             .format("memory")
             .queryName(name)
+            .option("checkpointLocation", location)
             .trigger(availableNow=True)
             .start()
             .awaitTermination()
         )
         count = spark.sql(f"SELECT COUNT(*) FROM {name}").collect()[0][0]
         spark.catalog.dropTempView(name)
+        if cleanup:
+            shutil.rmtree(location, ignore_errors=True)
         return int(count)
 
     return int(df.count())
