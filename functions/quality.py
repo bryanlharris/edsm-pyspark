@@ -8,8 +8,10 @@ when the helper is executed.
 """
 from __future__ import annotations
 
-from typing import Tuple, Any
+from typing import Tuple, Any, Optional
 import uuid
+import os
+import shutil
 
 
 def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
@@ -60,21 +62,41 @@ def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
     return good_df, bad_df
 
 
-def count_records(df: Any, spark: Any) -> int:
-    """Return the number of rows in ``df`` supporting streaming inputs."""
+def count_records(
+    df: Any, spark: Any, *, checkpoint_location: Optional[str] | None = None
+) -> int:
+    """Return the number of rows in ``df`` supporting streaming inputs.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame to count. May be streaming or batch.
+    spark : SparkSession
+    checkpoint_location : str, optional
+        Path to the ``_dqx_checkpoints`` folder used when counting records
+        from a streaming DataFrame.  ``count_records`` appends a unique
+        run ID to this directory and removes it when the operation
+        completes.  The argument is required for streaming DataFrames.
+    """
 
     if getattr(df, "isStreaming", False):
-        name = f"_dqx_count_{uuid.uuid4().hex}"
+        if checkpoint_location is None:
+            raise ValueError("checkpoint_location must be provided for streaming DataFrames")
+        run_id = uuid.uuid4().hex
+        name = f"_dqx_count_{run_id}"
+        location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
         (
             df.writeStream
             .format("memory")
             .queryName(name)
+            .option("checkpointLocation", location)
             .trigger(availableNow=True)
             .start()
             .awaitTermination()
         )
         count = spark.sql(f"SELECT COUNT(*) FROM {name}").collect()[0][0]
         spark.catalog.dropTempView(name)
+        shutil.rmtree(location, ignore_errors=True)
         return int(count)
 
     return int(df.count())

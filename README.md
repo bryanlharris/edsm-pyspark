@@ -12,3 +12,16 @@ as part of a pipeline.  Use `apply_dqx_checks(df, settings, spark)` to
 validate a DataFrame using checks defined inline in the job settings.
 The standard ingest notebook executes these checks between the transform
 and write steps and stops the job when any rows fail validation.
+
+When counting rows from a streaming DataFrame, first derive a sibling
+`_dqx_checkpoints` directory next to the job's checkpoint location:
+
+```python
+base = checkpoint.rstrip('/')
+parent = os.path.dirname(base)
+chkpt = f"{parent}/_dqx_checkpoints/"
+count_records(df, spark, checkpoint_location=chkpt)
+```
+
+The helper appends a unique run ID inside this directory and removes the
+folder after counting.
