@@ -10,3 +10,5 @@ The `functions.quality` module provides an optional helper to run
 Databricks [DQX](https://pypi.org/project/databricks-labs-dqx/) checks
 as part of a pipeline.  Use `apply_dqx_checks(df, settings, spark)` to
 validate a DataFrame using checks defined inline in the job settings.
+The standard ingest notebook executes these checks between the transform
+and write steps and stops the job when any rows fail validation.
