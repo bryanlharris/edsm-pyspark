@@ -101,3 +101,44 @@ def count_records(
         return int(count)
 
     return int(df.count())
+
+
+def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
+    """Validate ``df`` with DQX checks and materialize failures as a table.
+
+    The function mirrors :func:`create_bad_records_table` from
+    ``functions.utility``.  Rows failing the checks are written to a table
+    named ``<dst_table_name>_dqx_bad_records``.  Any existing table with that
+    name is dropped when no failures are found.  If the table exists after
+    processing, an exception is raised and the cleaned dataframe is returned.
+    """
+
+    dst_table_name = settings.get("dst_table_name")
+    if not dst_table_name:
+        return df
+
+    df, bad_df = apply_dqx_checks(df, settings, spark)
+
+    checkpoint_location = settings.get("writeStreamOptions", {}).get(
+        "checkpointLocation"
+    )
+    if checkpoint_location is not None:
+        base = checkpoint_location.rstrip("/")
+        parent = os.path.dirname(base)
+        checkpoint_location = f"{parent}/_dqx_checkpoints/"
+
+    n_bad = count_records(bad_df, spark, checkpoint_location=checkpoint_location)
+
+    if n_bad > 0:
+        (
+            bad_df.write.mode("overwrite")
+            .format("delta")
+            .saveAsTable(f"{dst_table_name}_dqx_bad_records")
+        )
+    else:
+        spark.sql(f"DROP TABLE IF EXISTS {dst_table_name}_dqx_bad_records")
+
+    if spark.catalog.tableExists(f"{dst_table_name}_dqx_bad_records"):
+        raise Exception(f"DQX checks failed: {n_bad} failing records")
+
+    return df
