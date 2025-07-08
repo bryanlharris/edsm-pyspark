@@ -16,6 +16,7 @@ from . import (
     rescue,
     sanity,
     project_root,
+    quality,
 )
 
 __all__ = [
@@ -27,4 +28,5 @@ __all__ = [
     "rescue",
     "sanity",
     "project_root",
+    "quality",
 ]

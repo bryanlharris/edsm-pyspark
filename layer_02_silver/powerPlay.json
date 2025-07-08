@@ -16,5 +16,128 @@
     ],
     "data_type_map": {
         "date": "timestamp"
-    }
+    },
+    "dqx_checks": [
+        {
+            "name": "id_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {"column": "id"}
+            }
+        },
+        {
+            "name": "allegiance_enum",
+            "check": {
+                "function": "is_not_null_and_is_in_list",
+                "arguments": {
+                    "column": "allegiance",
+                    "allowed": [
+                        "Pilots Federation",
+                        "Federation",
+                        "Alliance",
+                        "Empire",
+                        "Independent"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "government_enum",
+            "check": {
+                "function": "is_not_null_and_is_in_list",
+                "arguments": {
+                    "column": "government",
+                    "allowed": [
+                        "Theocracy",
+                        "Confederacy",
+                        "Democracy",
+                        "Dictatorship",
+                        "Prison colony",
+                        "Corporate",
+                        "Cooperative",
+                        "Communism",
+                        "Anarchy",
+                        "Patronage",
+                        "Feudal"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "power_enum",
+            "check": {
+                "function": "is_not_null_and_is_in_list",
+                "arguments": {
+                    "column": "power",
+                    "allowed": [
+                        "Felicia Winters",
+                        "A. Lavigny-Duval",
+                        "Pranav Antal",
+                        "Yuri Grom",
+                        "Aisling Duval",
+                        "Archon Delaine",
+                        "Li Yong-Rui",
+                        "Edmund Mahon",
+                        "Nakato Kaine",
+                        "Denton Patreus",
+                        "Zemina Torval",
+                        "Jerome Archer"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "powerState_enum",
+            "check": {
+                "function": "is_not_null_and_is_in_list",
+                "arguments": {
+                    "column": "powerState",
+                    "allowed": [
+                        "Unoccupied",
+                        "Exploited",
+                        "Controlled",
+                        "Fortified",
+                        "Turmoil",
+                        "Contested",
+                        "Stronghold",
+                        "Preparing",
+                        "InPreparation",
+                        "HomeSystem"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "state_enum",
+            "check": {
+                "function": "is_not_null_and_is_in_list",
+                "arguments": {
+                    "column": "state",
+                    "allowed": [
+                        "Boom",
+                        "Retreat",
+                        "Natural Disaster",
+                        "None",
+                        "Infrastructure Failure",
+                        "Blight",
+                        "Outbreak",
+                        "Lockdown",
+                        "Public Holiday",
+                        "Drought",
+                        "Terrorist Attack",
+                        "Civil liberty",
+                        "Famine",
+                        "Civil unrest",
+                        "War",
+                        "Expansion",
+                        "Bust",
+                        "Pirate attack",
+                        "Civil war",
+                        "Investment",
+                        "Election"
+                    ]
+                }
+            }
+        }
+    ]
 }
