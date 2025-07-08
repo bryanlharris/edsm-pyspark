@@ -6,6 +6,16 @@ from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
 
+
+def print_settings(job_settings, settings, color, table):
+    """Display formatted job and table settings."""
+
+    settings_message = f"\n\nDictionary from {color}_settings.json:\n\n"
+    settings_message += json.dumps(job_settings, indent=4)
+    settings_message += f"\n\nContents of {table}.json:\n\n"
+    settings_message += json.dumps(settings, indent=4)
+    print(settings_message)
+
 # Map short ``job_type`` names to ingest function combinations. These names are
 # used when ``simple_settings`` is enabled in a settings file.
 JOB_TYPE_MAP = {
