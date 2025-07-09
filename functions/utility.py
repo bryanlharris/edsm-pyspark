@@ -6,6 +6,8 @@ from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
 
+from .config import JOB_TYPE_MAP, S3_ROOT
+
 
 def print_settings(job_settings, settings, color, table):
     """Display formatted job and table settings."""
@@ -16,42 +18,7 @@ def print_settings(job_settings, settings, color, table):
     settings_message += json.dumps(settings, indent=4)
     print(settings_message)
 
-# Map short ``job_type`` names to ingest function combinations. These names are
-# used when ``simple_settings`` is enabled in a settings file.
-JOB_TYPE_MAP = {
-    "bronze_standard_streaming": {
-        "read_function": "functions.read.stream_read_cloudfiles",
-        "transform_function": "functions.transform.bronze_standard_transform",
-        "write_function": "functions.write.stream_write_table",
-    },
-    "silver_scd2_streaming": {
-        "read_function": "functions.read.stream_read_table",
-        "transform_function": "functions.transform.silver_scd2_transform",
-        "write_function": "functions.write.stream_upsert_table",
-        "upsert_function": "functions.write.microbatch_upsert_scd2_fn",
-    },
-    "silver_upsert_streaming": {
-        "read_function": "functions.read.stream_read_table",
-        "transform_function": "functions.transform.silver_standard_transform",
-        "write_function": "functions.write.stream_upsert_table",
-        "upsert_function": "functions.write.microbatch_upsert_fn",
-    },
-    "silver_standard_streaming": {
-        "read_function": "functions.read.stream_read_table",
-        "transform_function": "functions.transform.silver_standard_transform",
-        "write_function": "functions.write.stream_write_table",
-    },
-    "silver_scd2_batch": {
-        "read_function": "functions.read.read_table",
-        "transform_function": "functions.transform.silver_scd2_transform",
-        "write_function": "functions.write.batch_upsert_scd2",
-    },
-    "silver_standard_batch": {
-        "read_function": "functions.read.read_table",
-        "transform_function": "functions.transform.silver_standard_transform",
-        "write_function": "functions.write.write_upsert_snapshot",
-    },
-}
+
 
 
 def _merge_dicts(base, override):
@@ -179,10 +146,16 @@ def schema_exists(catalog, schema, spark):
     return df.count() > 0
 
 
+def catalog_exists(catalog, spark):
+    """Return True if the catalog exists"""
+    df = spark.sql(f"SHOW CATALOGS LIKE '{catalog}'")
+    return df.count() > 0
+
+
 def create_volume_if_not_exists(catalog, schema, volume, spark):
     """Create an external volume pointing to the expected S3 path."""
 
-    s3_path = f"s3://edsm/volumes/{catalog}/{schema}/{volume}"
+    s3_path = f"{S3_ROOT}{catalog}/{schema}/{volume}"
     spark.sql(
         f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
     )
