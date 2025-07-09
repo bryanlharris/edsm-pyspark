@@ -48,6 +48,12 @@ def matches_regex_list(df, column, patterns):
     return df.filter(~condition).count() == 0
 
 
+def pattern_match(df, column, pattern):
+    """Return ``True`` if ``column`` matches ``pattern``."""
+
+    return matches_regex_list(df, column, [pattern])
+
+
 def is_nonzero(df, column):
     """Return ``True`` if ``column`` is not zero."""
 
