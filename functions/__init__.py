@@ -17,6 +17,7 @@ from . import (
     sanity,
     project_root,
     quality,
+    dq_checks,
 )
 
 __all__ = [
@@ -29,4 +30,5 @@ __all__ = [
     "sanity",
     "project_root",
     "quality",
+    "dq_checks",
 ]

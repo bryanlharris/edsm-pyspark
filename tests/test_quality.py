@@ -8,6 +8,13 @@ import unittest.mock
 # Insert repo root into path
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
+# Create a minimal ``functions`` package to avoid executing the real package
+# (which requires pyspark) when ``quality`` performs relative imports.
+pkg_path = pathlib.Path(__file__).resolve().parents[1] / 'functions'
+functions_pkg = types.ModuleType('functions')
+functions_pkg.__path__ = [str(pkg_path)]
+sys.modules.setdefault('functions', functions_pkg)
+
 # Import quality module dynamically
 quality_path = pathlib.Path(__file__).resolve().parents[1] / 'functions' / 'quality.py'
 spec = importlib.util.spec_from_file_location('functions.quality', quality_path)
@@ -89,6 +96,51 @@ class QualityTests(unittest.TestCase):
         self.assertEqual(len(spark.created), 1)
         self.assertEqual(spark.created[0][0], [])
 
+    def test_registers_custom_functions(self):
+        df = DummyDF(schema='schema')
+        spark = DummySpark()
+
+        class DummyRegistry:
+            registered = {}
+
+            @classmethod
+            def register(cls, name, func):
+                cls.registered[name] = func
+
+        class DummyEngine:
+            def __init__(self, ws, spark):
+                self.ws = ws
+                self.spark = spark
+
+            def apply_checks_by_metadata_and_split(self, df_in, checks):
+                return df_in, DummyDF()
+
+        modules = {
+            'databricks': types.ModuleType('databricks'),
+            'databricks.labs': types.ModuleType('databricks.labs'),
+            'databricks.labs.dqx': types.ModuleType('databricks.labs.dqx'),
+            'databricks.labs.dqx.engine': types.ModuleType('databricks.labs.dqx.engine'),
+            'databricks.labs.dqx.check_funcs': types.ModuleType('databricks.labs.dqx.check_funcs'),
+        }
+        modules['databricks'].labs = modules['databricks.labs']
+        modules['databricks.labs'].dqx = modules['databricks.labs.dqx']
+        modules['databricks.labs.dqx'].engine = modules['databricks.labs.dqx.engine']
+        modules['databricks.labs.dqx'].check_funcs = modules['databricks.labs.dqx.check_funcs']
+        modules['databricks.labs.dqx.engine'].DQEngineCore = DummyEngine
+        modules['databricks.labs.dqx.check_funcs'].DQXCheckRegistry = DummyRegistry
+
+        with unittest.mock.patch.dict(sys.modules, modules):
+            good, bad = quality.apply_dqx_checks(df, {'dqx_checks': ['c']}, spark)
+
+        self.assertIs(good, df)
+        self.assertIsInstance(bad, DummyDF)
+        self.assertIn('min_max', DummyRegistry.registered)
+        self.assertIn('is_in', DummyRegistry.registered)
+        self.assertIn('is_not_null_or_empty', DummyRegistry.registered)
+        self.assertIn('max_length', DummyRegistry.registered)
+        self.assertIn('matches_regex_list', DummyRegistry.registered)
+        self.assertIn('is_nonzero', DummyRegistry.registered)
+        self.assertIn('starts_with_prefixes', DummyRegistry.registered)
     def test_count_records_batch(self):
         class CountDF(DummyDF):
             def count(self_inner):
