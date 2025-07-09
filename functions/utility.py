@@ -6,7 +6,7 @@ from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
 
-from .config import JOB_TYPE_MAP, S3_ROOT
+from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY
 
 
 def print_settings(job_settings, settings, color, table):
@@ -155,7 +155,8 @@ def catalog_exists(catalog, spark):
 def create_volume_if_not_exists(catalog, schema, volume, spark):
     """Create an external volume pointing to the expected S3 path."""
 
-    s3_path = f"{S3_ROOT}{catalog}/{schema}/{volume}"
+    root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+    s3_path = f"{root}{catalog}/{schema}/{volume}"
     spark.sql(
         f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
     )
