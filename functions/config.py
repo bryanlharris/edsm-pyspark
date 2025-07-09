@@ -39,6 +39,7 @@ JOB_TYPE_MAP = {
     },
 }
 
-# Base S3 path for external volumes
-S3_ROOT = "s3://edsm/volumes/"
+# Base S3 paths for external volumes
+S3_ROOT_LANDING = "s3://edsm/landing/"
+S3_ROOT_UTILITY = "s3://edsm/utility/"
 
