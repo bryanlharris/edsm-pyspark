@@ -103,16 +103,18 @@ class QualityTests(unittest.TestCase):
         class DummyRegistry:
             registered = {}
 
-            @classmethod
-            def register(cls, name, func):
-                cls.registered[name] = func
+            def __call__(self, rule_type):
+                def decorator(func):
+                    DummyRegistry.registered[func.__name__] = rule_type
+                    return func
+                return decorator
 
         class DummyEngine:
             def __init__(self, ws, spark):
                 self.ws = ws
                 self.spark = spark
 
-            def apply_checks_by_metadata_and_split(self, df_in, checks):
+            def apply_checks_by_metadata_and_split(self, df_in, checks, custom_check_functions=None):
                 return df_in, DummyDF()
 
         modules = {
@@ -120,14 +122,14 @@ class QualityTests(unittest.TestCase):
             'databricks.labs': types.ModuleType('databricks.labs'),
             'databricks.labs.dqx': types.ModuleType('databricks.labs.dqx'),
             'databricks.labs.dqx.engine': types.ModuleType('databricks.labs.dqx.engine'),
-            'databricks.labs.dqx.check_funcs': types.ModuleType('databricks.labs.dqx.check_funcs'),
+            'databricks.labs.dqx.rule': types.ModuleType('databricks.labs.dqx.rule'),
         }
         modules['databricks'].labs = modules['databricks.labs']
         modules['databricks.labs'].dqx = modules['databricks.labs.dqx']
         modules['databricks.labs.dqx'].engine = modules['databricks.labs.dqx.engine']
-        modules['databricks.labs.dqx'].check_funcs = modules['databricks.labs.dqx.check_funcs']
+        modules['databricks.labs.dqx'].rule = modules['databricks.labs.dqx.rule']
         modules['databricks.labs.dqx.engine'].DQEngineCore = DummyEngine
-        modules['databricks.labs.dqx.check_funcs'].DQXCheckRegistry = DummyRegistry
+        modules['databricks.labs.dqx.rule'].register_rule = DummyRegistry()
 
         with unittest.mock.patch.dict(sys.modules, modules):
             good, bad = quality.apply_dqx_checks(df, {'dqx_checks': ['c']}, spark)
