@@ -28,7 +28,7 @@
         {
             "name": "allegiance_enum",
             "check": {
-                "function": "is_not_null_and_is_in_list",
+                "function": "is_in_list",
                 "arguments": {
                     "column": "allegiance",
                     "allowed": [
@@ -44,7 +44,7 @@
         {
             "name": "government_enum",
             "check": {
-                "function": "is_not_null_and_is_in_list",
+                "function": "is_in_list",
                 "arguments": {
                     "column": "government",
                     "allowed": [
@@ -66,7 +66,7 @@
         {
             "name": "power_enum",
             "check": {
-                "function": "is_not_null_and_is_in_list",
+                "function": "is_in_list",
                 "arguments": {
                     "column": "power",
                     "allowed": [
@@ -89,7 +89,7 @@
         {
             "name": "powerState_enum",
             "check": {
-                "function": "is_not_null_and_is_in_list",
+                "function": "is_in_list",
                 "arguments": {
                     "column": "powerState",
                     "allowed": [
@@ -110,7 +110,7 @@
         {
             "name": "state_enum",
             "check": {
-                "function": "is_not_null_and_is_in_list",
+                "function": "is_in_list",
                 "arguments": {
                     "column": "state",
                     "allowed": [
