@@ -127,17 +127,33 @@ def get_function(path):
 
 
 def create_table_if_not_exists(df, dst_table_name, spark):
-    """Create a table from a dataframe if it doesn't exist"""
+    """Create a table from a dataframe if it doesn't exist.
+
+    Returns
+    -------
+    bool
+        ``True`` if the table was created, ``False`` otherwise.
+    """
+
     if not spark.catalog.tableExists(dst_table_name):
         empty_df = spark.createDataFrame([], df.schema)
-        empty_df.write.format("delta").option("delta.columnMapping.mode", "name").saveAsTable(dst_table_name)
+        (
+            empty_df.write
+            .format("delta")
+            .option("delta.columnMapping.mode", "name")
+            .saveAsTable(dst_table_name)
+        )
+        print(f"\tINFO: Table did not exist and was created: {dst_table_name}.")
         return True
+
     return False
 
 
 def create_schema_if_not_exists(catalog, schema, spark):
-    """Create the schema if it is missing."""
+    """Create the schema if it is missing and print a message."""
+
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+    print(f"\tINFO: Schema did not exist and was created: {catalog}.{schema}.")
 
 
 def schema_exists(catalog, schema, spark):
@@ -159,6 +175,9 @@ def create_volume_if_not_exists(catalog, schema, volume, spark):
     s3_path = f"{root}{catalog}/{schema}/{volume}"
     spark.sql(
         f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
+    )
+    print(
+        f"\tINFO: Volume did not exist and was created: /Volumes/{catalog}/{schema}/{volume}."
     )
 
 

@@ -130,8 +130,7 @@ def initialize_empty_tables(spark):
                 break
             df=transform_function(df, settings, spark)
             dst=settings["dst_table_name"]
-            if create_table_if_not_exists(df, dst, spark):
-                print(f"\tINFO: Table did not exist and was created: {dst}.")
+            create_table_if_not_exists(df, dst, spark)
         if skip_table:
             continue
 
