@@ -16,5 +16,308 @@
     "data_type_map": {
         "date": "timestamp"
     },
-    "ingest_time_column": "derived_ingest_time"
+    "ingest_time_column": "derived_ingest_time",
+    "dqx_checks": [
+        {
+            "name": "coords.x_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "coords.x"
+                }
+            }
+        },
+        {
+            "name": "coords.x_min_max",
+            "check": {
+                "function": "min_max",
+                "arguments": {
+                    "column": "coords.x",
+                    "min": -24095.851319785415,
+                    "max": 22352.016569785414
+                }
+            }
+        },
+        {
+            "name": "coords.y_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "coords.y"
+                }
+            }
+        },
+        {
+            "name": "coords.y_min_max",
+            "check": {
+                "function": "min_max",
+                "arguments": {
+                    "column": "coords.y",
+                    "min": -1831.375,
+                    "max": 1434.1849317279098
+                }
+            }
+        },
+        {
+            "name": "coords.z_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "coords.z"
+                }
+            }
+        },
+        {
+            "name": "coords.z_min_max",
+            "check": {
+                "function": "min_max",
+                "arguments": {
+                    "column": "coords.z",
+                    "min": -15103.75,
+                    "max": 51396.5625
+                }
+            }
+        },
+        {
+            "name": "date_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "date"
+                }
+            }
+        },
+        {
+            "name": "date_min_max",
+            "check": {
+                "function": "min_max",
+                "arguments": {
+                    "column": "date",
+                    "min": "2016-06-06 00:00:00",
+                    "max": "2025-06-23 00:00:00"
+                }
+            }
+        },
+        {
+            "name": "id_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "id"
+                }
+            }
+        },
+        {
+            "name": "id_min_max",
+            "check": {
+                "function": "min_max",
+                "arguments": {
+                    "column": "id",
+                    "min": 23438,
+                    "max": 92445006
+                }
+            }
+        },
+        {
+            "name": "id64_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "id64"
+                }
+            }
+        },
+        {
+            "name": "id64_min_max",
+            "check": {
+                "function": "min_max",
+                "arguments": {
+                    "column": "id64",
+                    "min": 21625774,
+                    "max": 603684604364837
+                }
+            }
+        },
+        {
+            "name": "name_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "name"
+                }
+            }
+        },
+        {
+            "name": "_rescued_data_is_not_null_or_empty",
+            "check": {
+                "function": "is_not_null_or_empty",
+                "arguments": {
+                    "column": "_rescued_data",
+                    "trim_strings": true
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_path_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "source_metadata.file_path"
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_path_is_in",
+            "check": {
+                "function": "is_in",
+                "arguments": {
+                    "column": "source_metadata.file_path",
+                    "in": [
+                        "/Volumes/edsm/bronze/landing/data/20250629/systemsWithCoordinates.json"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_name_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "source_metadata.file_name"
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_name_is_in",
+            "check": {
+                "function": "is_in",
+                "arguments": {
+                    "column": "source_metadata.file_name",
+                    "in": [
+                        "systemsWithCoordinates.json"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_size_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "source_metadata.file_size"
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_size_is_in",
+            "check": {
+                "function": "is_in",
+                "arguments": {
+                    "column": "source_metadata.file_size",
+                    "in": [
+                        13286532617
+                    ]
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_block_start_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "source_metadata.file_block_start"
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_block_length_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "source_metadata.file_block_length"
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_block_length_is_in",
+            "check": {
+                "function": "is_in",
+                "arguments": {
+                    "column": "source_metadata.file_block_length",
+                    "in": [
+                        134217728,
+                        133195273
+                    ]
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_block_length_min_max",
+            "check": {
+                "function": "min_max",
+                "arguments": {
+                    "column": "source_metadata.file_block_length",
+                    "min": 133791310,
+                    "max": 134217728
+                }
+            }
+        },
+        {
+            "name": "source_metadata.file_modification_time_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "source_metadata.file_modification_time"
+                }
+            }
+        },
+        {
+            "name": "ingest_time_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "ingest_time"
+                }
+            }
+        },
+        {
+            "name": "derived_ingest_time_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "derived_ingest_time"
+                }
+            }
+        },
+        {
+            "name": "file_path_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "file_path"
+                }
+            }
+        },
+        {
+            "name": "file_path_is_in",
+            "check": {
+                "function": "is_in",
+                "arguments": {
+                    "column": "file_path",
+                    "in": [
+                        "/Volumes/edsm/bronze/landing/data/20250629/systemsWithCoordinates.json"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "file_modification_time_is_not_null",
+            "check": {
+                "function": "is_not_null",
+                "arguments": {
+                    "column": "file_modification_time"
+                }
+            }
+        }
+    ]
 }
