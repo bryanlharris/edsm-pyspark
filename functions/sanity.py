@@ -1,7 +1,14 @@
 import json
 from pyspark.sql.types import StructType
-from functions.utility import create_table_if_not_exists, get_function, apply_job_type
-from functions.project_root import PROJECT_ROOT
+from functions.utility import (
+    create_table_if_not_exists,
+    get_function,
+    apply_job_type,
+    create_schema_if_not_exists,
+    create_volume_if_not_exists,
+    catalog_exists,
+)
+from functions.config import PROJECT_ROOT
 
 
 def _discover_settings_files():
@@ -132,6 +139,68 @@ def initialize_empty_tables(spark):
         raise RuntimeError("Sanity check failed: "+", ".join(errs))
     else:
         print("Sanity check: Initialize empty tables check passed.")
+
+
+def initialize_schemas_and_volumes(spark):
+    """Create schemas and external volumes based on settings definitions."""
+
+    bronze_files, silver_files, gold_files = _discover_settings_files()
+
+    errs = []
+
+    schemas = {"bronze": set(), "silver": set(), "gold": set(), "history": set()}
+    file_map = {"bronze": bronze_files, "silver": silver_files, "gold": gold_files}
+    catalogs = set()
+
+    for color, files in file_map.items():
+        for path in files.values():
+            settings = json.loads(open(path).read())
+            settings = apply_job_type(settings)
+            dst = settings.get("dst_table_name")
+            if not dst:
+                continue
+            catalog, schema, _ = dst.split(".", 2)
+            catalogs.add(catalog)
+            schemas[color].add((catalog, schema))
+            if str(settings.get("build_history", "false")).lower() == "true":
+                history_schema = settings.get("history_schema")
+                if history_schema:
+                    schemas["history"].add((catalog, history_schema))
+
+    for color in ["bronze", "silver", "gold"]:
+        if len(schemas[color]) > 1:
+            errs.append(
+                f"Multiple schemas discovered for {color}: {sorted(schemas[color])}"
+            )
+    if len(schemas["history"]) > 1:
+        errs.append(
+            f"Multiple history schemas discovered: {sorted(schemas['history'])}"
+        )
+
+    if len(catalogs) > 1:
+        errs.append(f"Multiple catalogs discovered: {sorted(catalogs)}")
+    elif catalogs:
+        catalog = next(iter(catalogs))
+        if not catalog_exists(catalog, spark):
+            errs.append(f"Catalog does not exist: {catalog}")
+
+    if errs:
+        raise RuntimeError("Sanity check failed: " + ", ".join(errs))
+
+    volume_map = {
+        "bronze": ["landing", "utility"],
+        "silver": ["utility"],
+        "gold": ["utility"],
+    }
+
+    for color in ["bronze", "silver", "gold", "history"]:
+        for catalog, schema in sorted(schemas[color]):
+            create_schema_if_not_exists(catalog, schema, spark)
+            spark.sql(f"GRANT USAGE ON SCHEMA {catalog}.{schema} TO `account users`")
+            for volume in volume_map.get(color, []):
+                create_volume_if_not_exists(catalog, schema, volume, spark)
+
+    print("Sanity check: Initialize schemas and volumes check passed.")
 
 
 
