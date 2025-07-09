@@ -130,11 +130,30 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
     n_bad = count_records(bad_df, spark, checkpoint_location=checkpoint_location)
 
     if n_bad > 0:
-        (
-            bad_df.write.mode("overwrite")
-            .format("delta")
-            .saveAsTable(f"{dst_table_name}_dqx_bad_records")
-        )
+        if getattr(bad_df, "isStreaming", False):
+            if checkpoint_location is None:
+                raise ValueError(
+                    "checkpoint_location must be provided for streaming DataFrames"
+                )
+
+            run_id = uuid.uuid4().hex
+            location = f"{checkpoint_location.rstrip('/')}/{run_id}/"
+
+            (
+                bad_df.writeStream
+                .format("delta")
+                .option("checkpointLocation", location)
+                .trigger(availableNow=True)
+                .table(f"{dst_table_name}_dqx_bad_records")
+                .awaitTermination()
+            )
+            shutil.rmtree(location, ignore_errors=True)
+        else:
+            (
+                bad_df.write.mode("overwrite")
+                .format("delta")
+                .saveAsTable(f"{dst_table_name}_dqx_bad_records")
+            )
     else:
         spark.sql(f"DROP TABLE IF EXISTS {dst_table_name}_dqx_bad_records")
 
