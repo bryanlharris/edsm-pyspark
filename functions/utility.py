@@ -204,6 +204,7 @@ def create_volume_if_not_exists(catalog, schema, volume, spark):
     """Create an external volume pointing to the expected S3 path."""
 
     root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+    root = root.rstrip("/") + "/"
     s3_path = f"{root}{catalog}/{schema}/{volume}"
     spark.sql(
         f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
