@@ -71,7 +71,7 @@ def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
 
     if register_rule is not None:
         for func in custom_checks.values():
-            register_rule("single_column")(func)
+            register_rule("row")(func)
 
     class _DummyCurrentUser:
         def me(self):
