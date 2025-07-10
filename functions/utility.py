@@ -2,6 +2,7 @@ import os
 import json
 import importlib
 import subprocess
+import html
 from glob import glob
 from pathlib import Path
 from pyspark.sql.types import StructType
@@ -10,13 +11,50 @@ from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY
 
 
 def print_settings(job_settings, settings, color, table):
-    """Display formatted job and table settings."""
+    """Display formatted job and table settings with copy buttons."""
 
     settings_message = f"\n\nDictionary from {color}_settings.json:\n\n"
     settings_message += json.dumps(job_settings, indent=4)
     settings_message += f"\n\nDerived contents of {table}.json:\n\n"
     settings_message += json.dumps(settings, indent=4)
     print(settings_message)
+
+    try:
+        from dbruntime.display import displayHTML  # type: ignore
+    except Exception:  # pragma: no cover - fallback when not on Databricks
+        try:
+            from IPython.display import display as displayHTML  # type: ignore
+        except Exception:  # pragma: no cover - running outside notebooks
+            displayHTML = print  # type: ignore
+
+    def _copy_block(text: str, elem_id: str) -> str:
+        escaped = html.escape(text)
+        return (
+            f"<button onclick=\"copyJson('{elem_id}')\">Copy JSON to Clipboard</button>"
+            f"<textarea id=\"{elem_id}\" style=\"display:none;\">{escaped}</textarea>"
+            f"<pre>{escaped}</pre>"
+        )
+
+    job_html = _copy_block(json.dumps(job_settings, indent=4), "job-json")
+    table_html = _copy_block(json.dumps(settings, indent=4), "table-json")
+
+    displayHTML(
+        f"""
+<h3>Dictionary from {color}_settings.json:</h3>
+{job_html}
+<h3>Derived contents of {table}.json:</h3>
+{table_html}
+<script>
+function copyJson(id) {{
+    var textArea = document.getElementById(id);
+    textArea.style.display = 'block';
+    textArea.select();
+    document.execCommand('copy');
+    textArea.style.display = 'none';
+}}
+</script>
+"""
+    )
 
 
 
