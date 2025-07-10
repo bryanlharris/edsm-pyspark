@@ -86,6 +86,12 @@ def matches_regex_list(column, patterns):
     )
 
 
+def pattern_match(column, pattern):
+    """Return a column validating ``column`` matches ``pattern``."""
+
+    return matches_regex_list(column, [pattern])
+
+
 def is_nonzero(column):
     """Return a column validating ``column`` is not zero."""
 
