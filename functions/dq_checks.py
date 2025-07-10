@@ -9,64 +9,113 @@ from __future__ import annotations
 from functools import reduce
 
 
-def min_max(df, column, min, max):
-    """Return ``True`` if values fall within ``min`` and ``max``."""
-
-    return df.filter((df[column] < min) | (df[column] > max)).count() == 0
-
-
-def is_in(df, column, in_):
-    """Return ``True`` if ``column`` values are contained in ``in_``."""
-
-    return df.filter(~df[column].isin(in_)).count() == 0
-
-
-def is_not_null_or_empty(df, column, trim_strings=False):
-    """Return ``True`` if ``column`` is neither null nor empty."""
+def min_max(column, min, max):
+    """Return a column validating that values fall within ``min`` and ``max``."""
 
     from pyspark.sql import functions as F
 
-    c = df[column]
+    col_expr = F.col(column) if isinstance(column, str) else column
+    condition = (col_expr < F.lit(min)) | (col_expr > F.lit(max))
+    alias = f"{str(column).replace('.', '_')}_min_max"
+    return F.when(condition, F.lit(f"Value out of range [{min}, {max}]"))\
+        .otherwise(F.lit(None)).alias(alias)
+
+
+def is_in(column, in_):
+    """Return a column validating that values are contained in ``in_``."""
+
+    from pyspark.sql import functions as F
+
+    col_expr = F.col(column) if isinstance(column, str) else column
+    condition = ~col_expr.isin(*in_)
+    alias = f"{str(column).replace('.', '_')}_is_in"
+    return (
+        F.when(condition, F.lit(f"Value not in list {in_}"))
+        .otherwise(F.lit(None))
+        .alias(alias)
+    )
+
+
+def is_not_null_or_empty(column, trim_strings=False):
+    """Return a column validating ``column`` is neither null nor empty."""
+
+    from pyspark.sql import functions as F
+
+    col_expr = F.col(column) if isinstance(column, str) else column
     if trim_strings:
-        c = F.trim(c)
-    return df.filter(c.isNull() | (c == "")).count() == 0
+        col_expr = F.trim(col_expr)
+    condition = col_expr.isNull() | (col_expr == "")
+    alias = f"{str(column).replace('.', '_')}_is_not_null_or_empty"
+    return (
+        F.when(condition, F.lit("Value is null or empty"))
+        .otherwise(F.lit(None))
+        .alias(alias)
+    )
 
 
-def max_length(df, column, max):
-    """Return ``True`` if ``column`` length is not greater than ``max``."""
+def max_length(column, max):
+    """Return a column validating ``column`` length is not greater than ``max``."""
 
+    from pyspark.sql import functions as F
+
+    col_expr = F.col(column) if isinstance(column, str) else column
     pattern = f".{{{max + 1},}}"
-    return df.filter(df[column].rlike(pattern)).count() == 0
+    condition = col_expr.rlike(pattern)
+    alias = f"{str(column).replace('.', '_')}_max_length"
+    return (
+        F.when(condition, F.lit(f"Length greater than {max}"))
+        .otherwise(F.lit(None))
+        .alias(alias)
+    )
 
 
-def matches_regex_list(df, column, patterns):
-    """Return ``True`` if ``column`` matches any pattern in ``patterns``."""
+def matches_regex_list(column, patterns):
+    """Return a column validating ``column`` matches any pattern in ``patterns``."""
+
+    from pyspark.sql import functions as F
 
     if not patterns:
-        return True
-    condition = reduce(lambda a, b: a | b, (df[column].rlike(p) for p in patterns))
-    return df.filter(~condition).count() == 0
+        return F.lit(None).alias(f"{str(column).replace('.', '_')}_regex")
+    col_expr = F.col(column) if isinstance(column, str) else column
+    condition = reduce(lambda a, b: a | b, (col_expr.rlike(p) for p in patterns))
+    alias = f"{str(column).replace('.', '_')}_regex"
+    return (
+        F.when(~condition, F.lit("Value does not match regex list"))
+        .otherwise(F.lit(None))
+        .alias(alias)
+    )
 
 
-def pattern_match(df, column, pattern):
-    """Return ``True`` if ``column`` matches ``pattern``."""
+def is_nonzero(column):
+    """Return a column validating ``column`` is not zero."""
 
-    return matches_regex_list(df, column, [pattern])
+    from pyspark.sql import functions as F
+
+    col_expr = F.col(column) if isinstance(column, str) else column
+    condition = col_expr == F.lit(0)
+    alias = f"{str(column).replace('.', '_')}_is_nonzero"
+    return (
+        F.when(condition, F.lit("Value is zero"))
+        .otherwise(F.lit(None))
+        .alias(alias)
+    )
 
 
-def is_nonzero(df, column):
-    """Return ``True`` if ``column`` is not zero."""
+def starts_with_prefixes(column, prefixes):
+    """Return a column validating ``column`` starts with any of ``prefixes``."""
 
-    return df.filter(df[column] == 0).count() == 0
-
-
-def starts_with_prefixes(df, column, prefixes):
-    """Return ``True`` if ``column`` starts with any of ``prefixes``."""
+    from pyspark.sql import functions as F
 
     if not prefixes:
-        return True
+        return F.lit(None).alias(f"{str(column).replace('.', '_')}_prefix")
+    col_expr = F.col(column) if isinstance(column, str) else column
     condition = reduce(
         lambda a, b: a | b,
-        (df[column].startswith(p) for p in prefixes),
+        (col_expr.startswith(p) for p in prefixes),
     )
-    return df.filter(~condition).count() == 0
+    alias = f"{str(column).replace('.', '_')}_prefix"
+    return (
+        F.when(~condition, F.lit("Value does not start with prefixes"))
+        .otherwise(F.lit(None))
+        .alias(alias)
+    )
