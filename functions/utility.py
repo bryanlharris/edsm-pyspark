@@ -13,12 +13,6 @@ from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY
 def print_settings(job_settings, settings, color, table):
     """Display formatted job and table settings with copy buttons."""
 
-    settings_message = f"\n\nDictionary from {color}_settings.json:\n\n"
-    settings_message += json.dumps(job_settings, indent=4)
-    settings_message += f"\n\nDerived contents of {table}.json:\n\n"
-    settings_message += json.dumps(settings, indent=4)
-    print(settings_message)
-
     try:
         from dbruntime.display import displayHTML  # type: ignore
     except Exception:  # pragma: no cover - fallback when not on Databricks
@@ -226,6 +220,7 @@ def create_volume_if_not_exists(catalog, schema, volume, spark):
         print(
             f"\tINFO: Volume did not exist and was created: /Volumes/{catalog}/{schema}/{volume}."
         )
+
 
 
 def truncate_table_if_exists(table_name, spark):

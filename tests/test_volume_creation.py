@@ -52,6 +52,7 @@ def test_create_utility_volume_uses_utility_root():
     )
 
 
+
 def test_create_volume_message_depends_on_existence(capsys):
     spark = DummySpark()
     # Volume doesn't exist - should print message
@@ -78,3 +79,13 @@ def test_create_schema_message_depends_on_existence(capsys):
     utility.create_schema_if_not_exists('cat', 'sch', spark)
     out = capsys.readouterr().out
     assert out == ""
+
+def test_volume_root_without_trailing_slash(monkeypatch):
+    spark = DummySpark()
+    root_no_slash = config.S3_ROOT_LANDING.rstrip('/')
+    monkeypatch.setattr(config, 'S3_ROOT_LANDING', root_no_slash)
+    utility.create_volume_if_not_exists('cat', 'sch', 'landing', spark)
+    assert spark.queries[-1] == (
+        f"CREATE EXTERNAL VOLUME IF NOT EXISTS cat.sch.landing LOCATION '{root_no_slash}/cat/sch/landing'"
+    )
+
