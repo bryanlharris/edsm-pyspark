@@ -190,8 +190,9 @@ def create_table_if_not_exists(df, dst_table_name, spark):
 def create_schema_if_not_exists(catalog, schema, spark):
     """Create the schema if it is missing and print a message."""
 
-    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
-    print(f"\tINFO: Schema did not exist and was created: {catalog}.{schema}.")
+    if not schema_exists(catalog, schema, spark):
+        spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+        print(f"\tINFO: Schema did not exist and was created: {catalog}.{schema}.")
 
 
 def schema_exists(catalog, schema, spark):
@@ -206,17 +207,25 @@ def catalog_exists(catalog, spark):
     return df.count() > 0
 
 
+def volume_exists(catalog, schema, volume, spark):
+    """Return True if the external volume exists."""
+
+    df = spark.sql(f"SHOW VOLUMES IN {catalog}.{schema} LIKE '{volume}'")
+    return df.count() > 0
+
+
 def create_volume_if_not_exists(catalog, schema, volume, spark):
     """Create an external volume pointing to the expected S3 path."""
 
-    root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
-    s3_path = f"{root}{catalog}/{schema}/{volume}"
-    spark.sql(
-        f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
-    )
-    print(
-        f"\tINFO: Volume did not exist and was created: /Volumes/{catalog}/{schema}/{volume}."
-    )
+    if not volume_exists(catalog, schema, volume, spark):
+        root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+        s3_path = f"{root}{catalog}/{schema}/{volume}"
+        spark.sql(
+            f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
+        )
+        print(
+            f"\tINFO: Volume did not exist and was created: /Volumes/{catalog}/{schema}/{volume}."
+        )
 
 
 def truncate_table_if_exists(table_name, spark):
