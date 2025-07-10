@@ -141,6 +141,7 @@ class QualityTests(unittest.TestCase):
         self.assertIn('is_not_null_or_empty', DummyRegistry.registered)
         self.assertIn('max_length', DummyRegistry.registered)
         self.assertIn('matches_regex_list', DummyRegistry.registered)
+        self.assertIn('pattern_match', DummyRegistry.registered)
         self.assertIn('is_nonzero', DummyRegistry.registered)
         self.assertIn('starts_with_prefixes', DummyRegistry.registered)
     def test_count_records_batch(self):
