@@ -43,3 +43,6 @@ JOB_TYPE_MAP = {
 S3_ROOT_LANDING = "s3://edsm/landing/"
 S3_ROOT_UTILITY = "s3://edsm/utility/"
 
+# Allowed Databricks workspace host names
+ALLOWED_HOST_NAMES = {"dbc-bde2b6e3-4903", "dev", "staging", "prod"}
+
