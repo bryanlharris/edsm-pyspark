@@ -85,6 +85,9 @@ def validate_settings(dbutils):
     else:
         print("Sanity check: Validate settings check passed.")
 
+    # Ensure the destination catalogs match the current host name
+    check_host_name_matches_catalog(dbutils)
+
 
 def initialize_empty_tables(spark):
     """Create empty Delta tables based on settings definitions."""
