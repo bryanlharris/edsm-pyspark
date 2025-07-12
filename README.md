@@ -1,9 +1,3 @@
-# EDSM
-
-This repository contains notebooks and utilities for ingesting data from the Elite Dangerous Star Map (EDSM) nightly dumps.
-
-For documentation, see [here](https://github.com/bryanlharris/Documentation).
-
 ## Running a pipeline locally
 
 The `scripts` directory contains a `run_ingest.py` utility that emulates the
