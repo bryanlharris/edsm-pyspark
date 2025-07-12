@@ -17,3 +17,12 @@ python scripts/run_ingest.py bronze stations
 Specify the layer (`bronze`, `silver`, or `gold`) and the table name (without the
 `.json` extension). Use the `--master` argument to override the Spark master URL
 if necessary.
+## Running the full job
+
+Use the `utilities/run_job.py` script to execute the downloader and all ingest tasks without relying on Databricks APIs.
+
+```bash
+python utilities/run_job.py
+```
+
+Use `--master` to override the Spark master URL if necessary.
