@@ -28,7 +28,20 @@ def main() -> None:
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
     args = parser.parse_args()
 
-    spark = SparkSession.builder.master(args.master).appName("rescue-schema").getOrCreate()
+    spark = (
+        SparkSession.builder.master(args.master)
+        .appName("rescue-schema")
+        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
+        .config(
+            "spark.sql.extensions",
+            "io.delta.sql.DeltaSparkSessionExtension",
+        )
+        .config(
+            "spark.sql.catalog.spark_catalog",
+            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+        )
+        .getOrCreate()
+    )
     try:
         paths = glob("../layer_02_silver/*.json")
         tables = [Path(p).stem for p in paths]
