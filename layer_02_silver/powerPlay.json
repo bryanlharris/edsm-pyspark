@@ -17,7 +17,7 @@
     "data_type_map": {
         "date": "timestamp"
     },
-    "dqx_checks": [
+    "quality_checks": [
         {
             "name": "id_not_null",
             "check": {

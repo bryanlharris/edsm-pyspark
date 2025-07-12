@@ -90,60 +90,59 @@ class QualityTests(unittest.TestCase):
     def test_returns_input_when_no_checks(self):
         df = DummyDF(schema='schema')
         spark = DummySpark()
-        good, bad = quality.apply_dqx_checks(df, {}, spark)
+        good, bad = quality.apply_quality_checks(df, {}, spark)
         self.assertIs(good, df)
         self.assertEqual(bad.schema, 'schema')
         self.assertEqual(len(spark.created), 1)
         self.assertEqual(spark.created[0][0], [])
 
-    def test_registers_custom_functions(self):
+    def test_uses_great_expectations(self):
         df = DummyDF(schema='schema')
         spark = DummySpark()
 
-        class DummyRegistry:
-            registered = {}
+        class DummyDataset:
+            calls = []
 
-            def __call__(self, rule_type):
-                def decorator(func):
-                    DummyRegistry.registered[func.__name__] = rule_type
-                    return func
-                return decorator
+            def __init__(self, df_in):
+                self.df_in = df_in
 
-        class DummyEngine:
-            def __init__(self, ws, spark):
-                self.ws = ws
-                self.spark = spark
+            def expect_column_values_to_not_be_null(self, column, **kw):
+                DummyDataset.calls.append(("not_null", column))
 
-            def apply_checks_by_metadata_and_split(self, df_in, checks, custom_check_functions=None):
-                return df_in, DummyDF()
+            def expect_column_values_to_be_in_set(self, column, allowed, **kw):
+                DummyDataset.calls.append(("in_set", column, tuple(allowed)))
+
+            def expect_column_values_to_match_regex(self, column, pattern, **kw):
+                DummyDataset.calls.append(("regex", column, pattern))
+
+        DummyDataset.calls = []
 
         modules = {
-            'databricks': types.ModuleType('databricks'),
-            'databricks.labs': types.ModuleType('databricks.labs'),
-            'databricks.labs.dqx': types.ModuleType('databricks.labs.dqx'),
-            'databricks.labs.dqx.engine': types.ModuleType('databricks.labs.dqx.engine'),
-            'databricks.labs.dqx.rule': types.ModuleType('databricks.labs.dqx.rule'),
+            'great_expectations': types.ModuleType('great_expectations'),
+            'great_expectations.dataset': types.ModuleType('great_expectations.dataset'),
         }
-        modules['databricks'].labs = modules['databricks.labs']
-        modules['databricks.labs'].dqx = modules['databricks.labs.dqx']
-        modules['databricks.labs.dqx'].engine = modules['databricks.labs.dqx.engine']
-        modules['databricks.labs.dqx'].rule = modules['databricks.labs.dqx.rule']
-        modules['databricks.labs.dqx.engine'].DQEngineCore = DummyEngine
-        modules['databricks.labs.dqx.rule'].register_rule = DummyRegistry()
+        modules['great_expectations'].dataset = modules['great_expectations.dataset']
+        modules['great_expectations.dataset'].SparkDFDataset = DummyDataset
+
+        checks = [
+            {'check': {'function': 'is_not_null', 'arguments': {'column': 'a'}}},
+            {'check': {'function': 'is_in_list', 'arguments': {'column': 'b', 'allowed': [1, 2]}}},
+            {'check': {'function': 'pattern_match', 'arguments': {'column': 'c', 'pattern': 'x'}}},
+        ]
 
         with unittest.mock.patch.dict(sys.modules, modules):
-            good, bad = quality.apply_dqx_checks(df, {'dqx_checks': ['c']}, spark)
+            good, bad = quality.apply_quality_checks(df, {'quality_checks': checks}, spark)
 
         self.assertIs(good, df)
         self.assertIsInstance(bad, DummyDF)
-        self.assertIn('min_max', DummyRegistry.registered)
-        self.assertIn('is_in', DummyRegistry.registered)
-        self.assertIn('is_not_null_or_empty', DummyRegistry.registered)
-        self.assertIn('max_length', DummyRegistry.registered)
-        self.assertIn('matches_regex_list', DummyRegistry.registered)
-        self.assertIn('pattern_match', DummyRegistry.registered)
-        self.assertIn('is_nonzero', DummyRegistry.registered)
-        self.assertIn('starts_with_prefixes', DummyRegistry.registered)
+        self.assertEqual(
+            DummyDataset.calls,
+            [
+                ("not_null", "a"),
+                ("in_set", "b", (1, 2)),
+                ("regex", "c", "x"),
+            ],
+        )
     def test_count_records_batch(self):
         class CountDF(DummyDF):
             def count(self_inner):
@@ -185,7 +184,7 @@ class QualityTests(unittest.TestCase):
 
         spark.catalog.tableExists = lambda name: False
 
-        with unittest.mock.patch.object(quality, 'apply_dqx_checks', return_value=(df, bad)), \
+        with unittest.mock.patch.object(quality, 'apply_quality_checks', return_value=(df, bad)), \
              unittest.mock.patch.object(quality.uuid, 'uuid4') as mock_uuid, \
              unittest.mock.patch.object(quality, 'count_records', return_value=1), \
              unittest.mock.patch.object(quality.shutil, 'rmtree') as mock_rm:

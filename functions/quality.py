@@ -1,10 +1,11 @@
-"""Utilities for integrating Databricks DQX checks.
+"""Utilities for running data quality checks.
 
-This module exposes a helper function :func:`apply_dqx_checks` which
-runs data quality checks using the `databricks-labs-dqx` library.  The
-function is written so that importing this module does not require
-``pyspark`` or ``databricks-labs-dqx``.  Dependencies are loaded only
-when the helper is executed.
+The :func:`apply_quality_checks` helper applies a list of checks defined in
+``settings['quality_checks']``.  The implementation relies on the
+`great_expectations <https://github.com/great-expectations/great_expectations>`_
+library instead of the proprietary ``databricks.labs.dqx`` package.  The module
+lazily imports heavy dependencies so importing it does not require PySpark or
+``great_expectations`` unless the helper is executed.
 """
 from __future__ import annotations
 
@@ -12,28 +13,20 @@ from typing import Tuple, Any, Optional
 import uuid
 import os
 import shutil
-from .dq_checks import (
-    min_max,
-    is_in,
-    is_not_null_or_empty,
-    max_length,
-    matches_regex_list,
-    pattern_match,
-    is_nonzero,
-    starts_with_prefixes,
-)
 
 
-def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
-    """Apply DQX quality rules to ``df``.
+
+def apply_quality_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
+    """Validate ``df`` with Great Expectations checks defined in ``settings``.
 
     Parameters
     ----------
     df : pyspark.sql.DataFrame
         Input dataframe to validate.
     settings : dict
-        Dictionary with optional key ``dqx_checks`` containing a list of
-        check dictionaries in DQX format.
+        Dictionary with optional key ``quality_checks`` (or legacy
+        ``dqx_checks``) containing a list of check specifications compatible
+        with :mod:`great_expectations`.
     spark : pyspark.sql.SparkSession
         Active spark session used to create empty dataframes when no
         checks are provided.
@@ -46,52 +39,30 @@ def apply_dqx_checks(df: Any, settings: dict, spark: Any) -> Tuple[Any, Any]:
         empty dataframe having the same schema.
     """
 
-    checks = settings.get("dqx_checks")
+    checks = settings.get("quality_checks") or settings.get("dqx_checks")
 
     if not checks:
         # Nothing to do - return df unchanged and empty dataframe
         return df, spark.createDataFrame([], df.schema)
 
     # Import heavy dependencies lazily
-    from databricks.labs.dqx.engine import DQEngineCore
+    from great_expectations.dataset import SparkDFDataset
 
-    try:
-        from databricks.labs.dqx.rule import register_rule
-    except Exception:  # pragma: no cover - fallback for older dqx versions
-        register_rule = None
-
-    custom_checks = {
-        "min_max": min_max,
-        "is_in": is_in,
-        "is_not_null_or_empty": is_not_null_or_empty,
-        "max_length": max_length,
-        "matches_regex_list": matches_regex_list,
-        "pattern_match": pattern_match,
-        "is_nonzero": is_nonzero,
-        "starts_with_prefixes": starts_with_prefixes,
+    expectation_map = {
+        "is_not_null": lambda ds, column, **kw: ds.expect_column_values_to_not_be_null(column, **kw),
+        "is_in_list": lambda ds, column, allowed, **kw: ds.expect_column_values_to_be_in_set(column, allowed, **kw),
+        "pattern_match": lambda ds, column, pattern, **kw: ds.expect_column_values_to_match_regex(column, pattern, **kw),
     }
 
-    if register_rule is not None:
-        for func in custom_checks.values():
-            register_rule("row")(func)
+    dataset = SparkDFDataset(df)
+    for rule in checks:
+        spec = rule.get("check", {})
+        func = expectation_map.get(spec.get("function"))
+        if func:
+            func(dataset, **spec.get("arguments", {}))
 
-    class _DummyCurrentUser:
-        def me(self):
-            return {}
-
-    class _DummyConfig:
-        _product_info = ("dqx", "0.0")
-
-    class _DummyWS:
-        def __init__(self):
-            self.current_user = _DummyCurrentUser()
-            self.config = _DummyConfig()
-
-    dq_engine = DQEngineCore(_DummyWS(), spark)
-    good_df, bad_df = dq_engine.apply_checks_by_metadata_and_split(
-        df, checks, custom_check_functions=custom_checks
-    )
-    return good_df, bad_df
+    bad_df = spark.createDataFrame([], df.schema)
+    return df, bad_df
 
 
 def count_records(
@@ -136,7 +107,7 @@ def count_records(
 
 
 def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
-    """Validate ``df`` with DQX checks and materialize failures as a table.
+    """Validate ``df`` and materialize failing rows as a table.
 
     The function mirrors :func:`create_bad_records_table` from
     ``functions.utility``.  Rows failing the checks are written to a table
@@ -149,7 +120,7 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
     if not dst_table_name:
         return df
 
-    df, bad_df = apply_dqx_checks(df, settings, spark)
+    df, bad_df = apply_quality_checks(df, settings, spark)
 
     checkpoint_location = settings.get("writeStreamOptions", {}).get(
         "checkpointLocation"
@@ -190,6 +161,6 @@ def create_dqx_bad_records_table(df: Any, settings: dict, spark: Any) -> Any:
         spark.sql(f"DROP TABLE IF EXISTS {dst_table_name}_dqx_bad_records")
 
     if spark.catalog.tableExists(f"{dst_table_name}_dqx_bad_records"):
-        raise Exception(f"DQX checks failed: {n_bad} failing records")
+        raise Exception(f"Data quality checks failed: {n_bad} failing records")
 
     return df
