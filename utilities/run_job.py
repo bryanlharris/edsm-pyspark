@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Run the entire EDSM pipeline using PySpark only.
 
-This utility replicates the Databricks job defined in ``job-definition.yaml``
-without using any Databricks APIs. It sequentially executes the downloader
-script and then runs the ingest pipeline for each table defined in the layer
-settings files.
+This utility replicates the original Databricks job configuration without
+relying on any Databricks APIs. It sequentially executes the downloader script
+and then runs the ingest pipeline for each table defined in the layer settings
+files.
 """
 
 import argparse
