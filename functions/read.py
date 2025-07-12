@@ -4,8 +4,14 @@ from pyspark.sql.types import StructType
 from pyspark.sql.functions import col, row_number
 from pyspark.sql.window import Window
 
-def stream_read_cloudfiles(settings, spark):
-    """Read streaming data from a cloudFiles source.
+
+def stream_read_files(settings, spark):
+    """Read streaming data from a directory of files.
+
+    This function emulates the behaviour of ``stream_read_cloudfiles`` using
+    only standard PySpark features so that pipelines can be executed outside of
+    Databricks. Options beginning with ``cloudFiles.`` have the prefix removed
+    before being passed to the reader and unsupported options are ignored.
 
     Parameters
     ----------
@@ -21,19 +27,36 @@ def stream_read_cloudfiles(settings, spark):
         A streaming DataFrame configured with the provided schema and options.
     """
 
-    # Variables
-    readStreamOptions       = settings.get("readStreamOptions")
-    readStream_load         = settings.get("readStream_load")
-    file_schema             = settings.get("file_schema")
+    readStreamOptions = settings.get("readStreamOptions", {})
+    readStream_load = settings.get("readStream_load")
 
-    # Hard code schema is better than inference
+    # Determine the file format using either ``cloudFiles.format`` or ``format``
+    file_format = (
+        readStreamOptions.get("cloudFiles.format")
+        or readStreamOptions.get("format")
+    )
+    if not file_format:
+        raise ValueError("File format must be specified in readStreamOptions")
+
+    # Remove databricks specific options and ``cloudFiles.`` prefixes
+    options = {}
+    for key, value in readStreamOptions.items():
+        if key in {"cloudFiles.format"}:
+            continue
+        if key.startswith("cloudFiles."):
+            key = key.split(".", 1)[1]
+            # Options like ``schemaLocation`` or ``rescuedDataColumn`` are
+            # specific to Auto Loader and ignored when running locally.
+            if key in {"schemaLocation", "rescuedDataColumn", "inferColumnTypes"}:
+                continue
+        options[key] = value
+
     schema = StructType.fromJson(settings["file_schema"])
 
-    # Return a DataFrame
     return (
         spark.readStream
-        .format("cloudFiles")
-        .options(**readStreamOptions)
+        .format(file_format)
+        .options(**options)
         .schema(schema)
         .load(readStream_load)
     )

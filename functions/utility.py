@@ -138,6 +138,18 @@ def apply_job_type(settings):
 
         settings = _merge_dicts(defaults, settings)
 
+        # Move ``pathGlobFilter`` to the ``readStream_load`` path.  When only a
+        # filename is supplied, prepend ``**/`` so the glob is applied
+        # recursively.
+        read_opts = settings.get("readStreamOptions", {})
+        glob = read_opts.pop("pathGlobFilter", None)
+        if glob:
+            load_path = settings.get("readStream_load", "").rstrip("/")
+            if "/" not in glob and "*" not in glob and "?" not in glob:
+                glob = f"**/{glob}"
+            settings["readStream_load"] = f"{load_path}/{glob}"
+            settings["readStreamOptions"] = read_opts
+
     return settings
 
 
@@ -145,7 +157,7 @@ def get_function(path):
     """Return a callable from a dotted module path.
 
     ``path`` should be a fully qualified object name such as
-    ``"functions.read.stream_read_cloudfiles"``.  The string is split
+    ``"functions.read.stream_read_files"``.  The string is split
     once from the right with ``path.rsplit(".", 1)`` so any dots before
     the last one become part of the module path and the final segment is
     the attribute name.  A ``ValueError`` is raised if no ``'.'`` is present.
