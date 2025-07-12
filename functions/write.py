@@ -5,26 +5,42 @@ from pyspark.sql.window import Window
 
 
 def overwrite_table(df, settings, spark):
-    """Overwrite the destination table with ``df``."""
+    """Overwrite the destination table with ``df``.
 
-    df.write.mode("overwrite").saveAsTable(settings["dst_table_name"])
+    ``settings`` must provide ``dst_table_path`` which is the location of the
+    Delta table on disk.
+    """
+
+    dst_path = settings.get("dst_table_path")
+    if not dst_path:
+        raise KeyError("dst_table_path must be provided")
+
+    (
+        df.write
+        .format("delta")
+        .mode("overwrite")
+        .option("overwriteSchema", "true")
+        .option("delta.columnMapping.mode", "name")
+        .save(dst_path)
+    )
 
 
 def stream_write_table(df, settings, spark):
     """Write a streaming DataFrame directly to a Delta table."""
 
-    # Variables
-    dst_table_name          = settings.get("dst_table_name")
-    writeStreamOptions      = settings.get("writeStreamOptions")
+    dst_table_path = settings.get("dst_table_path")
+    if not dst_table_path:
+        raise KeyError("dst_table_path must be provided")
 
-    # Write
+    writeStreamOptions = settings.get("writeStreamOptions")
+
     (
         df.writeStream
         .format("delta")
         .options(**writeStreamOptions)
         .outputMode("append")
         .trigger(availableNow=True)
-        .table(dst_table_name)
+        .start(dst_table_path)
     )
 
 
@@ -32,14 +48,18 @@ def stream_upsert_table(df, settings, spark):
     """Apply an upsert function to each streaming micro-batch."""
 
     upsert_func = get_function(settings.get("upsert_function"))
+    dst_table_path = settings.get("dst_table_path")
+    if not dst_table_path:
+        raise KeyError("dst_table_path must be provided")
+
     return (
         df.writeStream
-        .queryName(settings.get("dst_table_name"))
+        .queryName(dst_table_path)
         .options(**settings.get("writeStreamOptions"))
         .trigger(availableNow=True)
         .foreachBatch(upsert_func(settings, spark))
         .outputMode("update")
-        .start()
+        .start(dst_table_path)
     )
 
 
