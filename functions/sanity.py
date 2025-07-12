@@ -9,7 +9,7 @@ from functions.utility import (
     create_volume_if_not_exists,
     catalog_exists,
 )
-from functions.config import PROJECT_ROOT
+from functions.config import PROJECT_ROOT, ALLOWED_HOST_NAMES, WORKSPACE_URL
 
 
 def _discover_settings_files():
@@ -30,19 +30,29 @@ def _discover_settings_files():
 
     return bronze_files, silver_files, gold_files
 
-def validate_settings(dbutils):
-    """Ensure all settings files contain required keys before processing."""
+def validate_settings(bronze=None, silver=None, gold=None):
+    """Ensure all settings files contain required keys before processing.
 
-    ## Check that all json settings files have the minimum required keys AKA functions before proceeding
-    bronze_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="bronze")
-    silver_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="silver")
-    gold_inputs = dbutils.jobs.taskValues.get(taskKey="job_settings", key="gold")
+    Parameters
+    ----------
+    bronze, silver, gold : optional
+        Job parameters for each layer. When omitted, the values are
+        loaded from the environment variables ``JOB_SETTINGS_BRONZE``,
+        ``JOB_SETTINGS_SILVER`` and ``JOB_SETTINGS_GOLD`` respectively.
+    """
+
+    bronze_inputs = bronze or os.environ.get("JOB_SETTINGS_BRONZE")
+    silver_inputs = silver or os.environ.get("JOB_SETTINGS_SILVER")
+    gold_inputs = gold or os.environ.get("JOB_SETTINGS_GOLD")
+
+    for name, value in [("bronze", bronze_inputs), ("silver", silver_inputs), ("gold", gold_inputs)]:
+        if value is not None and isinstance(value, str):
+            try:
+                json.loads(value)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError(f"Invalid JSON for {name} job settings") from exc
 
     bronze_files, silver_files, gold_files = _discover_settings_files()
-
-    all_tables = set(list(bronze_files.keys()) + list(silver_files.keys()) + list(gold_files.keys()))
-
-    layers=["bronze","silver","gold"]
     required_keys={
         "bronze":["read_function","transform_function","write_function","dst_table_name","file_schema"],
         "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name"],
@@ -86,7 +96,7 @@ def validate_settings(dbutils):
         print("Sanity check: Validate settings check passed.")
 
     # Ensure the destination catalogs match the current host name
-    check_host_name_matches_catalog(dbutils)
+    check_host_name_matches_catalog()
 
 
 def initialize_empty_tables(spark):
@@ -206,18 +216,9 @@ def initialize_schemas_and_volumes(spark):
     print("Sanity check: Initialize schemas and volumes check passed.")
 
 
-from functions.config import ALLOWED_HOST_NAMES
 
-
-def check_host_name(dbutils=None, spark=None):
+def check_host_name():
     """Validate and return the current host name.
-
-    Parameters
-    ----------
-    dbutils : optional
-        Databricks utility object used to fetch the workspace URL.
-    spark : optional
-        Unused placeholder for compatibility with previous implementations.
 
     Returns
     -------
@@ -232,23 +233,9 @@ def check_host_name(dbutils=None, spark=None):
 
     host_name = None
 
-    if dbutils is not None:
-        try:
-            ctx = (
-                dbutils.notebook.entry_point
-                .getDbutils()
-                .notebook()
-                .getContext()
-            )
-            url = ctx.workspaceUrl().get()
-            host_name = url.split("//")[-1].split(".")[0]
-        except Exception:
-            host_name = None
-
-    if host_name is None:
-        url = os.environ.get("DATABRICKS_HOST")
-        if url:
-            host_name = url.split("//")[-1].split(".")[0]
+    url = os.environ.get("DATABRICKS_HOST") or WORKSPACE_URL
+    if url:
+        host_name = url.split("//")[-1].split(".")[0]
 
     if not host_name:
         raise RuntimeError("Host name could not be determined")
@@ -262,10 +249,10 @@ def check_host_name(dbutils=None, spark=None):
     return host_name
 
 
-def check_host_name_matches_catalog(dbutils=None, spark=None):
+def check_host_name_matches_catalog():
     """Ensure catalog names in settings match the current host name."""
 
-    host_name = check_host_name(dbutils, spark)
+    host_name = check_host_name()
 
     if host_name == "dbc-bde2b6e3-4903":
         print(
