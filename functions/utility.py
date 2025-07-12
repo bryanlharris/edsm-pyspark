@@ -229,6 +229,7 @@ def volume_exists(catalog, schema, volume, spark=None):
     """Return True if the volume directory already exists."""
 
     root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+    root = root.rstrip("/") + "/"
     path = f"{root}{catalog}/{schema}/{volume}"
 
     return Path(path).exists()
@@ -239,6 +240,7 @@ def create_volume_if_not_exists(catalog, schema, volume, spark=None):
 
     if not volume_exists(catalog, schema, volume, spark):
         root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+        root = root.rstrip("/") + "/"
         path = f"{root}{catalog}/{schema}/{volume}"
 
         Path(path).mkdir(parents=True, exist_ok=True)
