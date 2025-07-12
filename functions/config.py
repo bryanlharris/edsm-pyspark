@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 # Root of the project on the local filesystem
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -45,4 +46,7 @@ S3_ROOT_UTILITY = "s3://edsm/utility/"
 
 # Allowed Databricks workspace host names
 ALLOWED_HOST_NAMES = {"dbc-bde2b6e3-4903", "dev", "staging", "prod"}
+
+# Optional workspace URL used when deriving the host name
+WORKSPACE_URL = os.environ.get("DATABRICKS_HOST")
 
