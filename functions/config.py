@@ -6,7 +6,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # Map short ``job_type`` names to ingest function combinations.
 JOB_TYPE_MAP = {
     "bronze_standard_streaming": {
-        "read_function": "functions.read.stream_read_cloudfiles",
+        "read_function": "functions.read.stream_read_files",
         "transform_function": "functions.transform.bronze_standard_transform",
         "write_function": "functions.write.stream_write_table",
     },
