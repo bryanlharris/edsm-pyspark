@@ -1,4 +1,5 @@
 import json
+import os
 from pyspark.sql.types import StructType
 from functions.utility import (
     create_table_if_not_exists,
@@ -200,6 +201,63 @@ def initialize_schemas_and_volumes(spark):
                 create_volume_if_not_exists(catalog, schema, volume, spark)
 
     print("Sanity check: Initialize schemas and volumes check passed.")
+
+
+ALLOWED_HOST_NAMES = {"dbc-bde2b6e3-4903", "dev", "staging", "prod"}
+
+
+def check_host_name(dbutils=None, spark=None):
+    """Validate and return the current host name.
+
+    Parameters
+    ----------
+    dbutils : optional
+        Databricks utility object used to fetch the workspace URL.
+    spark : optional
+        Unused placeholder for compatibility with previous implementations.
+
+    Returns
+    -------
+    str
+        The short host name.
+
+    Raises
+    ------
+    RuntimeError
+        If the host name cannot be determined or is not allowed.
+    """
+
+    host_name = None
+
+    if dbutils is not None:
+        try:
+            ctx = (
+                dbutils.notebook.entry_point
+                .getDbutils()
+                .notebook()
+                .getContext()
+            )
+            url = ctx.workspaceUrl().get()
+            host_name = url.split("//")[-1].split(".")[0]
+        except Exception:
+            host_name = None
+
+    if host_name is None:
+        url = os.environ.get("DATABRICKS_HOST")
+        if url:
+            host_name = url.split("//")[-1].split(".")[0]
+
+    if not host_name:
+        raise RuntimeError("Host name could not be determined")
+
+    host_name = host_name.lower()
+
+    if host_name not in ALLOWED_HOST_NAMES:
+        raise RuntimeError(f"Host name '{host_name}' is not allowed")
+
+    print(f"Sanity check: Host name recognized as {host_name}.")
+    return host_name
+
 
 
 
