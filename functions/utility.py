@@ -14,12 +14,13 @@ def print_settings(job_settings, settings, color, table):
     """Display formatted job and table settings with copy buttons."""
 
     try:
-        from dbruntime.display import displayHTML  # type: ignore
-    except Exception:  # pragma: no cover - fallback when not on Databricks
-        try:
-            from IPython.display import display as displayHTML  # type: ignore
-        except Exception:  # pragma: no cover - running outside notebooks
-            displayHTML = print  # type: ignore
+        from IPython.display import HTML, display
+
+        def displayHTML(html_str: str) -> None:
+            display(HTML(html_str))
+
+    except Exception:  # pragma: no cover - running outside notebooks
+        displayHTML = print  # type: ignore
 
     def _copy_block(text: str, elem_id: str) -> str:
         escaped = html.escape(text)
