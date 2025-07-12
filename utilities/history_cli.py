@@ -29,7 +29,20 @@ def main() -> None:
     history_schema = job_settings.get("history_schema")
     catalog = full_table_name.split(".")[0]
 
-    spark = SparkSession.builder.master(args.master).appName("history").getOrCreate()
+    spark = (
+        SparkSession.builder.master(args.master)
+        .appName("history")
+        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
+        .config(
+            "spark.sql.extensions",
+            "io.delta.sql.DeltaSparkSessionExtension",
+        )
+        .config(
+            "spark.sql.catalog.spark_catalog",
+            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+        )
+        .getOrCreate()
+    )
     try:
         if history_schema is None:
             print("Skipping history build: no history_schema provided")
