@@ -26,7 +26,7 @@ def print_settings(job_settings, settings, color, table):
         escaped = html.escape(text)
         return (
             f"<button onclick=\"copyJson('{elem_id}')\">Copy JSON to Clipboard</button>"
-            f"<textarea id=\"{elem_id}\" style=\"display:none;\">{escaped}</textarea>"
+            f'<textarea id="{elem_id}" style="display:none;">{escaped}</textarea>'
             f"<pre>{escaped}</pre>"
         )
 
@@ -52,8 +52,6 @@ function copyJson(id) {{
     )
 
 
-
-
 def _merge_dicts(base, override):
     """Recursively merge two dictionaries.
 
@@ -63,11 +61,7 @@ def _merge_dicts(base, override):
 
     result = base.copy()
     for key, value in override.items():
-        if (
-            key in result
-            and isinstance(result[key], dict)
-            and isinstance(value, dict)
-        ):
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
             result[key] = _merge_dicts(result[key], value)
         else:
             result[key] = value
@@ -133,7 +127,9 @@ def apply_job_type(settings):
             if "streaming" in job_type:
                 dst = settings.get("dst_table_name")
                 if not dst:
-                    raise KeyError("dst_table_name must be provided for streaming job types")
+                    raise KeyError(
+                        "dst_table_name must be provided for streaming job types"
+                    )
                 catalog, color, table = dst.split(".", 2)
                 base_volume = f"/Volumes/{catalog}/{color}/utility/{table}"
                 stream_defaults = {
@@ -194,8 +190,7 @@ def create_table_if_not_exists(df, dst_table_name, spark):
     if not spark.catalog.tableExists(dst_table_name):
         empty_df = spark.createDataFrame([], df.schema)
         (
-            empty_df.write
-            .format("delta")
+            empty_df.write.format("delta")
             .option("delta.columnMapping.mode", "name")
             .saveAsTable(dst_table_name)
         )
@@ -229,6 +224,7 @@ def volume_exists(catalog, schema, volume, spark=None):
     """Return True if the volume directory already exists."""
 
     root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+    root = root.rstrip("/") + "/"
     path = f"{root}{catalog}/{schema}/{volume}"
 
     return Path(path).exists()
@@ -239,6 +235,7 @@ def create_volume_if_not_exists(catalog, schema, volume, spark=None):
 
     if not volume_exists(catalog, schema, volume, spark):
         root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+        root = root.rstrip("/") + "/"
         path = f"{root}{catalog}/{schema}/{volume}"
 
         Path(path).mkdir(parents=True, exist_ok=True)
@@ -248,12 +245,12 @@ def create_volume_if_not_exists(catalog, schema, volume, spark=None):
         )
 
 
-
 def truncate_table_if_exists(table_name, spark):
     """Truncate ``table_name`` if it already exists."""
 
     if spark.catalog.tableExists(table_name):
         spark.sql(f"TRUNCATE TABLE {table_name}")
+
 
 def inspect_checkpoint_folder(table_name, settings, spark):
     """Print batch to version mapping from a Delta checkpoint folder."""
@@ -269,7 +266,9 @@ def inspect_checkpoint_folder(table_name, settings, spark):
 
     for path in sorted_files:
         batch_id = Path(path).name
-        result = subprocess.run(["grep", "reservoirVersion", path], capture_output=True, text=True)
+        result = subprocess.run(
+            ["grep", "reservoirVersion", path], capture_output=True, text=True
+        )
         version = json.loads(result.stdout)["reservoirVersion"]
         print(f"  Silver Batch {batch_id} → Bronze version {version - 1}")
 
