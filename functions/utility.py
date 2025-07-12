@@ -209,19 +209,64 @@ def create_schema_if_not_exists(catalog, schema, spark):
 
 
 def schema_exists(catalog, schema, spark):
-    """Return True if the schema exists in the given catalog"""
+    """Return ``True`` if ``schema`` exists in ``catalog``.
+
+    Parameters
+    ----------
+    catalog : str
+        Name of the catalog to inspect.
+    schema : str
+        Schema name to check for existence.
+    spark : pyspark.sql.SparkSession
+        Active Spark session used to query the metastore.
+
+    Returns
+    -------
+    bool
+        ``True`` when the schema is present, ``False`` otherwise.
+    """
     df = spark.sql(f"SHOW SCHEMAS IN {catalog} LIKE '{schema}'")
     return df.count() > 0
 
 
 def catalog_exists(catalog, spark):
-    """Return True if the catalog exists"""
+    """Return ``True`` if ``catalog`` exists in the metastore.
+
+    Parameters
+    ----------
+    catalog : str
+        Catalog name to check.
+    spark : pyspark.sql.SparkSession
+        Active Spark session used to query the metastore.
+
+    Returns
+    -------
+    bool
+        ``True`` when the catalog exists, ``False`` otherwise.
+    """
     df = spark.sql(f"SHOW CATALOGS LIKE '{catalog}'")
     return df.count() > 0
 
 
 def volume_exists(catalog, schema, volume, spark=None):
-    """Return True if the volume directory already exists."""
+    """Return ``True`` if the volume directory already exists.
+
+    Parameters
+    ----------
+    catalog : str
+        Catalog portion of the volume path.
+    schema : str
+        Schema portion of the volume path.
+    volume : str
+        Either ``"landing"`` or ``"utility"``.
+    spark : pyspark.sql.SparkSession, optional
+        Unused but present for API compatibility.
+
+    Returns
+    -------
+    bool
+        ``True`` when the directory exists, ``False`` otherwise.
+    """
 
     root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
     root = root.rstrip("/") + "/"
@@ -231,7 +276,19 @@ def volume_exists(catalog, schema, volume, spark=None):
 
 
 def create_volume_if_not_exists(catalog, schema, volume, spark=None):
-    """Ensure the directory backing the volume exists."""
+    """Ensure the directory backing the volume exists.
+
+    Parameters
+    ----------
+    catalog : str
+        Catalog portion of the volume path.
+    schema : str
+        Schema portion of the volume path.
+    volume : str
+        Either ``"landing"`` or ``"utility"``.
+    spark : pyspark.sql.SparkSession, optional
+        Unused but present for API compatibility.
+    """
 
     if not volume_exists(catalog, schema, volume, spark):
         root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
