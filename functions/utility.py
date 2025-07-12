@@ -224,22 +224,24 @@ def catalog_exists(catalog, spark):
     return df.count() > 0
 
 
-def volume_exists(catalog, schema, volume, spark):
-    """Return True if the external volume exists."""
+def volume_exists(catalog, schema, volume, spark=None):
+    """Return True if the volume directory already exists."""
 
-    df = spark.sql(f"SHOW VOLUMES IN {catalog}.{schema} LIKE '{volume}'")
-    return df.count() > 0
+    root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
+    path = f"{root}{catalog}/{schema}/{volume}"
+
+    return Path(path).exists()
 
 
-def create_volume_if_not_exists(catalog, schema, volume, spark):
-    """Create an external volume pointing to the expected S3 path."""
+def create_volume_if_not_exists(catalog, schema, volume, spark=None):
+    """Ensure the directory backing the volume exists."""
 
     if not volume_exists(catalog, schema, volume, spark):
         root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
-        s3_path = f"{root}{catalog}/{schema}/{volume}"
-        spark.sql(
-            f"CREATE EXTERNAL VOLUME IF NOT EXISTS {catalog}.{schema}.{volume} LOCATION '{s3_path}'"
-        )
+        path = f"{root}{catalog}/{schema}/{volume}"
+
+        Path(path).mkdir(parents=True, exist_ok=True)
+
         print(
             f"\tINFO: Volume did not exist and was created: /Volumes/{catalog}/{schema}/{volume}."
         )
