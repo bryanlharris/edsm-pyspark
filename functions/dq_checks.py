@@ -1,7 +1,7 @@
 """Custom data quality check functions for Databricks DQX.
 
 This module defines helper functions used when profiling tables. They are
-registered dynamically inside :func:`functions.quality.apply_dqx_checks` so
+registered dynamically inside :func:`functions.quality.apply_quality_checks` so
 that importing :mod:`functions.quality` does not require PySpark.
 """
 from __future__ import annotations
