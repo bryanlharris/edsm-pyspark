@@ -37,7 +37,11 @@ def load_settings(color: str, table: str) -> dict:
 def run_pipeline(color: str, table: str, spark: SparkSession) -> None:
     """Execute the ingest pipeline for the given table."""
     settings = load_settings(color, table)
-    dst_table_name = settings["dst_table_name"]
+    dst_table_name = settings.get("dst_table_name")
+    dst_table_path = settings.get("dst_table_path")
+
+    if not dst_table_name and not dst_table_path:
+        raise KeyError("dst_table_name or dst_table_path must be provided")
 
     print_settings({"table": table}, settings, color, table)
 
@@ -60,16 +64,19 @@ def run_pipeline(color: str, table: str, spark: SparkSession) -> None:
     history_schema = settings.get("history_schema")
     build_history = str(settings.get("build_history", "false")).lower() == "true"
     if build_history:
-        catalog = dst_table_name.split(".")[0]
-        if history_schema is None:
-            print("Skipping history build: no history_schema provided")
-        elif schema_exists(catalog, history_schema, spark):
-            build_and_merge_file_history(dst_table_name, history_schema, spark)
-            transaction_history(dst_table_name, history_schema, spark)
+        if dst_table_name is None:
+            print("Skipping history build: dst_table_name not provided")
         else:
-            print(
-                f"Skipping history build: schema {catalog}.{history_schema} not found"
-            )
+            catalog = dst_table_name.split(".")[0]
+            if history_schema is None:
+                print("Skipping history build: no history_schema provided")
+            elif schema_exists(catalog, history_schema, spark):
+                build_and_merge_file_history(dst_table_name, history_schema, spark)
+                transaction_history(dst_table_name, history_schema, spark)
+            else:
+                print(
+                    f"Skipping history build: schema {catalog}.{history_schema} not found"
+                )
 
 
 def main() -> None:
