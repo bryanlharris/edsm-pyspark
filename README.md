@@ -11,6 +11,28 @@ python scripts/run_ingest.py bronze stations
 Specify the layer (`bronze`, `silver`, or `gold`) and the table name (without the
 `.json` extension). Use the `--master` argument to override the Spark master URL
 if necessary. Pass `-v` to include the full settings including the file schema.
+
+If you override ``PYSPARK_DRIVER_HOST`` to bind the driver to a specific
+interface, ``foreachBatch`` callbacks may fail to start unless PySpark is
+allowed to use a non-local port. Set ``PYSPARK_ALLOW_INSECURE_PORT=1`` before
+creating the session. The snippet below determines the machine's active IP
+address automatically rather than hard-coding one:
+
+```python
+import os
+import socket
+
+def get_ip() -> str:
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+    except OSError:
+        return socket.gethostbyname(socket.gethostname())
+
+os.environ["PYSPARK_DRIVER_HOST"] = get_ip()
+os.environ["PYSPARK_ALLOW_INSECURE_PORT"] = "1"
+```
 ## Running the full job
 
 Use the `utilities/run_job.py` script to execute the downloader and all ingest tasks without relying on Databricks APIs.
