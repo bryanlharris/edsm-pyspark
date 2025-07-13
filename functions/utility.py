@@ -130,17 +130,7 @@ def apply_job_type(settings):
 
         settings = _merge_dicts(defaults, settings)
 
-        # Move ``pathGlobFilter`` to the ``readStream_load`` path.  When only a
-        # filename is supplied, prepend ``**/`` so the glob is applied
-        # recursively.
-        read_opts = settings.get("readStreamOptions", {})
-        glob = read_opts.get("pathGlobFilter")
-        if glob:
-            load_path = settings.get("readStream_load", "").rstrip("/")
-            if "/" not in glob and "*" not in glob and "?" not in glob:
-                glob = f"**/{glob}"
-            final_path = f"{load_path}/{glob}"
-            settings["readStream_load"] = final_path
+
 
     return settings
 

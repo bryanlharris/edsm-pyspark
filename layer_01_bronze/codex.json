@@ -1,66 +1,67 @@
 {
-    "simple_settings": "true",
-    "job_type": "bronze_standard_streaming",
-    "dst_table_path": "./tables/bronze/codex",
-    "derived_ingest_time_regex": "/(\\d{8})/",
-    "add_derived_ingest_time": "false",
-    "file_format": "json",
-    "readStreamOptions": {
-        "encoding": "utf-8",
-        "pathGlobFilter": "codex.json",
-        "multiline": "false"
-    },
-    "file_schema": {
-        "fields": [
-            {
-                "metadata": {},
-                "name": "name",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "region",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "reportedOn",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "systemId",
-                "nullable": true,
-                "type": "long"
-            },
-            {
-                "metadata": {},
-                "name": "systemId64",
-                "nullable": true,
-                "type": "long"
-            },
-            {
-                "metadata": {},
-                "name": "systemName",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "type",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "_rescued_data",
-                "nullable": true,
-                "type": "string"
-            }
-        ],
-        "type": "struct"
-    }
+  "simple_settings": "true",
+  "job_type": "bronze_standard_streaming",
+  "dst_table_path": "./tables/bronze/codex",
+  "readStream_load": "tables/bronze/landing",
+  "derived_ingest_time_regex": "/(\\d{8})/",
+  "add_derived_ingest_time": "false",
+  "file_format": "json",
+  "readStreamOptions": {
+    "encoding": "utf-8",
+    "pathGlobFilter": "codex.json",
+    "multiline": "false"
+  },
+  "file_schema": {
+    "fields": [
+      {
+        "metadata": {},
+        "name": "name",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "region",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "reportedOn",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "systemId",
+        "nullable": true,
+        "type": "long"
+      },
+      {
+        "metadata": {},
+        "name": "systemId64",
+        "nullable": true,
+        "type": "long"
+      },
+      {
+        "metadata": {},
+        "name": "systemName",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "type",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "_rescued_data",
+        "nullable": true,
+        "type": "string"
+      }
+    ],
+    "type": "struct"
+  }
 }

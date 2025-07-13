@@ -26,7 +26,7 @@ read_path = pkg_path / 'read.py'
 read = utils.load_module('functions.read', read_path)
 
 
-def test_path_glob_appended_to_load():
+def test_path_glob_not_appended_to_load():
     settings = {
         'simple_settings': 'true',
         'job_type': 'bronze_standard_streaming',
@@ -38,7 +38,8 @@ def test_path_glob_appended_to_load():
         'file_schema': []
     }
     result = utility.apply_job_type(settings)
-    assert result['readStream_load'].endswith('/**/stations.json')
+    assert result['readStream_load'].endswith('/landing/')
+    assert '**' not in result['readStream_load']
     assert result['readStreamOptions']['pathGlobFilter'] == 'stations.json'
 
 
@@ -79,14 +80,15 @@ def test_stream_read_files_list_unseen_dirs():
     settings = {
         'readStreamOptions': {
             'format': 'json',
+            'pathGlobFilter': 'stations.json',
         },
         'writeStreamOptions': {'checkpointLocation': '/tmp/check'},
-        'readStream_load': 'landing/data/**/stations.json',
+        'readStream_load': 'landing/data',
         'file_schema': [],
     }
     with mock.patch.object(read, 'list_unseen_dirs', return_value=['a', 'b']) as m:
         read.stream_read_files(settings, spark)
-    assert m.called
+    m.assert_called_with('landing/data/', '**/stations.json', '/tmp/check/sources/0')
     loads = [c for c in spark.readStream.calls if c[0] == 'load']
     assert loads == [('load', ('a',)), ('load', ('b',))]
 
@@ -97,10 +99,40 @@ def test_stream_read_files_rejects_recursive_lookup():
         'readStreamOptions': {
             'format': 'json',
             'recursiveFileLookup': 'true',
+            'pathGlobFilter': 'stations.json',
         },
         'writeStreamOptions': {'checkpointLocation': '/tmp/check'},
-        'readStream_load': 'landing/data/**/stations.json',
+        'readStream_load': 'landing/data',
         'file_schema': [],
     }
     with pytest.raises(ValueError):
+        read.stream_read_files(settings, spark)
+
+
+def test_stream_read_files_disallows_glob_in_load():
+    spark = DummySpark()
+    settings = {
+        'readStreamOptions': {
+            'format': 'json',
+            'pathGlobFilter': 'stations.json',
+        },
+        'writeStreamOptions': {'checkpointLocation': '/tmp/check'},
+        'readStream_load': 'landing/**/data',
+        'file_schema': [],
+    }
+    with pytest.raises(ValueError):
+        read.stream_read_files(settings, spark)
+
+
+def test_stream_read_files_requires_path_glob():
+    spark = DummySpark()
+    settings = {
+        'readStreamOptions': {
+            'format': 'json',
+        },
+        'writeStreamOptions': {'checkpointLocation': '/tmp/check'},
+        'readStream_load': 'landing/data',
+        'file_schema': [],
+    }
+    with pytest.raises(KeyError):
         read.stream_read_files(settings, spark)
