@@ -56,7 +56,9 @@ def run_pipeline(color: str, table: str, spark: SparkSession) -> None:
         df = read_function(settings, spark)
         df = transform_function(df, settings, spark)
         df = create_dqx_bad_records_table(df, settings, spark)
-        write_function(df, settings, spark)
+        query = write_function(df, settings, spark)
+        if hasattr(query, "awaitTermination"):
+            query.awaitTermination()
 
     if color == "bronze":
         create_bad_records_table(settings, spark)
