@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Run ingest pipelines for all bronze and silver tables.
 
-This utility discovers all settings files in the bronze and silver layer
-folders and sequentially invokes ``scripts/run_ingest.py`` for each table.
-Output from each ingest run is captured in the ``logs`` directory while
-progress messages are printed to the console. The script stops on the first
-failure.
+This utility discovers all settings files in the bronze and silver layer folders
+and sequentially invokes ``scripts/run_ingest.py`` for each table. Output from
+each ingest run is captured in the ``logs`` directory while progress messages
+are printed to the console. The script stops on the first failure. Use the
+``--color`` option to limit execution to a single layer.
 """
 
 from __future__ import annotations
@@ -55,6 +55,12 @@ def main() -> None:
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
     parser.add_argument("-v", "--verbose", action="store_true", help="Pass -v to run_ingest")
     parser.add_argument("--log-dir", type=Path, default=DEFAULT_LOG_DIR, help="Directory to store logs")
+    parser.add_argument(
+        "--color",
+        choices=["bronze", "silver"],
+        action="append",
+        help="Run ingest only for the specified layer color (can be used twice)",
+    )
     args = parser.parse_args()
 
     spark = create_spark_session(args.master, "edsm-pipeline")
@@ -63,7 +69,8 @@ def main() -> None:
         validate_settings()
         initialize_empty_tables(spark)
 
-        for color in ["bronze", "silver"]:
+        colors = args.color if args.color else ["bronze", "silver"]
+        for color in colors:
             for table in discover_tables(color):
                 code = run_ingest(color, table, args.master, args.verbose, args.log_dir)
                 if code != 0:

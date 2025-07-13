@@ -55,4 +55,4 @@ tables are ingested first followed by silver tables.
 python scripts/run_pipeline.py
 ```
 
-All output from the ingest commands is written to the `logs` directory.
+Add `--color bronze` or `--color silver` to ingest only one layer. All output from the ingest commands is written to the `logs` directory.
