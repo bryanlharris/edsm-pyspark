@@ -4,7 +4,7 @@
 # provided, "./landing" is used which mirrors the expected local layout.
 landing_root="${1:-./landing}"
 
-tmp="/tmp/data"
+tmp=$(mktemp -d /tmp/data.XXXX)
 root="$landing_root/data"
 marker_root="$landing_root/markers"
 
