@@ -13,7 +13,7 @@ from functions.utility import (
     schema_exists,
     apply_job_type,
 )
-from functions.history import build_and_merge_file_history, transaction_history
+from functions.history import transaction_history
 
 
 def main() -> None:
@@ -37,7 +37,6 @@ def main() -> None:
         if history_schema is None:
             print("Skipping history build: no history_schema provided")
         elif schema_exists(catalog, history_schema, spark):
-            build_and_merge_file_history(full_table_name, history_schema, spark)
             transaction_history(full_table_name, history_schema, spark)
         else:
             print(f"Skipping history build: schema {catalog}.{history_schema} not found")

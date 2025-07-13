@@ -22,7 +22,7 @@ from functions.utility import (
     schema_exists,
     print_settings,
 )
-from functions.history import build_and_merge_file_history, transaction_history
+from functions.history import transaction_history
 from functions.quality import create_dqx_bad_records_table
 
 
@@ -71,7 +71,6 @@ def run_pipeline(color: str, table: str, spark: SparkSession) -> None:
             if history_schema is None:
                 print("Skipping history build: no history_schema provided")
             elif schema_exists(catalog, history_schema, spark):
-                build_and_merge_file_history(dst_table_name, history_schema, spark)
                 transaction_history(dst_table_name, history_schema, spark)
             else:
                 print(

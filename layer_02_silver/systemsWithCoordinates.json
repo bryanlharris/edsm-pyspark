@@ -82,15 +82,6 @@
             }
         },
         {
-            "name": "source_metadata.file_size_is_not_null",
-            "check": {
-                "function": "is_not_null",
-                "arguments": {
-                    "column": "source_metadata.file_size"
-                }
-            }
-        },
-        {
             "name": "ingest_time_is_not_null",
             "check": {
                 "function": "is_not_null",
@@ -105,16 +96,6 @@
                 "function": "is_not_null",
                 "arguments": {
                     "column": "derived_ingest_time"
-                }
-            }
-        },
-        {
-            "name": "source_metadata.file_path_pattern_match",
-            "check": {
-                "function": "pattern_match",
-                "arguments": {
-                    "column": "source_metadata.file_path",
-                    "pattern": "^/Volumes/edsm/bronze/landing/data/\\d{8}/systemsWithCoordinates7days\\.json$"
                 }
             }
         }
