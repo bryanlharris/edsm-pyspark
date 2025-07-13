@@ -36,11 +36,10 @@ def load_settings(color: str, table: str) -> dict:
 def run_pipeline(color: str, table: str, spark: SparkSession, verbose: bool = False) -> None:
     """Execute the ingest pipeline for the given table."""
     settings = load_settings(color, table)
-    dst_table_name = settings.get("dst_table_name")
     dst_table_path = settings.get("dst_table_path")
 
-    if not dst_table_name and not dst_table_path:
-        raise KeyError("dst_table_name or dst_table_path must be provided")
+    if not dst_table_path:
+        raise KeyError("dst_table_path must be provided")
 
     print_settings({"table": table}, settings, color, table, verbose=verbose)
 

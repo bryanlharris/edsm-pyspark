@@ -28,7 +28,11 @@ def rescue_silver_table(mode, table_name, spark):
     upsert = upsert_function(settings, spark)
 
     # Remove old destination table and checkpoint directory
-    spark.sql(f"DROP TABLE IF EXISTS {settings['dst_table_name']}")
+    dst_path = settings.get("dst_table_path")
+    if dst_path:
+        subprocess.run(["rm", "-rf", dst_path], check=True)
+    else:
+        spark.sql(f"DROP TABLE IF EXISTS {settings['dst_table_name']}")
     checkpoint_location = settings["writeStreamOptions"]["checkpointLocation"]
     if checkpoint_location.startswith("/Volumes/") and checkpoint_location.endswith("_checkpoints/"):
         subprocess.run(["rm", "-rf", checkpoint_location], check=True)
@@ -36,32 +40,50 @@ def rescue_silver_table(mode, table_name, spark):
         raise ValueError(f"Skipping checkpoint deletion, unsupported path: {checkpoint_location}")
 
     if mode == "timestamp":
-        df = spark.read.table(settings["src_table_name"]).orderBy("derived_ingest_time")
+        df = spark.read.format("delta").load(settings["src_table_path"]).orderBy("derived_ingest_time")
         times = [r[0] for r in df.select("derived_ingest_time").distinct().orderBy("derived_ingest_time").collect()]
         for i, timestamp in enumerate(times):
             batch = df.filter(col("derived_ingest_time") == timestamp)
             batch = transform_function(batch, settings, spark)
             if i == 0:
-                create_table_if_not_exists(batch, settings["dst_table_name"], spark)
+                if dst_path:
+                    (
+                        batch.limit(0)
+                        .write.format("delta")
+                        .option("delta.columnMapping.mode", "name")
+                        .mode("overwrite")
+                        .save(dst_path)
+                    )
+                else:
+                    create_table_if_not_exists(batch, settings["dst_table_name"], spark)
             upsert(batch, i)
             print(f"{table_name}: Upserted batch {i} for time {timestamp}")
         print(f"{table_name}: Rescue completed in {len(times)} batches")
 
     else:  # mode == "versionAsOf"
-        history = spark.sql(f"DESCRIBE HISTORY {settings['src_table_name']}")
+        history = spark.sql(f"DESCRIBE HISTORY delta.`{settings['src_table_path']}`")
         max_version = history.agg({"version": "max"}).first()[0]
         print(f"{table_name}: Max version {max_version}")
 
         for version in range(0, max_version + 1):
             if version == 0:
-                df = spark.read.format("delta").option("versionAsOf", version).table(settings["src_table_name"])
+                df = spark.read.format("delta").option("versionAsOf", version).load(settings["src_table_path"])
                 df = transform_function(df, settings, spark)
-                create_table_if_not_exists(df, settings["dst_table_name"], spark)
+                if dst_path:
+                    (
+                        df.limit(0)
+                        .write.format("delta")
+                        .option("delta.columnMapping.mode", "name")
+                        .mode("overwrite")
+                        .save(dst_path)
+                    )
+                else:
+                    create_table_if_not_exists(df, settings["dst_table_name"], spark)
                 print(f"{table_name}: Current version {version}")
                 continue
 
-            prev = spark.read.format("delta").option("versionAsOf", version - 1).table(settings["src_table_name"])
-            cur = spark.read.format("delta").option("versionAsOf", version).table(settings["src_table_name"])
+            prev = spark.read.format("delta").option("versionAsOf", version - 1).load(settings["src_table_path"])
+            cur = spark.read.format("delta").option("versionAsOf", version).load(settings["src_table_path"])
             df = cur.subtract(prev)
             df = transform_function(df, settings, spark)
             upsert(df, version - 1)
@@ -90,21 +112,34 @@ def rescue_gold_table(table_name, spark):
     settings = apply_job_type(settings)
     settings["ingest_time_column"] = "derived_ingest_time"
 
-    history = spark.sql(f"DESCRIBE HISTORY {settings['src_table_name']}")
+    history = spark.sql(f"DESCRIBE HISTORY delta.`{settings['src_table_path']}`")
     max_version = history.agg({"version": "max"}).first()[0]
     print(f"{table_name}: Max version {max_version}")
 
-    spark.sql(f"DROP TABLE IF EXISTS {settings['dst_table_name']}")
+    dst_path = settings.get("dst_table_path")
+    if dst_path:
+        subprocess.run(["rm", "-rf", dst_path], check=True)
+    else:
+        spark.sql(f"DROP TABLE IF EXISTS {settings['dst_table_name']}")
     
     transform_function = get_function(settings["transform_function"])
     write_function = get_function(settings["write_function"])
 
     for version in range(0, max_version + 1):
-        df = spark.read.format("delta").option("versionAsOf", version).table(settings["src_table_name"])
+        df = spark.read.format("delta").option("versionAsOf", version).load(settings["src_table_path"])
         df = transform_function(df, settings, spark)
 
         if version == 0:
-            create_table_if_not_exists(df, settings["dst_table_name"], spark)
+            if dst_path:
+                (
+                    df.limit(0)
+                    .write.format("delta")
+                    .option("delta.columnMapping.mode", "name")
+                    .mode("overwrite")
+                    .save(dst_path)
+                )
+            else:
+                create_table_if_not_exists(df, settings["dst_table_name"], spark)
         else:
             write_function(df, settings, spark)
 

@@ -30,7 +30,7 @@ def test_path_glob_not_appended_to_load():
     settings = {
         'simple_settings': 'true',
         'job_type': 'bronze_standard_streaming',
-        'dst_table_name': 'cat.bronze.tbl',
+        'dst_table_path': './tables/bronze/tbl',
         'file_format': 'json',
         'readStreamOptions': {
             'pathGlobFilter': 'stations.json'

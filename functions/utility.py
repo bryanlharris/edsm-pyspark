@@ -113,12 +113,19 @@ def apply_job_type(settings):
 
             if "streaming" in job_type:
                 dst = settings.get("dst_table_name")
-                if not dst:
+                dst_path = settings.get("dst_table_path")
+                if not dst and not dst_path:
                     raise KeyError(
-                        "dst_table_name must be provided for streaming job types"
+                        "dst_table_name or dst_table_path must be provided for streaming job types"
                     )
-                catalog, color, table = dst.split(".", 2)
-                base_volume = f"/Volumes/{catalog}/{color}/utility/{table}"
+                if dst:
+                    catalog, color, table = dst.split(".", 2)
+                    base_volume = f"/Volumes/{catalog}/{color}/utility/{table}"
+                else:
+                    p = Path(dst_path)
+                    table = p.name
+                    root = str(p.parent)
+                    base_volume = f"{root}/utility/{table}"
                 stream_defaults = {
                     "readStreamOptions": {},
                     "writeStreamOptions": {

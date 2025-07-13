@@ -1,8 +1,8 @@
 {
     "simple_settings": "true",
     "job_type": "silver_scd2_streaming",
-    "src_table_name": "edsm.bronze.powerPlay",
-    "dst_table_name": "edsm.silver.powerPlay",
+    "src_table_path": "./tables/bronze/powerPlay",
+    "dst_table_path": "./tables/silver/powerPlay",
     "ingest_time_column": "derived_ingest_time",
     "business_key": [
         "id",

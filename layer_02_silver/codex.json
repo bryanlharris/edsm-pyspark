@@ -1,8 +1,8 @@
 {
     "simple_settings": "true",
     "job_type": "silver_standard_batch",
-    "src_table_name": "edsm.bronze.codex",
-    "dst_table_name": "edsm.silver.codex",
+    "src_table_path": "./tables/bronze/codex",
+    "dst_table_path": "./tables/silver/codex",
     "business_key": [
         "name",
         "region",
