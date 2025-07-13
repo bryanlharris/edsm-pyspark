@@ -19,6 +19,7 @@ def create_spark_session(master: str, app_name: str):
     # prevents "OSError: [Errno 22] Invalid argument" errors that can occur when
     # ``foreachBatch`` starts the callback server on some platforms.
     os.environ.setdefault("PYSPARK_ALLOW_INSECURE_PORT", "1")
+    os.environ["SPARK_LOCAL_IP"] = "192.168.43.1"
 
     builder = (
         SparkSession.builder.master(master)
