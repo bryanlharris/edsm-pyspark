@@ -282,9 +282,21 @@ def inspect_checkpoint_folder(table_name, settings, spark):
             if batch_id not in batch_dirs:
                 batch_dirs[batch_id] = set()
             batch_dirs[batch_id].update(dirs)
-        for batch_id in sorted(batch_dirs, key=lambda x: int(x)):
-            dir_list = ", ".join(sorted(batch_dirs[batch_id])) if batch_dirs[batch_id] else "(no files)"
-            print(f"  Bronze Batch {batch_id} → {dir_list}")
+        batch_ids = sorted(batch_dirs, key=lambda x: int(x))
+        prefixes = [f"  Bronze Batch {bid} → " for bid in batch_ids]
+        width = max(len(p) for p in prefixes)
+
+        for bid, prefix in zip(batch_ids, prefixes):
+            dir_list = sorted(batch_dirs[bid])
+            padded = prefix.ljust(width)
+
+            if not dir_list:
+                print(padded + "(no files)")
+                continue
+
+            for i, directory in enumerate(dir_list):
+                sep = "," if i < len(dir_list) - 1 else ""
+                print(f"{padded if i == 0 else ' ' * width}{directory}{sep}")
     elif offsets_path.is_dir():
         files = glob(str(offsets_path / "*"))
         sorted_files = sorted(files, key=lambda f: int(Path(f).name))
