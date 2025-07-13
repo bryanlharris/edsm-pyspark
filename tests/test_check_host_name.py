@@ -3,19 +3,15 @@ import pathlib
 import types
 import importlib.util
 import pytest
+from tests import utils
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 # Create minimal 'functions' package to load sanity without importing other modules
-pkg_path = pathlib.Path(__file__).resolve().parents[1] / 'functions'
-functions_pkg = types.ModuleType('functions')
-functions_pkg.__path__ = [str(pkg_path)]
-sys.modules.setdefault('functions', functions_pkg)
+pkg_path = utils.install_functions_package()
 
 sanity_path = pkg_path / 'sanity.py'
-spec = importlib.util.spec_from_file_location('functions.sanity', sanity_path)
-sanity = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(sanity)
+sanity = utils.load_module('functions.sanity', sanity_path)
 
 
 def test_check_host_name_env(monkeypatch, capsys):

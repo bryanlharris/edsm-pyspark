@@ -1,35 +1,20 @@
 import sys
-import types
 import pathlib
 import importlib.util
+from tests import utils
+
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 # Provide minimal pyspark stubs required by utility
-pyspark = types.ModuleType('pyspark')
-sql = types.ModuleType('pyspark.sql')
-func_mod = types.ModuleType('pyspark.sql.functions')
-types_mod = types.ModuleType('pyspark.sql.types')
-setattr(types_mod, 'StructType', type('StructType', (), {}))
-sql.types = types_mod
-sql.functions = func_mod
-pyspark.sql = sql
-sys.modules['pyspark'] = pyspark
-sys.modules['pyspark.sql'] = sql
-sys.modules['pyspark.sql.types'] = types_mod
-sys.modules['pyspark.sql.functions'] = func_mod
+utils.install_fake_pyspark(type_names=["StructType"])
 
 # Create a minimal 'functions' package so relative imports work
-pkg_path = pathlib.Path(__file__).resolve().parents[1] / 'functions'
-functions_pkg = types.ModuleType('functions')
-functions_pkg.__path__ = [str(pkg_path)]
-sys.modules.setdefault('functions', functions_pkg)
+pkg_path = utils.install_functions_package()
 
 # Load utility dynamically
 utility_path = pkg_path / 'utility.py'
-spec = importlib.util.spec_from_file_location('functions.utility', utility_path)
-utility = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(utility)
+utility = utils.load_module('functions.utility', utility_path)
 
 
 def test_path_glob_appended_to_load():

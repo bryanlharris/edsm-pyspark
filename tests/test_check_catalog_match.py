@@ -4,20 +4,17 @@ import types
 import importlib.util
 import json
 import pytest
+from tests import utils
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
-pkg_path = pathlib.Path(__file__).resolve().parents[1] / 'functions'
-functions_pkg = types.ModuleType('functions')
-functions_pkg.__path__ = [str(pkg_path)]
-sys.modules.setdefault('functions', functions_pkg)
+pkg_path = utils.install_functions_package()
+functions_pkg = sys.modules['functions']
 
 # Load modules dynamically
 for name in ['sanity', 'config']:
     path = pkg_path / f'{name}.py'
-    spec = importlib.util.spec_from_file_location(f'functions.{name}', path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    mod = utils.load_module(f'functions.{name}', path)
     setattr(functions_pkg, name, mod)
 
 sanity = functions_pkg.sanity

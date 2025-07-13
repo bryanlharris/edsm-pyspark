@@ -4,22 +4,18 @@ import pathlib
 import importlib.util
 import unittest
 import unittest.mock
+from tests import utils
 
 # Insert repo root into path
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 # Create a minimal ``functions`` package to avoid executing the real package
 # (which requires pyspark) when ``quality`` performs relative imports.
-pkg_path = pathlib.Path(__file__).resolve().parents[1] / 'functions'
-functions_pkg = types.ModuleType('functions')
-functions_pkg.__path__ = [str(pkg_path)]
-sys.modules.setdefault('functions', functions_pkg)
+pkg_path = utils.install_functions_package()
 
 # Import quality module dynamically
-quality_path = pathlib.Path(__file__).resolve().parents[1] / 'functions' / 'quality.py'
-spec = importlib.util.spec_from_file_location('functions.quality', quality_path)
-quality = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(quality)
+quality_path = pkg_path / 'quality.py'
+quality = utils.load_module('functions.quality', quality_path)
 
 class DummyDF:
     def __init__(self, schema=None):
