@@ -28,10 +28,8 @@ def list_unseen_dirs(base_path, pattern, checkpoint_sources_path):
 def stream_read_files(settings, spark):
     """Read streaming data from a directory of files.
 
-    This function emulates the behaviour of ``stream_read_cloudfiles`` using
-    only standard PySpark features so that pipelines can be executed outside of
-    Databricks. Options beginning with ``cloudFiles.`` have the prefix removed
-    before being passed to the reader and unsupported options are ignored.
+    The implementation uses only standard PySpark features so that pipelines
+    can be executed outside of Databricks.
 
     Parameters
     ----------
@@ -58,22 +56,17 @@ def stream_read_files(settings, spark):
     file_format = (
         settings.get("file_format")
         or readStreamOptions.get("format")
-        or readStreamOptions.get("cloudFiles.format")
     )
     if not file_format:
         raise ValueError("File format must be specified in settings")
 
-    # Remove databricks specific options and ``cloudFiles.`` prefixes
+    # Remove databricks specific options
     options = {}
     for key, value in readStreamOptions.items():
-        if key in {"cloudFiles.format"}:
+        # Options like ``schemaLocation`` or ``rescuedDataColumn`` are
+        # specific to Auto Loader and ignored when running locally.
+        if key in {"schemaLocation", "rescuedDataColumn", "inferColumnTypes"}:
             continue
-        if key.startswith("cloudFiles."):
-            key = key.split(".", 1)[1]
-            # Options like ``schemaLocation`` or ``rescuedDataColumn`` are
-            # specific to Auto Loader and ignored when running locally.
-            if key in {"schemaLocation", "rescuedDataColumn", "inferColumnTypes"}:
-                continue
         options[key] = value
 
     schema = StructType.fromJson(settings["file_schema"])
