@@ -4,7 +4,7 @@
 # provided, "./landing" is used which mirrors the expected local layout.
 # Ensure we are always working with an absolute path so that any internal
 # directory changes do not break later file operations.
-landing_root="${1:-./landing}"
+landing_root="${1:-./tables/bronze/landing}"
 landing_root="$(realpath "$landing_root")"
 
 tmp=$(mktemp -d /tmp/data.XXXX)
