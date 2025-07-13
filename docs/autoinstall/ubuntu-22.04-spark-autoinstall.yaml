@@ -4,7 +4,6 @@ autoinstall:
   identity:
     hostname: spark-node
     username: sparkuser
-    # password is 'sparkpass' hashed via mkpasswd --method=SHA-512
     password: "$6$rounds=4096$TdTtzfJHN6mEsxFr$yAt2ulJ9V2/gFyiIeKbjz3vYjIE6uAgiMKYZtHa3qPNAlzEkD1o5aAW6sK00t88qjbvM90oCbGyF5dh4Olbk01"
   ssh:
     install-server: true
@@ -12,6 +11,9 @@ autoinstall:
     primary:
       - arches: [default]
         uri: http://archive.ubuntu.com/ubuntu
+  storage:
+    layout:
+      name: direct
   packages:
     - openjdk-11-jdk
     - python3-pip
@@ -20,13 +22,23 @@ autoinstall:
     - hadoop
     - hive
   late-commands:
-    - curtin in-target --target=/target pip3 install --quiet pyspark delta-spark jupyterlab
-    - curtin in-target --target=/target bash -c 'echo SPARK_HOME=/usr/lib/spark >> /etc/environment'
-    - curtin in-target --target=/target bash -c 'echo PYSPARK_DRIVER_HOST=127.0.0.1 >> /etc/environment'
-    - curtin in-target --target=/target bash -c 'echo 127.0.0.1 spark-host >> /etc/hosts'
-    - curtin in-target --target=/target hdfs namenode -format -force
-    - curtin in-target --target=/target systemctl enable hadoop-hdfs-namenode
-    - curtin in-target --target=/target systemctl enable hadoop-hdfs-datanode
-    - curtin in-target --target=/target bash -c 'schematool -initSchema -dbType derby || true'
-    - curtin in-target --target=/target systemctl enable hive-metastore
-    - curtin in-target --target=/target systemctl enable hive-server2
+    - curtin in-target -- pip3 install --quiet pyspark delta-spark jupyterlab
+    - curtin in-target -- bash -c 'echo "SPARK_HOME=/usr/lib/spark" >> /etc/environment'
+    - curtin in-target -- bash -c 'echo "PYSPARK_DRIVER_HOST=127.0.0.1" >> /etc/environment'
+    - curtin in-target -- bash -c 'echo "127.0.0.1 spark-host" >> /etc/hosts'
+    - curtin in-target -- bash -c 'mkdir -p /etc/hadoop/conf'
+    - curtin in-target -- bash -c "echo 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64' > /etc/hadoop/conf/hadoop-env.sh"
+    - curtin in-target -- bash -c 'cat > /etc/hadoop/conf/core-site.xml <<EOF
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://localhost:9000</value>
+  </property>
+</configuration>
+EOF'
+    - curtin in-target -- bash -c 'hdfs namenode -format -nonInteractive || true'
+    - curtin in-target -- bash -c 'mkdir -p /var/lib/hadoop-hdfs/cache/sparkuser'
+    - curtin in-target -- bash -c 'chown -R sparkuser:sparkuser /var/lib/hadoop-hdfs'
+    - curtin in-target -- bash -c 'nohup hive --service metastore > /var/log/hive-metastore.log 2>&1 &'
+    - curtin in-target -- bash -c 'nohup hive --service hiveserver2 > /var/log/hive-server2.log 2>&1 &'
+

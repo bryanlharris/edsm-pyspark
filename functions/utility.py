@@ -26,6 +26,7 @@ def create_spark_session(master: str, app_name: str, log_level: str | None = "WA
     from delta import configure_spark_with_delta_pip
 
     os.environ["SPARK_LOCAL_IP"] = "192.168.43.1"
+    os.environ["PYSPARK_GATEWAY_CALLBACK_ADDRESS"] = "127.0.0.1"
 
     builder = (
         SparkSession.builder.master(master)
