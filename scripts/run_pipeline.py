@@ -10,6 +10,9 @@ failure.
 
 from __future__ import annotations
 
+from functions.sanity import validate_settings, initialize_empty_tables
+from functions.utility import create_spark_session
+
 import argparse
 from glob import glob
 from pathlib import Path
@@ -49,14 +52,24 @@ def main() -> None:
     parser.add_argument("--log-dir", type=Path, default=DEFAULT_LOG_DIR, help="Directory to store logs")
     args = parser.parse_args()
 
-    for color in ["bronze", "silver"]:
-        for table in discover_tables(color):
-            code = run_ingest(color, table, args.master, args.verbose, args.log_dir)
-            if code != 0:
-                print(f"Ingest failed for {color}/{table}. See {args.log_dir/(color + '_' + table + '.log')}")
-                sys.exit(code)
+    spark = create_spark_session(args.master, "edsm-pipeline")
 
-    print("All ingest tasks completed successfully.")
+    try:
+        validate_settings()
+        initialize_empty_tables(spark)
+
+        for color in ["bronze", "silver"]:
+            for table in discover_tables(color):
+                code = run_ingest(color, table, args.master, args.verbose, args.log_dir)
+                if code != 0:
+                    print(
+                        f"Ingest failed for {color}/{table}. See {args.log_dir/(color + '_' + table + '.log')}"
+                    )
+                    sys.exit(code)
+
+        print("All ingest tasks completed successfully.")
+    finally:
+        spark.stop()
 
 
 if __name__ == "__main__":
