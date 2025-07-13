@@ -22,7 +22,7 @@ from functions.utility import (
     schema_exists,
     print_settings,
 )
-from functions.history import transaction_history
+
 from functions.quality import create_dqx_bad_records_table
 
 
@@ -62,22 +62,6 @@ def run_pipeline(color: str, table: str, spark: SparkSession) -> None:
 
     if color == "bronze":
         create_bad_records_table(settings, spark)
-
-    history_schema = settings.get("history_schema")
-    build_history = str(settings.get("build_history", "false")).lower() == "true"
-    if build_history:
-        if dst_table_name is None:
-            print("Skipping history build: dst_table_name not provided")
-        else:
-            catalog = dst_table_name.split(".")[0]
-            if history_schema is None:
-                print("Skipping history build: no history_schema provided")
-            elif schema_exists(catalog, history_schema, spark):
-                transaction_history(dst_table_name, history_schema, spark)
-            else:
-                print(
-                    f"Skipping history build: schema {catalog}.{history_schema} not found"
-                )
 
 
 def main() -> None:

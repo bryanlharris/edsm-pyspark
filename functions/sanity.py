@@ -161,7 +161,7 @@ def initialize_schemas_and_volumes(spark):
 
     errs = []
 
-    schemas = {"bronze": set(), "silver": set(), "gold": set(), "history": set()}
+    schemas = {"bronze": set(), "silver": set(), "gold": set()}
     file_map = {"bronze": bronze_files, "silver": silver_files, "gold": gold_files}
     catalogs = set()
 
@@ -175,20 +175,12 @@ def initialize_schemas_and_volumes(spark):
             catalog, schema, _ = dst.split(".", 2)
             catalogs.add(catalog)
             schemas[color].add((catalog, schema))
-            if str(settings.get("build_history", "false")).lower() == "true":
-                history_schema = settings.get("history_schema")
-                if history_schema:
-                    schemas["history"].add((catalog, history_schema))
 
     for color in ["bronze", "silver", "gold"]:
         if len(schemas[color]) > 1:
             errs.append(
                 f"Multiple schemas discovered for {color}: {sorted(schemas[color])}"
             )
-    if len(schemas["history"]) > 1:
-        errs.append(
-            f"Multiple history schemas discovered: {sorted(schemas['history'])}"
-        )
 
     if len(catalogs) > 1:
         errs.append(f"Multiple catalogs discovered: {sorted(catalogs)}")
@@ -206,7 +198,7 @@ def initialize_schemas_and_volumes(spark):
         "gold": ["utility"],
     }
 
-    for color in ["bronze", "silver", "gold", "history"]:
+    for color in ["bronze", "silver", "gold"]:
         for catalog, schema in sorted(schemas[color]):
             create_schema_if_not_exists(catalog, schema, spark)
             spark.sql(f"GRANT USAGE ON SCHEMA {catalog}.{schema} TO `account users`")
