@@ -89,7 +89,8 @@ def _simple_merge(df, settings, spark):
         change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
     df.createOrReplaceTempView("updates")
-    spark.sql(
+    session = df.sparkSession
+    session.sql(
         f"""
         MERGE INTO {dst_table_name} t
         USING updates s
@@ -176,8 +177,9 @@ def _scd2_upsert(df, settings, spark):
         change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
     df.createOrReplaceTempView("updates")
+    session = df.sparkSession
 
-    spark.sql(
+    session.sql(
         f"""
         MERGE INTO {dst_table_name} t
         USING updates s
@@ -190,7 +192,7 @@ def _scd2_upsert(df, settings, spark):
         """
     )
 
-    spark.sql(
+    session.sql(
         f"""
         INSERT INTO {dst_table_name}
         SELECT
@@ -246,10 +248,11 @@ def write_upsert_snapshot(df, settings, spark):
     window = Window.partitionBy(*business_key).orderBy(col(ingest_time_col).desc())
     df = df.withColumn("row_num", row_number().over(window)).filter("row_num = 1").drop("row_num")
     df.createOrReplaceTempView("updates")
+    session = df.sparkSession
 
     merge_condition = " AND ".join([f"target.{k} = source.{k}" for k in business_key])
 
-    spark.sql(f"""
+    session.sql(f"""
     MERGE INTO {dst_table} AS target
     USING updates AS source
     ON {merge_condition}
