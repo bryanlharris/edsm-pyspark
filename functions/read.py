@@ -90,6 +90,10 @@ def stream_read_files(settings, spark):
         dirs = list_unseen_dirs(base_path, pattern, checkpoint)
         if not dirs:
             raise RuntimeError("No new files to process")
+
+        print("Discovered directories to process:")
+        print(json.dumps(dirs, indent=4))
+
         load_args = dirs
 
     reader = (
