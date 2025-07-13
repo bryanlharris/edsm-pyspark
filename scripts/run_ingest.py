@@ -19,7 +19,6 @@ from functions.utility import (
     get_function,
     create_bad_records_table,
     apply_job_type,
-    schema_exists,
     print_settings,
 )
 
