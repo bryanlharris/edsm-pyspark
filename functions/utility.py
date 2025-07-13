@@ -30,13 +30,15 @@ def create_spark_session(master: str, app_name: str):
     return builder.getOrCreate()
 
 
-def print_settings(job_settings, settings, color, table):
+def print_settings(job_settings, settings, color, table, verbose=False):
     """Print job and table settings in plain text."""
 
     print(f"Dictionary from {color}_settings.json:")
     print(json.dumps(job_settings, indent=4))
 
     print(f"Derived contents of {table}.json:")
+    if not verbose and "file_schema" in settings:
+        settings = {k: v for k, v in settings.items() if k != "file_schema"}
     print(json.dumps(settings, indent=4))
 
 

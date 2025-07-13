@@ -33,7 +33,7 @@ def load_settings(color: str, table: str) -> dict:
     return apply_job_type(settings)
 
 
-def run_pipeline(color: str, table: str, spark: SparkSession) -> None:
+def run_pipeline(color: str, table: str, spark: SparkSession, verbose: bool = False) -> None:
     """Execute the ingest pipeline for the given table."""
     settings = load_settings(color, table)
     dst_table_name = settings.get("dst_table_name")
@@ -42,7 +42,7 @@ def run_pipeline(color: str, table: str, spark: SparkSession) -> None:
     if not dst_table_name and not dst_table_path:
         raise KeyError("dst_table_name or dst_table_path must be provided")
 
-    print_settings({"table": table}, settings, color, table)
+    print_settings({"table": table}, settings, color, table, verbose=verbose)
 
     if "pipeline_function" in settings:
         pipeline_function = get_function(settings["pipeline_function"])
@@ -68,12 +68,13 @@ def main() -> None:
     parser.add_argument("color", choices=["bronze", "silver", "gold"], help="Layer color")
     parser.add_argument("table", help="Table name (without .json)")
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print full settings including file schema")
     args = parser.parse_args()
 
     spark = create_spark_session(args.master, "edsm-ingest")
 
     try:
-        run_pipeline(args.color, args.table, spark)
+        run_pipeline(args.color, args.table, spark, verbose=args.verbose)
     finally:
         spark.stop()
 

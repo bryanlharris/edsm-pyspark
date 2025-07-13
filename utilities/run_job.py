@@ -31,7 +31,7 @@ def _discover_tables(color: str) -> list[str]:
     return sorted(Path(p).stem for p in paths)
 
 
-def run_job(master: str) -> None:
+def run_job(master: str, verbose: bool = False) -> None:
     """Execute the downloader and ingest pipelines."""
 
     validate_settings()
@@ -44,10 +44,10 @@ def run_job(master: str) -> None:
         subprocess.check_call(["bash", str(downloader)])
 
         for table in _discover_tables("bronze"):
-            run_pipeline("bronze", table, spark)
+            run_pipeline("bronze", table, spark, verbose=verbose)
 
         for table in _discover_tables("silver"):
-            run_pipeline("silver", table, spark)
+            run_pipeline("silver", table, spark, verbose=verbose)
     finally:
         spark.stop()
 
@@ -57,8 +57,9 @@ def main() -> None:
     parser.add_argument(
         "--master", default="local[*]", help="Spark master URL"
     )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Print full settings including file schema")
     args = parser.parse_args()
-    run_job(args.master)
+    run_job(args.master, verbose=args.verbose)
 
 
 if __name__ == "__main__":
