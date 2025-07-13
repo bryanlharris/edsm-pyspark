@@ -30,12 +30,7 @@ def _generate_job_settings() -> dict:
             with open(path) as f:
                 settings = json.load(f)
             settings = apply_job_type(settings)
-            history = {
-                "build_history": settings.get("build_history", "false"),
-                "history_schema": settings.get("history_schema"),
-                "full_table_name": settings.get("dst_table_name"),
-            }
-            job_settings[color].append({"table": table, "history": history})
+            job_settings[color].append({"table": table})
     return job_settings
 
 

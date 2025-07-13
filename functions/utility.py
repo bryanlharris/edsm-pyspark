@@ -125,7 +125,6 @@ def apply_job_type(settings):
                 base_volume = f"{root}/utility/{table}"
                 read_load = f"{root}/landing/"
             dynamic = {
-                "build_history": "true",
                 "readStream_load": read_load,
                 "readStreamOptions": {
                     "cloudFiles.inferColumnTypes": "false",
@@ -142,7 +141,7 @@ def apply_job_type(settings):
             }
             defaults = _merge_dicts(defaults, dynamic)
         elif job_type.startswith("silver") or job_type.startswith("gold"):
-            dynamic = {"build_history": "false", "ingest_time_column": "ingest_time"}
+            dynamic = {"ingest_time_column": "ingest_time"}
 
             if "streaming" in job_type:
                 dst = settings.get("dst_table_name")
