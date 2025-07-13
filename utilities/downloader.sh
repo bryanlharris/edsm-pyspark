@@ -2,7 +2,10 @@
 
 # The first argument optionally specifies the base landing zone path. If not
 # provided, "./landing" is used which mirrors the expected local layout.
+# Ensure we are always working with an absolute path so that any internal
+# directory changes do not break later file operations.
 landing_root="${1:-./landing}"
+landing_root="$(realpath "$landing_root")"
 
 tmp="/tmp/data"
 root="$landing_root/data"
