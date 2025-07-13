@@ -15,6 +15,11 @@ def create_spark_session(master: str, app_name: str):
     from pyspark.sql import SparkSession
     from delta import configure_spark_with_delta_pip
 
+    # Allow PySpark to bind the callback server to an ephemeral port. This
+    # prevents "OSError: [Errno 22] Invalid argument" errors that can occur when
+    # ``foreachBatch`` starts the callback server on some platforms.
+    os.environ.setdefault("PYSPARK_ALLOW_INSECURE_PORT", "1")
+
     builder = (
         SparkSession.builder.master(master)
         .appName(app_name)
