@@ -16,7 +16,6 @@ from functions.utility import create_spark_session, apply_job_type
 
 from functions.sanity import (
     validate_settings,
-    initialize_schemas_and_volumes,
     initialize_empty_tables,
 )
 
@@ -39,7 +38,6 @@ def _init_job() -> dict:
     spark = create_spark_session("local[*]", "edsm-job-settings")
     try:
         validate_settings()
-        initialize_schemas_and_volumes(spark)
         initialize_empty_tables(spark)
     finally:
         spark.stop()

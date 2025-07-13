@@ -6,7 +6,6 @@ from functions.utility import (
     get_function,
     apply_job_type,
     create_schema_if_not_exists,
-    create_volume_if_not_exists,
     catalog_exists,
 )
 from functions.config import PROJECT_ROOT, ALLOWED_HOST_NAMES, WORKSPACE_URL
@@ -153,59 +152,6 @@ def initialize_empty_tables(spark):
     else:
         print("Sanity check: Initialize empty tables check passed.")
 
-
-def initialize_schemas_and_volumes(spark):
-    """Create schemas and external volumes based on settings definitions."""
-
-    bronze_files, silver_files, gold_files = _discover_settings_files()
-
-    errs = []
-
-    schemas = {"bronze": set(), "silver": set(), "gold": set()}
-    file_map = {"bronze": bronze_files, "silver": silver_files, "gold": gold_files}
-    catalogs = set()
-
-    for color, files in file_map.items():
-        for path in files.values():
-            settings = json.loads(open(path).read())
-            settings = apply_job_type(settings)
-            dst = settings.get("dst_table_name")
-            if not dst:
-                continue
-            catalog, schema, _ = dst.split(".", 2)
-            catalogs.add(catalog)
-            schemas[color].add((catalog, schema))
-
-    for color in ["bronze", "silver", "gold"]:
-        if len(schemas[color]) > 1:
-            errs.append(
-                f"Multiple schemas discovered for {color}: {sorted(schemas[color])}"
-            )
-
-    if len(catalogs) > 1:
-        errs.append(f"Multiple catalogs discovered: {sorted(catalogs)}")
-    elif catalogs:
-        catalog = next(iter(catalogs))
-        if not catalog_exists(catalog, spark):
-            errs.append(f"Catalog does not exist: {catalog}")
-
-    if errs:
-        raise RuntimeError("Sanity check failed: " + ", ".join(errs))
-
-    volume_map = {
-        "bronze": ["landing", "utility"],
-        "silver": ["utility"],
-        "gold": ["utility"],
-    }
-
-    for color in ["bronze", "silver", "gold"]:
-        for catalog, schema in sorted(schemas[color]):
-            create_schema_if_not_exists(catalog, schema, spark)
-            spark.sql(f"GRANT USAGE ON SCHEMA {catalog}.{schema} TO `account users`")
-            for volume in volume_map.get(color, []):
-                create_volume_if_not_exists(catalog, schema, volume, spark)
-
-    print("Sanity check: Initialize schemas and volumes check passed.")
 
 
 

@@ -235,58 +235,7 @@ def catalog_exists(catalog, spark):
     return df.count() > 0
 
 
-def volume_exists(catalog, schema, volume, spark=None):
-    """Return ``True`` if the volume directory already exists.
 
-    Parameters
-    ----------
-    catalog : str
-        Catalog portion of the volume path.
-    schema : str
-        Schema portion of the volume path.
-    volume : str
-        Either ``"landing"`` or ``"utility"``.
-    spark : pyspark.sql.SparkSession, optional
-        Unused but present for API compatibility.
-
-    Returns
-    -------
-    bool
-        ``True`` when the directory exists, ``False`` otherwise.
-    """
-
-    root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
-    root = root.rstrip("/") + "/"
-    path = f"{root}{catalog}/{schema}/{volume}"
-
-    return Path(path).exists()
-
-
-def create_volume_if_not_exists(catalog, schema, volume, spark=None):
-    """Ensure the directory backing the volume exists.
-
-    Parameters
-    ----------
-    catalog : str
-        Catalog portion of the volume path.
-    schema : str
-        Schema portion of the volume path.
-    volume : str
-        Either ``"landing"`` or ``"utility"``.
-    spark : pyspark.sql.SparkSession, optional
-        Unused but present for API compatibility.
-    """
-
-    if not volume_exists(catalog, schema, volume, spark):
-        root = S3_ROOT_LANDING if volume == "landing" else S3_ROOT_UTILITY
-        root = root.rstrip("/") + "/"
-        path = f"{root}{catalog}/{schema}/{volume}"
-
-        Path(path).mkdir(parents=True, exist_ok=True)
-
-        print(
-            f"\tINFO: Volume did not exist and was created: /Volumes/{catalog}/{schema}/{volume}."
-        )
 
 
 def truncate_table_if_exists(table_name, spark):

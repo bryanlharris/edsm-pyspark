@@ -21,7 +21,6 @@ from functions.utility import create_spark_session
 from scripts.run_ingest import run_pipeline
 from functions.sanity import (
     validate_settings,
-    initialize_schemas_and_volumes,
     initialize_empty_tables,
 )
 
@@ -39,7 +38,6 @@ def run_job(master: str) -> None:
 
     spark = create_spark_session(master, "edsm-job")
     try:
-        initialize_schemas_and_volumes(spark)
         initialize_empty_tables(spark)
 
         downloader = Path(__file__).with_name("downloader.sh")
