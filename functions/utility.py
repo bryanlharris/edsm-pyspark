@@ -14,18 +14,20 @@ def create_spark_session(master: str, app_name: str):
     """Return a Spark session configured for Delta."""
 
     from pyspark.sql import SparkSession
+    from delta import configure_spark_with_delta_pip
 
-    return (
+    builder = (
         SparkSession.builder.master(master)
         .appName(app_name)
-        .config("spark.jars.packages", "io.delta:delta-spark_2.12:3.3.2")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
             "spark.sql.catalog.spark_catalog",
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
-        .getOrCreate()
     )
+
+    builder = configure_spark_with_delta_pip(builder)
+    return builder.getOrCreate()
 
 
 def print_settings(job_settings, settings, color, table):
