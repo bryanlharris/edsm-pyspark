@@ -34,7 +34,7 @@ def stream_write_table(df, settings, spark):
 
     writeStreamOptions = settings.get("writeStreamOptions")
 
-    (
+    return (
         df.writeStream
         .format("delta")
         .options(**writeStreamOptions)
