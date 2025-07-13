@@ -9,7 +9,8 @@ def _register_table(path, spark, table_name=None):
     """Register ``path`` as a Delta table and return the table name."""
 
     name = table_name or Path(path).name
-    spark.sql(f"CREATE TABLE IF NOT EXISTS {name} USING DELTA LOCATION '{path}'")
+    abs_path = str(Path(path).resolve())
+    spark.sql(f"CREATE TABLE IF NOT EXISTS {name} USING DELTA LOCATION '{abs_path}'")
     return name
 
 
@@ -23,6 +24,8 @@ def overwrite_table(df, settings, spark):
     dst_path = settings.get("dst_table_path")
     if not dst_path:
         raise KeyError("dst_table_path must be provided")
+
+    dst_path = str(Path(dst_path).resolve())
 
     (
         df.write
@@ -40,6 +43,8 @@ def stream_write_table(df, settings, spark):
     dst_table_path = settings.get("dst_table_path")
     if not dst_table_path:
         raise KeyError("dst_table_path must be provided")
+
+    dst_table_path = str(Path(dst_table_path).resolve())
 
     writeStreamOptions = settings.get("writeStreamOptions")
 
@@ -60,6 +65,8 @@ def stream_upsert_table(df, settings, spark):
     dst_table_path = settings.get("dst_table_path")
     if not dst_table_path:
         raise KeyError("dst_table_path must be provided")
+
+    dst_table_path = str(Path(dst_table_path).resolve())
 
     return (
         df.writeStream
@@ -128,7 +135,7 @@ def upsert_table(df, settings, spark, *, scd2=False, foreach_batch=False, batch_
             .write.format("delta")
             .mode("ignore")
             .option("delta.columnMapping.mode", "name")
-            .save(dst_path)
+            .save(str(Path(dst_path).resolve()))
         )
         _register_table(dst_path, spark)
 
