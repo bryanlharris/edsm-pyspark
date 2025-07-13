@@ -15,3 +15,8 @@ The default behaviour matches the settings expected by the rest of the project, 
 ```bash
 python utilities/downloader.py [--script PATH_TO_DOWNLOADER_SH]
 ```
+
+Downloaded files are written beneath the ``landing`` directory using a dated
+subdirectory such as ``landing/data/20240101``. When loading these files without
+the ``recursiveFileLookup`` option your streaming job must point one directory
+below ``landing`` (for example ``landing/data``).

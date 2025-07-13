@@ -8,6 +8,7 @@
         "cloudFiles.format": "json",
         "encoding": "utf-8",
         "pathGlobFilter": "systemsPopulated.json",
+        "recursiveFileLookup": "true",
         "multiline": "false"
     },
     "file_schema": {
