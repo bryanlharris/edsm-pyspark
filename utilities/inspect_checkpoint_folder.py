@@ -10,7 +10,11 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from functions.utility import create_spark_session, inspect_checkpoint_folder
+from functions.utility import (
+    create_spark_session,
+    inspect_checkpoint_folder,
+    apply_job_type,
+)
 from functions.config import PROJECT_ROOT
 
 
@@ -26,6 +30,7 @@ def main() -> None:
 
     settings_path = table_map[args.table]
     settings = json.loads(Path(settings_path).read_text())
+    settings = apply_job_type(settings)
 
     spark = create_spark_session(args.master, "inspect-checkpoints")
     try:
