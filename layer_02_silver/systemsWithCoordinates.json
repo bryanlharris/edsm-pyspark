@@ -16,7 +16,7 @@
     "data_type_map": {
         "date": "timestamp"
     },
-    "ingest_time_column": "derived_ingest_time",
+    "ingest_time_column": "ingest_time",
     "quality_checks": [
         {
             "name": "coords.x_is_not_null",
