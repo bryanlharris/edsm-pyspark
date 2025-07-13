@@ -1,6 +1,7 @@
 # Profiling a silver table
 
-`utilities/profile_silver_table.py` generates a data quality profile for a silver table using `databricks-labs-dqx`.
+`utilities/profile_silver_table.py` generates a data quality profile for a silver table
+using `databricks-labs-dqx`.
 
 ```bash
 python utilities/profile_silver_table.py TABLE_NAME [--master MASTER_URL]
