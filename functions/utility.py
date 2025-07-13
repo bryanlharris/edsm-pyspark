@@ -249,17 +249,21 @@ def inspect_checkpoint_folder(table_name, settings, spark):
 
     checkpoint_path = checkpoint_path.rstrip("/")
     offsets_path = Path(checkpoint_path, "offsets")
-    sources_path = Path(checkpoint_path, "sources", "0")
+    sources_root = Path(checkpoint_path, "sources")
 
     # Prefer bronze-style checkpoints if a sources directory with batch files
     # exists. Silver tables typically lack this structure.
-    if sources_path.is_dir() and any(sources_path.iterdir()):
-        files = glob(str(sources_path / "*"))
-        sorted_files = sorted(files, key=lambda f: int(Path(f).name))
+    if sources_root.is_dir() and any(sources_root.iterdir()):
+        files = []
+        for src in sorted(sources_root.iterdir(), key=lambda p: p.name):
+            if src.is_dir():
+                files.extend(p for p in src.iterdir() if p.name.isdigit())
+        sorted_files = sorted(files, key=lambda f: int(f.name))
         print(f"{table_name}: batch → processed directories")
 
+        batch_dirs = {}
         for path in sorted_files:
-            batch_id = Path(path).name
+            batch_id = path.name
             with open(path) as fh:
                 lines = [l.strip() for l in fh.readlines() if l.strip()]
             # Skip the version header line if present
@@ -275,7 +279,11 @@ def inspect_checkpoint_folder(table_name, settings, spark):
                 if p:
                     # remove file:// prefix and get parent directory
                     dirs.add(str(Path(p.replace("file://", "")).parent))
-            dir_list = ", ".join(sorted(dirs)) if dirs else "(no files)"
+            if batch_id not in batch_dirs:
+                batch_dirs[batch_id] = set()
+            batch_dirs[batch_id].update(dirs)
+        for batch_id in sorted(batch_dirs, key=lambda x: int(x)):
+            dir_list = ", ".join(sorted(batch_dirs[batch_id])) if batch_dirs[batch_id] else "(no files)"
             print(f"  Bronze Batch {batch_id} → {dir_list}")
     elif offsets_path.is_dir():
         files = glob(str(offsets_path / "*"))
