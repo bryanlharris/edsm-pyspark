@@ -4,10 +4,10 @@
     "dst_table_path": "./tables/bronze/systemsWithCoordinates",
     "derived_ingest_time_regex": "/(\\d{8})/",
     "add_derived_ingest_time": "false",
+    "file_format": "json",
     "readStreamOptions": {
-        "cloudFiles.format": "json",
         "encoding": "utf-8",
-        "cloudFiles.maxFilesPerTrigger": "1",
+        "maxFilesPerTrigger": "1",
         "pathGlobFilter": "systemsWithCoordinates.json",
         "recursiveFileLookup": "true",
         "multiline": "false"

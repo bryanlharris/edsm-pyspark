@@ -29,8 +29,8 @@ def test_path_glob_appended_to_load():
         'simple_settings': 'true',
         'job_type': 'bronze_standard_streaming',
         'dst_table_name': 'cat.bronze.tbl',
+        'file_format': 'json',
         'readStreamOptions': {
-            'cloudFiles.format': 'json',
             'pathGlobFilter': 'stations.json'
         },
         'file_schema': []
