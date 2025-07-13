@@ -1,8 +1,28 @@
 
 
+import os
+import json
+import glob
+
 from pyspark.sql.types import StructType
 from pyspark.sql.functions import col, row_number
 from pyspark.sql.window import Window
+
+
+def list_unseen_dirs(base_path, pattern, checkpoint_sources_path):
+    """Return directories containing files not present in checkpoints."""
+
+    read_files = set()
+    for path in glob.glob(os.path.join(checkpoint_sources_path, "offset-*")):
+        with open(path) as f:
+            content = json.load(f)
+            for file_path in content.get("logOffset", {}).get("batchFiles", []):
+                if file_path.startswith("file:"):
+                    read_files.add(file_path.replace("file:", "", 1))
+
+    all_files = glob.glob(os.path.join(base_path, pattern), recursive=True)
+    unseen = [f for f in all_files if f not in read_files]
+    return sorted(set(os.path.dirname(f) for f in unseen))
 
 
 def stream_read_files(settings, spark):
@@ -28,6 +48,10 @@ def stream_read_files(settings, spark):
     """
 
     readStreamOptions = settings.get("readStreamOptions", {})
+    if "recursiveFileLookup" in readStreamOptions:
+        raise ValueError(
+            "recursiveFileLookup is not supported; remove this option and use checkpoint-based discovery"
+        )
     readStream_load = settings.get("readStream_load")
 
     # Determine the file format using ``file_format`` or ``format`` options.
@@ -54,12 +78,27 @@ def stream_read_files(settings, spark):
 
     schema = StructType.fromJson(settings["file_schema"])
 
+    load_args = [readStream_load]
+    if "**" in readStream_load:
+        idx = readStream_load.index("**")
+        base_path = readStream_load[:idx]
+        pattern = readStream_load[idx:]
+        checkpoint = os.path.join(
+            settings["writeStreamOptions"]["checkpointLocation"].rstrip("/"),
+            "sources",
+            "0",
+        )
+        dirs = list_unseen_dirs(base_path, pattern, checkpoint)
+        if not dirs:
+            raise RuntimeError("No new files to process")
+        load_args = dirs
+
     return (
         spark.readStream
         .format(file_format)
         .options(**options)
         .schema(schema)
-        .load(readStream_load)
+        .load(*load_args)
     )
 
 

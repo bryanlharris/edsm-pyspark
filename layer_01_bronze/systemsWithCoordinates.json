@@ -9,7 +9,6 @@
         "encoding": "utf-8",
         "maxFilesPerTrigger": "1",
         "pathGlobFilter": "systemsWithCoordinates.json",
-        "recursiveFileLookup": "true",
         "multiline": "false"
     },
     "file_schema": {

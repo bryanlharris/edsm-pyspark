@@ -143,8 +143,6 @@ def apply_job_type(settings):
             if "/" not in glob and "*" not in glob and "?" not in glob:
                 glob = f"**/{glob}"
             final_path = f"{load_path}/{glob}"
-            if "**" in glob:
-                read_opts.setdefault("recursiveFileLookup", "true")
             settings["readStream_load"] = final_path
             settings["readStreamOptions"] = read_opts
 
