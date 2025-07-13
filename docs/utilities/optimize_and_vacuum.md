@@ -1,6 +1,7 @@
 # Optimizing and vacuuming tables
 
-`utilities/optimize_and_vacuum.py` iterates over all schemas in a catalog and runs `OPTIMIZE` and `VACUUM` on every table.
+`utilities/optimize_and_vacuum.py` iterates over all schemas in a catalog and runs `OPTIMIZE`
+and `VACUUM` on every table.
 
 ```bash
 python utilities/optimize_and_vacuum.py [--catalog CATALOG] [--master MASTER_URL]
