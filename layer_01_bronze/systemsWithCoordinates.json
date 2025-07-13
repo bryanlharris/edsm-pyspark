@@ -1,6 +1,7 @@
 {
     "simple_settings": "true",
     "job_type": "bronze_standard_streaming",
+    "dst_table_path": "./tables/bronze/systemsWithCoordinates",
     "derived_ingest_time_regex": "/(\\d{8})/",
     "add_derived_ingest_time": "false",
     "readStreamOptions": {
@@ -73,6 +74,5 @@
         ],
         "type": "struct"
     },
-    "history_schema": "history",
-    "dst_table_path": "./tables/bronze/systemsWithCoordinates"
+    "history_schema": "history"
 }
