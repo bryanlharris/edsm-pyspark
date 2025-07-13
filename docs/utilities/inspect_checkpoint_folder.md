@@ -3,10 +3,10 @@
 `utilities/inspect_checkpoint_folder.py` inspects a Delta checkpoint directory for a given table.
 
 ```bash
-python utilities/inspect_checkpoint_folder.py COLOR TABLE_NAME [--master MASTER_URL]
+python utilities/inspect_checkpoint_folder.py COLOR TABLE_NAME
 ```
 
-`COLOR` must be either `bronze` or `silver` and selects the layer of settings to inspect. `TABLE_NAME` should match one of the JSON files in the corresponding layer without the extension. Use `--master` to specify the Spark master URL.
+`COLOR` must be either `bronze` or `silver` and selects the layer of settings to inspect. `TABLE_NAME` should match one of the JSON files in the corresponding layer without the extension.
 
 The script applies the `job_type` defaults from the settings file, which usually
 populate `writeStreamOptions.checkpointLocation`. If a checkpoint location
