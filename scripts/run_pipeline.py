@@ -10,14 +10,19 @@ failure.
 
 from __future__ import annotations
 
+from pathlib import Path
+import sys
+
+# Ensure the repository root is on the Python path so the ``functions``
+# package can be imported when this script is executed directly.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from functions.sanity import validate_settings, initialize_empty_tables
 from functions.utility import create_spark_session
 
 import argparse
 from glob import glob
-from pathlib import Path
 import subprocess
-import sys
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
