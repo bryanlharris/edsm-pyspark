@@ -8,9 +8,15 @@ be executed with a local or cluster spark-submit.
 import argparse
 import json
 from pathlib import Path
+import os
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+# Allow PySpark to bind the callback server to an ephemeral port. Setting this
+# before importing ``pyspark`` ensures the value is in effect when the Spark
+# session is created.
+os.environ.setdefault("PYSPARK_ALLOW_INSECURE_PORT", "1")
 
 from pyspark.sql import SparkSession
 from functions.utility import create_spark_session
