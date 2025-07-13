@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from pyspark.sql.types import StructType
 from functions.utility import get_function, apply_job_type
-from functions.config import PROJECT_ROOT, ALLOWED_HOST_NAMES, WORKSPACE_URL
+from functions.config import PROJECT_ROOT
 
 
 def _path_exists(path: str, spark) -> bool:
@@ -97,9 +97,6 @@ def validate_settings(bronze=None, silver=None, gold=None):
     else:
         print("Sanity check: Validate settings check passed.")
 
-    # Ensure the destination catalogs match the current host name
-    check_host_name_matches_catalog()
-
 
 def initialize_empty_tables(spark):
     """Create empty Delta tables based on settings definitions."""
@@ -169,80 +166,3 @@ def initialize_empty_tables(spark):
         raise RuntimeError("Sanity check failed: "+", ".join(errs))
     else:
         print("Sanity check: Initialize empty tables check passed.")
-
-
-
-
-def check_host_name():
-    """Validate and return the current host name.
-
-    Returns
-    -------
-    str
-        The short host name.
-
-    Raises
-    ------
-    RuntimeError
-        If the host name cannot be determined or is not allowed.
-    """
-
-    host_name = None
-
-    url = os.environ.get("DATABRICKS_HOST") or WORKSPACE_URL
-    if url:
-        host_name = url.split("//")[-1].split(".")[0]
-
-    if not host_name:
-        raise RuntimeError("Host name could not be determined")
-
-    host_name = host_name.lower()
-
-    if host_name not in ALLOWED_HOST_NAMES:
-        raise RuntimeError(f"Host name '{host_name}' is not allowed")
-
-    print(f"Sanity check: Host name recognized as {host_name}.")
-    return host_name
-
-
-def check_host_name_matches_catalog():
-    """Ensure catalog names in settings match the current host name."""
-
-    host_name = check_host_name()
-
-    if host_name == "dbc-bde2b6e3-4903":
-        print(
-            "Sanity check: Host name is exempt from catalog matching; skipping check."
-        )
-        return host_name
-
-    bronze_files, silver_files, gold_files = _discover_settings_files()
-    errs = []
-    for path in list(bronze_files.values()) + list(silver_files.values()) + list(
-        gold_files.values()
-    ):
-        settings = json.loads(open(path).read())
-        settings = apply_job_type(settings)
-        dst = settings.get("dst_table_name") or settings.get("dst_table_path")
-        if not dst or "/" in dst:
-            continue
-        catalog = dst.split(".")[0]
-        if catalog.lower() != host_name.lower():
-            errs.append(f"{path} catalog '{catalog}' does not match host '{host_name}'")
-
-    if errs:
-        raise RuntimeError("Sanity check failed: " + ", ".join(errs))
-
-    print(
-        f"Sanity check: All destination catalogs match host name '{host_name}'."
-    )
-    return host_name
-
-
-
-
-
-
-
-
-
