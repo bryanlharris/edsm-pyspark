@@ -29,7 +29,7 @@ def main() -> None:
 
     spark = create_spark_session(args.master, "inspect-checkpoints")
     try:
-        inspect_checkpoint_folder(settings, args.table, spark)
+        inspect_checkpoint_folder(args.table, settings, spark)
     finally:
         spark.stop()
 
