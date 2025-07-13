@@ -39,7 +39,7 @@ def test_path_glob_appended_to_load():
     }
     result = utility.apply_job_type(settings)
     assert result['readStream_load'].endswith('/**/stations.json')
-    assert 'pathGlobFilter' not in result['readStreamOptions']
+    assert result['readStreamOptions']['pathGlobFilter'] == 'stations.json'
 
 
 class DummyReader:
