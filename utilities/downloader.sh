@@ -1,8 +1,12 @@
 #!/usr/bin/bash
 
+# The first argument optionally specifies the base landing zone path. If not
+# provided, "./landing" is used which mirrors the expected local layout.
+landing_root="${1:-./landing}"
+
 tmp="/tmp/data"
-root="/Volumes/edsm/bronze/landing/data"
-marker_root="/Volumes/edsm/bronze/landing/markers"
+root="$landing_root/data"
+marker_root="$landing_root/markers"
 
 install -dv "$tmp" "$root" "$marker_root"
 touch "$marker_root/marker"
