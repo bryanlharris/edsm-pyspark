@@ -68,7 +68,7 @@ def stream_upsert_table(df, settings, spark):
         .trigger(availableNow=True)
         .foreachBatch(upsert_func(settings, spark))
         .outputMode("update")
-        .start(dst_table_path)
+        .start()
     )
 
 
@@ -125,6 +125,7 @@ def upsert_table(df, settings, spark, *, scd2=False, foreach_batch=False, batch_
         (
             spark.createDataFrame([], df.schema)
             .write.format("delta")
+            .mode("ignore")
             .option("delta.columnMapping.mode", "name")
             .save(dst_path)
         )
