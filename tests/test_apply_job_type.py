@@ -1,6 +1,8 @@
 import sys
 import pathlib
 import importlib.util
+import unittest.mock as mock
+import pytest
 from tests import utils
 
 
@@ -38,7 +40,6 @@ def test_path_glob_appended_to_load():
     result = utility.apply_job_type(settings)
     assert result['readStream_load'].endswith('/**/stations.json')
     assert 'pathGlobFilter' not in result['readStreamOptions']
-    assert result['readStreamOptions'].get('recursiveFileLookup') == 'true'
 
 
 class DummyReader:
@@ -59,8 +60,8 @@ class DummyReader:
         self.calls.append(('schema', schema))
         return self
 
-    def load(self, path):
-        self.calls.append(('load', path))
+    def load(self, *paths):
+        self.calls.append(('load', paths))
         return self
 
 
@@ -69,15 +70,32 @@ class DummySpark:
         self.readStream = DummyReader()
 
 
-def test_stream_read_files_recursive_option():
+def test_stream_read_files_list_unseen_dirs():
+    spark = DummySpark()
+    settings = {
+        'readStreamOptions': {
+            'format': 'json',
+        },
+        'writeStreamOptions': {'checkpointLocation': '/tmp/check'},
+        'readStream_load': 'landing/data/**/stations.json',
+        'file_schema': [],
+    }
+    with mock.patch.object(read, 'list_unseen_dirs', return_value=['a', 'b']) as m:
+        read.stream_read_files(settings, spark)
+    assert m.called
+    assert spark.readStream.calls[-1] == ('load', ('a', 'b'))
+
+
+def test_stream_read_files_rejects_recursive_lookup():
     spark = DummySpark()
     settings = {
         'readStreamOptions': {
             'format': 'json',
             'recursiveFileLookup': 'true',
         },
+        'writeStreamOptions': {'checkpointLocation': '/tmp/check'},
         'readStream_load': 'landing/data/**/stations.json',
         'file_schema': [],
     }
-    read.stream_read_files(settings, spark)
-    assert spark.readStream.opts.get('recursiveFileLookup') == 'true'
+    with pytest.raises(ValueError):
+        read.stream_read_files(settings, spark)

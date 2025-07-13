@@ -8,7 +8,6 @@
     "readStreamOptions": {
         "encoding": "utf-8",
         "pathGlobFilter": "stations.json",
-        "recursiveFileLookup": "true",
         "multiline": "false"
     },
     "file_schema": {
