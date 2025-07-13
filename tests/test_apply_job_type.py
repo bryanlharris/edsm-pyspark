@@ -64,6 +64,10 @@ class DummyReader:
         self.calls.append(('load', paths))
         return self
 
+    def union(self, other):
+        self.calls.append(('union', other))
+        return self
+
 
 class DummySpark:
     def __init__(self):
@@ -83,7 +87,8 @@ def test_stream_read_files_list_unseen_dirs():
     with mock.patch.object(read, 'list_unseen_dirs', return_value=['a', 'b']) as m:
         read.stream_read_files(settings, spark)
     assert m.called
-    assert spark.readStream.calls[-1] == ('load', ('a', 'b'))
+    loads = [c for c in spark.readStream.calls if c[0] == 'load']
+    assert loads == [('load', ('a',)), ('load', ('b',))]
 
 
 def test_stream_read_files_rejects_recursive_lookup():

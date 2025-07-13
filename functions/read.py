@@ -93,13 +93,18 @@ def stream_read_files(settings, spark):
             raise RuntimeError("No new files to process")
         load_args = dirs
 
-    return (
+    reader = (
         spark.readStream
         .format(file_format)
         .options(**options)
         .schema(schema)
-        .load(*load_args)
     )
+
+    df = reader.load(load_args[0])
+    for path in load_args[1:]:
+        df = df.union(reader.load(path))
+
+    return df
 
 
 def stream_read_table(settings, spark):
