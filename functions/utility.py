@@ -236,8 +236,11 @@ def truncate_table_if_exists(table_name, spark):
 
 def inspect_checkpoint_folder(table_name, settings, spark):
     """Print batch to version mapping from a Delta checkpoint folder."""
-
     checkpoint_path = settings.get("writeStreamOptions", {}).get("checkpointLocation")
+    if not checkpoint_path:
+        raise ValueError(
+            "Missing 'writeStreamOptions.checkpointLocation' in the settings file"
+        )
     checkpoint_path = checkpoint_path.rstrip("/")
     offsets_path = f"{checkpoint_path}/offsets"
 
