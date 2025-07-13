@@ -1,106 +1,107 @@
 {
-    "simple_settings": "true",
-    "job_type": "bronze_standard_streaming",
-    "dst_table_path": "./tables/bronze/powerPlay",
-    "derived_ingest_time_regex": "/(\\d{8})/",
-    "add_derived_ingest_time": "false",
-    "file_format": "json",
-    "readStreamOptions": {
-        "encoding": "utf-8",
-        "pathGlobFilter": "powerPlay.json",
-        "multiline": "false"
-    },
-    "file_schema": {
-        "fields": [
+  "simple_settings": "true",
+  "job_type": "bronze_standard_streaming",
+  "dst_table_path": "./tables/bronze/powerPlay",
+  "readStream_load": "tables/bronze/landing",
+  "derived_ingest_time_regex": "/(\\d{8})/",
+  "add_derived_ingest_time": "false",
+  "file_format": "json",
+  "readStreamOptions": {
+    "encoding": "utf-8",
+    "pathGlobFilter": "powerPlay.json",
+    "multiline": "false"
+  },
+  "file_schema": {
+    "fields": [
+      {
+        "metadata": {},
+        "name": "allegiance",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "coords",
+        "nullable": true,
+        "type": {
+          "fields": [
             {
-                "metadata": {},
-                "name": "allegiance",
-                "nullable": true,
-                "type": "string"
+              "metadata": {},
+              "name": "x",
+              "nullable": true,
+              "type": "double"
             },
             {
-                "metadata": {},
-                "name": "coords",
-                "nullable": true,
-                "type": {
-                    "fields": [
-                        {
-                            "metadata": {},
-                            "name": "x",
-                            "nullable": true,
-                            "type": "double"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "y",
-                            "nullable": true,
-                            "type": "double"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "z",
-                            "nullable": true,
-                            "type": "double"
-                        }
-                    ],
-                    "type": "struct"
-                }
+              "metadata": {},
+              "name": "y",
+              "nullable": true,
+              "type": "double"
             },
             {
-                "metadata": {},
-                "name": "date",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "government",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "id",
-                "nullable": true,
-                "type": "long"
-            },
-            {
-                "metadata": {},
-                "name": "id64",
-                "nullable": true,
-                "type": "long"
-            },
-            {
-                "metadata": {},
-                "name": "name",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "power",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "powerState",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "state",
-                "nullable": true,
-                "type": "string"
-            },
-            {
-                "metadata": {},
-                "name": "_rescued_data",
-                "nullable": true,
-                "type": "string"
+              "metadata": {},
+              "name": "z",
+              "nullable": true,
+              "type": "double"
             }
-        ],
-        "type": "struct"
-    }
+          ],
+          "type": "struct"
+        }
+      },
+      {
+        "metadata": {},
+        "name": "date",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "government",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "id",
+        "nullable": true,
+        "type": "long"
+      },
+      {
+        "metadata": {},
+        "name": "id64",
+        "nullable": true,
+        "type": "long"
+      },
+      {
+        "metadata": {},
+        "name": "name",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "power",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "powerState",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "state",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "_rescued_data",
+        "nullable": true,
+        "type": "string"
+      }
+    ],
+    "type": "struct"
+  }
 }

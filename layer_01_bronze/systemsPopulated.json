@@ -1,1092 +1,1093 @@
 {
-    "simple_settings": "true",
-    "job_type": "bronze_standard_streaming",
-    "dst_table_path": "./tables/bronze/systemsPopulated",
-    "derived_ingest_time_regex": "/(\\d{8})/",
-    "add_derived_ingest_time": "false",
-    "file_format": "json",
-    "readStreamOptions": {
-        "encoding": "utf-8",
-        "pathGlobFilter": "systemsPopulated.json",
-        "multiline": "false"
-    },
-    "file_schema": {
-        "fields": [
-            {
+  "simple_settings": "true",
+  "job_type": "bronze_standard_streaming",
+  "dst_table_path": "./tables/bronze/systemsPopulated",
+  "readStream_load": "tables/bronze/landing",
+  "derived_ingest_time_regex": "/(\\d{8})/",
+  "add_derived_ingest_time": "false",
+  "file_format": "json",
+  "readStreamOptions": {
+    "encoding": "utf-8",
+    "pathGlobFilter": "systemsPopulated.json",
+    "multiline": "false"
+  },
+  "file_schema": {
+    "fields": [
+      {
+        "metadata": {},
+        "name": "allegiance",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "bodies",
+        "nullable": true,
+        "type": {
+          "containsNull": true,
+          "elementType": {
+            "fields": [
+              {
                 "metadata": {},
-                "name": "allegiance",
+                "name": "absoluteMagnitude",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "age",
+                "nullable": true,
+                "type": "long"
+              },
+              {
+                "metadata": {},
+                "name": "argOfPeriapsis",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "atmosphereComposition",
+                "nullable": true,
+                "type": {
+                  "fields": [
+                    {
+                      "metadata": {},
+                      "name": "Ammonia",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Argon",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Carbon dioxide",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Helium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Hydrogen",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Iron",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Methane",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Neon",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Nitrogen",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Oxygen",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Silicates",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Sulphur dioxide",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Water",
+                      "nullable": true,
+                      "type": "double"
+                    }
+                  ],
+                  "type": "struct"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "atmosphereType",
                 "nullable": true,
                 "type": "string"
-            },
-            {
+              },
+              {
                 "metadata": {},
-                "name": "bodies",
+                "name": "axialTilt",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "belts",
                 "nullable": true,
                 "type": {
-                    "containsNull": true,
-                    "elementType": {
-                        "fields": [
-                            {
-                                "metadata": {},
-                                "name": "absoluteMagnitude",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "age",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "argOfPeriapsis",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "atmosphereComposition",
-                                "nullable": true,
-                                "type": {
-                                    "fields": [
-                                        {
-                                            "metadata": {},
-                                            "name": "Ammonia",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Argon",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Carbon dioxide",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Helium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Hydrogen",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Iron",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Methane",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Neon",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Nitrogen",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Oxygen",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Silicates",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Sulphur dioxide",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Water",
-                                            "nullable": true,
-                                            "type": "double"
-                                        }
-                                    ],
-                                    "type": "struct"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "atmosphereType",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "axialTilt",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "belts",
-                                "nullable": true,
-                                "type": {
-                                    "containsNull": true,
-                                    "elementType": {
-                                        "fields": [
-                                            {
-                                                "metadata": {},
-                                                "name": "innerRadius",
-                                                "nullable": true,
-                                                "type": "double"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "mass",
-                                                "nullable": true,
-                                                "type": "double"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "name",
-                                                "nullable": true,
-                                                "type": "string"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "outerRadius",
-                                                "nullable": true,
-                                                "type": "long"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "type",
-                                                "nullable": true,
-                                                "type": "string"
-                                            }
-                                        ],
-                                        "type": "struct"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "bodyId",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "distanceToArrival",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "earthMasses",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "gravity",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "id",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "id64",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "isLandable",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "isMainStar",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "isScoopable",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "luminosity",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "materials",
-                                "nullable": true,
-                                "type": {
-                                    "fields": [
-                                        {
-                                            "metadata": {},
-                                            "name": "Antimony",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Arsenic",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Cadmium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Carbon",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Chromium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Germanium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Iron",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Manganese",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Mercury",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Molybdenum",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Nickel",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Niobium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Phosphorus",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Polonium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Ruthenium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Selenium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Sulphur",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Technetium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Tellurium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Tin",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Tungsten",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Vanadium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Yttrium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Zinc",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Zirconium",
-                                            "nullable": true,
-                                            "type": "double"
-                                        }
-                                    ],
-                                    "type": "struct"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "name",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "orbitalEccentricity",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "orbitalInclination",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "orbitalPeriod",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "parents",
-                                "nullable": true,
-                                "type": {
-                                    "containsNull": true,
-                                    "elementType": {
-                                        "fields": [
-                                            {
-                                                "metadata": {},
-                                                "name": "Null",
-                                                "nullable": true,
-                                                "type": "long"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "Planet",
-                                                "nullable": true,
-                                                "type": "long"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "Star",
-                                                "nullable": true,
-                                                "type": "long"
-                                            }
-                                        ],
-                                        "type": "struct"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "radius",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "reserveLevel",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "rings",
-                                "nullable": true,
-                                "type": {
-                                    "containsNull": true,
-                                    "elementType": {
-                                        "fields": [
-                                            {
-                                                "metadata": {},
-                                                "name": "innerRadius",
-                                                "nullable": true,
-                                                "type": "double"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "mass",
-                                                "nullable": true,
-                                                "type": "double"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "name",
-                                                "nullable": true,
-                                                "type": "string"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "outerRadius",
-                                                "nullable": true,
-                                                "type": "double"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "type",
-                                                "nullable": true,
-                                                "type": "string"
-                                            }
-                                        ],
-                                        "type": "struct"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "rotationalPeriod",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "rotationalPeriodTidallyLocked",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "semiMajorAxis",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "solarMasses",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "solarRadius",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "solidComposition",
-                                "nullable": true,
-                                "type": {
-                                    "fields": [
-                                        {
-                                            "metadata": {},
-                                            "name": "Ice",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Metal",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "Rock",
-                                            "nullable": true,
-                                            "type": "double"
-                                        }
-                                    ],
-                                    "type": "struct"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "spectralClass",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "subType",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "surfacePressure",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "surfaceTemperature",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "terraformingState",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "type",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "updateTime",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "volcanismType",
-                                "nullable": true,
-                                "type": "string"
-                            }
-                        ],
-                        "type": "struct"
-                    },
-                    "type": "array"
-                }
-            },
-            {
-                "metadata": {},
-                "name": "controllingFaction",
-                "nullable": true,
-                "type": {
+                  "containsNull": true,
+                  "elementType": {
                     "fields": [
-                        {
-                            "metadata": {},
-                            "name": "allegiance",
-                            "nullable": true,
-                            "type": "string"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "government",
-                            "nullable": true,
-                            "type": "string"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "id",
-                            "nullable": true,
-                            "type": "long"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "isPlayer",
-                            "nullable": true,
-                            "type": "boolean"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "name",
-                            "nullable": true,
-                            "type": "string"
-                        }
+                      {
+                        "metadata": {},
+                        "name": "innerRadius",
+                        "nullable": true,
+                        "type": "double"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "mass",
+                        "nullable": true,
+                        "type": "double"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "name",
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "outerRadius",
+                        "nullable": true,
+                        "type": "long"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "type",
+                        "nullable": true,
+                        "type": "string"
+                      }
                     ],
                     "type": "struct"
+                  },
+                  "type": "array"
                 }
-            },
-            {
+              },
+              {
                 "metadata": {},
-                "name": "coords",
+                "name": "bodyId",
                 "nullable": true,
-                "type": {
-                    "fields": [
-                        {
-                            "metadata": {},
-                            "name": "x",
-                            "nullable": true,
-                            "type": "double"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "y",
-                            "nullable": true,
-                            "type": "double"
-                        },
-                        {
-                            "metadata": {},
-                            "name": "z",
-                            "nullable": true,
-                            "type": "double"
-                        }
-                    ],
-                    "type": "struct"
-                }
-            },
-            {
+                "type": "long"
+              },
+              {
                 "metadata": {},
-                "name": "date",
+                "name": "distanceToArrival",
                 "nullable": true,
-                "type": "string"
-            },
-            {
+                "type": "long"
+              },
+              {
                 "metadata": {},
-                "name": "economy",
+                "name": "earthMasses",
                 "nullable": true,
-                "type": "string"
-            },
-            {
+                "type": "double"
+              },
+              {
                 "metadata": {},
-                "name": "factions",
+                "name": "gravity",
                 "nullable": true,
-                "type": {
-                    "containsNull": true,
-                    "elementType": {
-                        "fields": [
-                            {
-                                "metadata": {},
-                                "name": "activeStates",
-                                "nullable": true,
-                                "type": {
-                                    "containsNull": true,
-                                    "elementType": {
-                                        "fields": [
-                                            {
-                                                "metadata": {},
-                                                "name": "state",
-                                                "nullable": true,
-                                                "type": "string"
-                                            }
-                                        ],
-                                        "type": "struct"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "allegiance",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "government",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "happiness",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "id",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "influence",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "isPlayer",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "lastUpdate",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "name",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "pendingStates",
-                                "nullable": true,
-                                "type": {
-                                    "containsNull": true,
-                                    "elementType": {
-                                        "fields": [
-                                            {
-                                                "metadata": {},
-                                                "name": "state",
-                                                "nullable": true,
-                                                "type": "string"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "trend",
-                                                "nullable": true,
-                                                "type": "long"
-                                            }
-                                        ],
-                                        "type": "struct"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "recoveringStates",
-                                "nullable": true,
-                                "type": {
-                                    "containsNull": true,
-                                    "elementType": {
-                                        "fields": [
-                                            {
-                                                "metadata": {},
-                                                "name": "state",
-                                                "nullable": true,
-                                                "type": "string"
-                                            },
-                                            {
-                                                "metadata": {},
-                                                "name": "trend",
-                                                "nullable": true,
-                                                "type": "long"
-                                            }
-                                        ],
-                                        "type": "struct"
-                                    },
-                                    "type": "array"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "state",
-                                "nullable": true,
-                                "type": "string"
-                            }
-                        ],
-                        "type": "struct"
-                    },
-                    "type": "array"
-                }
-            },
-            {
-                "metadata": {},
-                "name": "government",
-                "nullable": true,
-                "type": "string"
-            },
-            {
+                "type": "double"
+              },
+              {
                 "metadata": {},
                 "name": "id",
                 "nullable": true,
                 "type": "long"
-            },
-            {
+              },
+              {
                 "metadata": {},
                 "name": "id64",
                 "nullable": true,
                 "type": "long"
-            },
-            {
+              },
+              {
+                "metadata": {},
+                "name": "isLandable",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "isMainStar",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "isScoopable",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "luminosity",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "materials",
+                "nullable": true,
+                "type": {
+                  "fields": [
+                    {
+                      "metadata": {},
+                      "name": "Antimony",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Arsenic",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Cadmium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Carbon",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Chromium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Germanium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Iron",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Manganese",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Mercury",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Molybdenum",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Nickel",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Niobium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Phosphorus",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Polonium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Ruthenium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Selenium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Sulphur",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Technetium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Tellurium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Tin",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Tungsten",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Vanadium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Yttrium",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Zinc",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Zirconium",
+                      "nullable": true,
+                      "type": "double"
+                    }
+                  ],
+                  "type": "struct"
+                }
+              },
+              {
                 "metadata": {},
                 "name": "name",
                 "nullable": true,
                 "type": "string"
-            },
-            {
+              },
+              {
                 "metadata": {},
-                "name": "population",
+                "name": "orbitalEccentricity",
                 "nullable": true,
-                "type": "long"
-            },
-            {
+                "type": "double"
+              },
+              {
                 "metadata": {},
-                "name": "security",
+                "name": "orbitalInclination",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "orbitalPeriod",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "parents",
+                "nullable": true,
+                "type": {
+                  "containsNull": true,
+                  "elementType": {
+                    "fields": [
+                      {
+                        "metadata": {},
+                        "name": "Null",
+                        "nullable": true,
+                        "type": "long"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "Planet",
+                        "nullable": true,
+                        "type": "long"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "Star",
+                        "nullable": true,
+                        "type": "long"
+                      }
+                    ],
+                    "type": "struct"
+                  },
+                  "type": "array"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "radius",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "reserveLevel",
                 "nullable": true,
                 "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "rings",
+                "nullable": true,
+                "type": {
+                  "containsNull": true,
+                  "elementType": {
+                    "fields": [
+                      {
+                        "metadata": {},
+                        "name": "innerRadius",
+                        "nullable": true,
+                        "type": "double"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "mass",
+                        "nullable": true,
+                        "type": "double"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "name",
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "outerRadius",
+                        "nullable": true,
+                        "type": "double"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "type",
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    ],
+                    "type": "struct"
+                  },
+                  "type": "array"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "rotationalPeriod",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "rotationalPeriodTidallyLocked",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "semiMajorAxis",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "solarMasses",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "solarRadius",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "solidComposition",
+                "nullable": true,
+                "type": {
+                  "fields": [
+                    {
+                      "metadata": {},
+                      "name": "Ice",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Metal",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "Rock",
+                      "nullable": true,
+                      "type": "double"
+                    }
+                  ],
+                  "type": "struct"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "spectralClass",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "subType",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "surfacePressure",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "surfaceTemperature",
+                "nullable": true,
+                "type": "long"
+              },
+              {
+                "metadata": {},
+                "name": "terraformingState",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "type",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "updateTime",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "volcanismType",
+                "nullable": true,
+                "type": "string"
+              }
+            ],
+            "type": "struct"
+          },
+          "type": "array"
+        }
+      },
+      {
+        "metadata": {},
+        "name": "controllingFaction",
+        "nullable": true,
+        "type": {
+          "fields": [
+            {
+              "metadata": {},
+              "name": "allegiance",
+              "nullable": true,
+              "type": "string"
             },
             {
+              "metadata": {},
+              "name": "government",
+              "nullable": true,
+              "type": "string"
+            },
+            {
+              "metadata": {},
+              "name": "id",
+              "nullable": true,
+              "type": "long"
+            },
+            {
+              "metadata": {},
+              "name": "isPlayer",
+              "nullable": true,
+              "type": "boolean"
+            },
+            {
+              "metadata": {},
+              "name": "name",
+              "nullable": true,
+              "type": "string"
+            }
+          ],
+          "type": "struct"
+        }
+      },
+      {
+        "metadata": {},
+        "name": "coords",
+        "nullable": true,
+        "type": {
+          "fields": [
+            {
+              "metadata": {},
+              "name": "x",
+              "nullable": true,
+              "type": "double"
+            },
+            {
+              "metadata": {},
+              "name": "y",
+              "nullable": true,
+              "type": "double"
+            },
+            {
+              "metadata": {},
+              "name": "z",
+              "nullable": true,
+              "type": "double"
+            }
+          ],
+          "type": "struct"
+        }
+      },
+      {
+        "metadata": {},
+        "name": "date",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "economy",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "factions",
+        "nullable": true,
+        "type": {
+          "containsNull": true,
+          "elementType": {
+            "fields": [
+              {
+                "metadata": {},
+                "name": "activeStates",
+                "nullable": true,
+                "type": {
+                  "containsNull": true,
+                  "elementType": {
+                    "fields": [
+                      {
+                        "metadata": {},
+                        "name": "state",
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    ],
+                    "type": "struct"
+                  },
+                  "type": "array"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "allegiance",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "government",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "happiness",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "id",
+                "nullable": true,
+                "type": "long"
+              },
+              {
+                "metadata": {},
+                "name": "influence",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "isPlayer",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "lastUpdate",
+                "nullable": true,
+                "type": "long"
+              },
+              {
+                "metadata": {},
+                "name": "name",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "pendingStates",
+                "nullable": true,
+                "type": {
+                  "containsNull": true,
+                  "elementType": {
+                    "fields": [
+                      {
+                        "metadata": {},
+                        "name": "state",
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "trend",
+                        "nullable": true,
+                        "type": "long"
+                      }
+                    ],
+                    "type": "struct"
+                  },
+                  "type": "array"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "recoveringStates",
+                "nullable": true,
+                "type": {
+                  "containsNull": true,
+                  "elementType": {
+                    "fields": [
+                      {
+                        "metadata": {},
+                        "name": "state",
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      {
+                        "metadata": {},
+                        "name": "trend",
+                        "nullable": true,
+                        "type": "long"
+                      }
+                    ],
+                    "type": "struct"
+                  },
+                  "type": "array"
+                }
+              },
+              {
                 "metadata": {},
                 "name": "state",
                 "nullable": true,
                 "type": "string"
-            },
-            {
+              }
+            ],
+            "type": "struct"
+          },
+          "type": "array"
+        }
+      },
+      {
+        "metadata": {},
+        "name": "government",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "id",
+        "nullable": true,
+        "type": "long"
+      },
+      {
+        "metadata": {},
+        "name": "id64",
+        "nullable": true,
+        "type": "long"
+      },
+      {
+        "metadata": {},
+        "name": "name",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "population",
+        "nullable": true,
+        "type": "long"
+      },
+      {
+        "metadata": {},
+        "name": "security",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "state",
+        "nullable": true,
+        "type": "string"
+      },
+      {
+        "metadata": {},
+        "name": "stations",
+        "nullable": true,
+        "type": {
+          "containsNull": true,
+          "elementType": {
+            "fields": [
+              {
                 "metadata": {},
-                "name": "stations",
-                "nullable": true,
-                "type": {
-                    "containsNull": true,
-                    "elementType": {
-                        "fields": [
-                            {
-                                "metadata": {},
-                                "name": "allegiance",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "body",
-                                "nullable": true,
-                                "type": {
-                                    "fields": [
-                                        {
-                                            "metadata": {},
-                                            "name": "id",
-                                            "nullable": true,
-                                            "type": "long"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "latitude",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "longitude",
-                                            "nullable": true,
-                                            "type": "double"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "name",
-                                            "nullable": true,
-                                            "type": "string"
-                                        }
-                                    ],
-                                    "type": "struct"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "controllingFaction",
-                                "nullable": true,
-                                "type": {
-                                    "fields": [
-                                        {
-                                            "metadata": {},
-                                            "name": "id",
-                                            "nullable": true,
-                                            "type": "long"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "name",
-                                            "nullable": true,
-                                            "type": "string"
-                                        }
-                                    ],
-                                    "type": "struct"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "distanceToArrival",
-                                "nullable": true,
-                                "type": "double"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "economy",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "government",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "haveMarket",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "haveOutfitting",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "haveShipyard",
-                                "nullable": true,
-                                "type": "boolean"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "id",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "marketId",
-                                "nullable": true,
-                                "type": "long"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "name",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "otherServices",
-                                "nullable": true,
-                                "type": {
-                                    "containsNull": true,
-                                    "elementType": "string",
-                                    "type": "array"
-                                }
-                            },
-                            {
-                                "metadata": {},
-                                "name": "secondEconomy",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "type",
-                                "nullable": true,
-                                "type": "string"
-                            },
-                            {
-                                "metadata": {},
-                                "name": "updateTime",
-                                "nullable": true,
-                                "type": {
-                                    "fields": [
-                                        {
-                                            "metadata": {},
-                                            "name": "information",
-                                            "nullable": true,
-                                            "type": "string"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "market",
-                                            "nullable": true,
-                                            "type": "string"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "outfitting",
-                                            "nullable": true,
-                                            "type": "string"
-                                        },
-                                        {
-                                            "metadata": {},
-                                            "name": "shipyard",
-                                            "nullable": true,
-                                            "type": "string"
-                                        }
-                                    ],
-                                    "type": "struct"
-                                }
-                            }
-                        ],
-                        "type": "struct"
-                    },
-                    "type": "array"
-                }
-            },
-            {
-                "metadata": {},
-                "name": "_rescued_data",
+                "name": "allegiance",
                 "nullable": true,
                 "type": "string"
-            }
-        ],
-        "type": "struct"
-    }
+              },
+              {
+                "metadata": {},
+                "name": "body",
+                "nullable": true,
+                "type": {
+                  "fields": [
+                    {
+                      "metadata": {},
+                      "name": "id",
+                      "nullable": true,
+                      "type": "long"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "latitude",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "longitude",
+                      "nullable": true,
+                      "type": "double"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "name",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  ],
+                  "type": "struct"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "controllingFaction",
+                "nullable": true,
+                "type": {
+                  "fields": [
+                    {
+                      "metadata": {},
+                      "name": "id",
+                      "nullable": true,
+                      "type": "long"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "name",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  ],
+                  "type": "struct"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "distanceToArrival",
+                "nullable": true,
+                "type": "double"
+              },
+              {
+                "metadata": {},
+                "name": "economy",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "government",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "haveMarket",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "haveOutfitting",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "haveShipyard",
+                "nullable": true,
+                "type": "boolean"
+              },
+              {
+                "metadata": {},
+                "name": "id",
+                "nullable": true,
+                "type": "long"
+              },
+              {
+                "metadata": {},
+                "name": "marketId",
+                "nullable": true,
+                "type": "long"
+              },
+              {
+                "metadata": {},
+                "name": "name",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "otherServices",
+                "nullable": true,
+                "type": {
+                  "containsNull": true,
+                  "elementType": "string",
+                  "type": "array"
+                }
+              },
+              {
+                "metadata": {},
+                "name": "secondEconomy",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "type",
+                "nullable": true,
+                "type": "string"
+              },
+              {
+                "metadata": {},
+                "name": "updateTime",
+                "nullable": true,
+                "type": {
+                  "fields": [
+                    {
+                      "metadata": {},
+                      "name": "information",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "market",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "outfitting",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    {
+                      "metadata": {},
+                      "name": "shipyard",
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  ],
+                  "type": "struct"
+                }
+              }
+            ],
+            "type": "struct"
+          },
+          "type": "array"
+        }
+      },
+      {
+        "metadata": {},
+        "name": "_rescued_data",
+        "nullable": true,
+        "type": "string"
+      }
+    ],
+    "type": "struct"
+  }
 }

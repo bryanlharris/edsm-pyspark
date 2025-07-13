@@ -71,11 +71,17 @@ def stream_read_files(settings, spark):
 
     schema = StructType.fromJson(settings["file_schema"])
 
+    if any(ch in readStream_load for ch in "*?"):
+        raise ValueError(
+            "wildcards are not allowed in readStream_load; use pathGlobFilter"
+        )
+
+    path_glob = readStreamOptions["pathGlobFilter"]
+    base_path = readStream_load.rstrip("/") + "/"
+    pattern = f"**/{path_glob.lstrip('/')}"
     load_args = [readStream_load]
-    if "**" in readStream_load:
-        idx = readStream_load.index("**")
-        base_path = readStream_load[:idx]
-        pattern = readStream_load[idx:]
+
+    if pattern:
         checkpoint = os.path.join(
             settings["writeStreamOptions"]["checkpointLocation"].rstrip("/"),
             "sources",
