@@ -18,6 +18,8 @@ def create_spark_session(master: str, app_name: str):
     builder = (
         SparkSession.builder.master(master)
         .appName(app_name)
+        .config("spark.driver.memory", "48g")
+        .config("spark.executor.memory", "48g")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
             "spark.sql.catalog.spark_catalog",
