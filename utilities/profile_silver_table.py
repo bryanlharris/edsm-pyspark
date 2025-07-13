@@ -8,13 +8,12 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from pyspark.sql import SparkSession
+from functions.utility import create_spark_session, apply_job_type
 from databricks.sdk import WorkspaceClient
 from databricks.labs.dqx.engine import DQEngineCore
 from databricks.labs.dqx.profiler.generator import DQGenerator
 from databricks.labs.dqx.profiler.profiler import DQProfiler
 from pyspark.sql.functions import col, to_date, when, lit
-from functions.utility import apply_job_type
 
 
 def main() -> None:
@@ -23,20 +22,7 @@ def main() -> None:
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
     args = parser.parse_args()
 
-    spark = (
-        SparkSession.builder.master(args.master)
-        .appName("profile-table")
-        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
-        .config(
-            "spark.sql.extensions",
-            "io.delta.sql.DeltaSparkSessionExtension",
-        )
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-        .getOrCreate()
-    )
+    spark = create_spark_session(args.master, "profile-table")
     try:
         settings_path = Path(f"../layer_02_silver/{args.table}.json")
         settings = json.loads(settings_path.read_text())

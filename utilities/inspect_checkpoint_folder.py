@@ -9,8 +9,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from pyspark.sql import SparkSession
-from functions.utility import inspect_checkpoint_folder
+from functions.utility import create_spark_session, inspect_checkpoint_folder
 
 
 def main() -> None:
@@ -25,20 +24,7 @@ def main() -> None:
     settings_path = table_map[args.table]
     settings = json.loads(Path(settings_path).read_text())
 
-    spark = (
-        SparkSession.builder.master(args.master)
-        .appName("inspect-checkpoints")
-        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
-        .config(
-            "spark.sql.extensions",
-            "io.delta.sql.DeltaSparkSessionExtension",
-        )
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-        .getOrCreate()
-    )
+    spark = create_spark_session(args.master, "inspect-checkpoints")
     try:
         inspect_checkpoint_folder(settings, args.table, spark)
     finally:
