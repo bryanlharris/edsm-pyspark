@@ -31,45 +31,13 @@ def create_spark_session(master: str, app_name: str):
 
 
 def print_settings(job_settings, settings, color, table):
-    """Display formatted job and table settings with copy buttons."""
+    """Print job and table settings in plain text."""
 
-    try:
-        from IPython.display import HTML, display
+    print(f"Dictionary from {color}_settings.json:")
+    print(json.dumps(job_settings, indent=4))
 
-        def displayHTML(html_str: str) -> None:
-            display(HTML(html_str))
-
-    except Exception:  # pragma: no cover - running outside notebooks
-        displayHTML = print  # type: ignore
-
-    def _copy_block(text: str, elem_id: str) -> str:
-        escaped = html.escape(text)
-        return (
-            f"<button onclick=\"copyJson('{elem_id}')\">Copy JSON to Clipboard</button>"
-            f'<textarea id="{elem_id}" style="display:none;">{escaped}</textarea>'
-            f"<pre>{escaped}</pre>"
-        )
-
-    job_html = _copy_block(json.dumps(job_settings, indent=4), "job-json")
-    table_html = _copy_block(json.dumps(settings, indent=4), "table-json")
-
-    displayHTML(
-        f"""
-<h3>Dictionary from {color}_settings.json:</h3>
-{job_html}
-<h3>Derived contents of {table}.json:</h3>
-{table_html}
-<script>
-function copyJson(id) {{
-    var textArea = document.getElementById(id);
-    textArea.style.display = 'block';
-    textArea.select();
-    document.execCommand('copy');
-    textArea.style.display = 'none';
-}}
-</script>
-"""
-    )
+    print(f"Derived contents of {table}.json:")
+    print(json.dumps(settings, indent=4))
 
 
 def _merge_dicts(base, override):
