@@ -1,8 +1,9 @@
 from functions.utility import get_function
 from functions.transform import silver_scd2_transform
-from pyspark.sql.functions import col, row_number
+from pyspark.sql.functions import col, row_number, lit
 from pyspark.sql.window import Window
 from pathlib import Path
+from delta.tables import DeltaTable
 
 
 def _register_table(path, spark, table_name=None):
@@ -82,7 +83,7 @@ def stream_upsert_table(df, settings, spark):
 def _simple_merge(df, settings, spark):
     """Perform the standard merge logic used for non-SCD2 upserts."""
     dst_table_path = settings.get("dst_table_path")
-    dst_table_name = _register_table(dst_table_path, spark)
+    _register_table(dst_table_path, spark)
     business_key = settings.get("business_key")
     surrogate_key = settings.get("surrogate_key")
 
@@ -95,16 +96,14 @@ def _simple_merge(df, settings, spark):
     else:
         change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
-    df.createOrReplaceTempView("updates")
-    session = df.sparkSession
-    session.sql(
-        f"""
-        MERGE INTO {dst_table_name} t
-        USING updates s
-        ON {merge_condition}
-        WHEN MATCHED AND ({change_condition}) THEN UPDATE SET *
-        WHEN NOT MATCHED THEN INSERT *
-        """
+    table = DeltaTable.forPath(spark, str(Path(dst_table_path).resolve()))
+
+    (
+        table.alias("t")
+        .merge(df.alias("s"), merge_condition)
+        .whenMatchedUpdateAll(condition=change_condition)
+        .whenNotMatchedInsertAll()
+        .execute()
     )
 
 
@@ -163,7 +162,7 @@ def microbatch_upsert_fn(settings, spark):
 def _scd2_upsert(df, settings, spark):
     """Common logic for performing SCD2 merge operations."""
     dst_table_path = settings.get("dst_table_path")
-    dst_table_name = _register_table(dst_table_path, spark)
+    _register_table(dst_table_path, spark)
     business_key = settings.get("business_key")
     surrogate_key = settings.get("surrogate_key")
     ingest_time_column = settings.get("ingest_time_column")
@@ -183,38 +182,36 @@ def _scd2_upsert(df, settings, spark):
     else:
         change_condition = " or ".join([f"t.{k} <> s.{k}" for k in surrogate_key])
 
-    df.createOrReplaceTempView("updates")
-    session = df.sparkSession
+    table = DeltaTable.forPath(spark, str(Path(dst_table_path).resolve()))
 
-    session.sql(
-        f"""
-        MERGE INTO {dst_table_name} t
-        USING updates s
-        ON {merge_condition} AND t.current_flag='Yes'
-        WHEN MATCHED AND ({change_condition}) THEN
-            UPDATE SET
-                t.deleted_on=s.{ingest_time_column},
-                t.current_flag='No',
-                t.valid_to=s.{ingest_time_column}
-        """
+    (
+        table.alias("t")
+        .merge(df.alias("s"), f"{merge_condition} AND t.current_flag='Yes'")
+        .whenMatchedUpdate(
+            condition=change_condition,
+            set={
+                "deleted_on": f"s.{ingest_time_column}",
+                "current_flag": "'No'",
+                "valid_to": f"s.{ingest_time_column}",
+            },
+        )
+        .execute()
     )
 
-    session.sql(
-        f"""
-        INSERT INTO {dst_table_name}
-        SELECT
-            s.* EXCEPT (created_on, deleted_on, current_flag, valid_from, valid_to),
-            s.{ingest_time_column} AS created_on,
-            NULL AS deleted_on,
-            'Yes' AS current_flag,
-            s.{ingest_time_column} AS valid_from,
-            CAST('9999-12-31 23:59:59' AS TIMESTAMP) AS valid_to
-        FROM updates s
-        LEFT JOIN {dst_table_name} t
-            ON {merge_condition} AND t.current_flag='Yes'
-        WHERE t.current_flag IS NULL
-        """
+    current = table.toDF().filter(col("current_flag") == "Yes")
+    join_cond = [df[k] == current[k] for k in business_key]
+    inserts = df.join(current, join_cond, "left_anti")
+
+    inserts = (
+        inserts.drop("created_on", "deleted_on", "current_flag", "valid_from", "valid_to")
+        .withColumn("created_on", col(ingest_time_column))
+        .withColumn("deleted_on", lit(None).cast("timestamp"))
+        .withColumn("current_flag", lit("Yes"))
+        .withColumn("valid_from", col(ingest_time_column))
+        .withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
     )
+
+    inserts.write.format("delta").mode("append").save(str(Path(dst_table_path).resolve()))
 
 
 def microbatch_upsert_scd2_fn(settings, spark):
@@ -248,24 +245,23 @@ def batch_upsert_scd2(df, settings, spark):
 def write_upsert_snapshot(df, settings, spark):
     """Write the latest records per business key into a snapshot table."""
     dst_table_path = settings["dst_table_path"]
-    dst_table = _register_table(dst_table_path, spark)
+    _register_table(dst_table_path, spark)
     business_key = settings["business_key"]
     ingest_time_col = settings["ingest_time_column"]
 
     window = Window.partitionBy(*business_key).orderBy(col(ingest_time_col).desc())
     df = df.withColumn("row_num", row_number().over(window)).filter("row_num = 1").drop("row_num")
-    df.createOrReplaceTempView("updates")
-    session = df.sparkSession
+    merge_condition = " AND ".join([f"t.{k} = s.{k}" for k in business_key])
 
-    merge_condition = " AND ".join([f"target.{k} = source.{k}" for k in business_key])
+    table = DeltaTable.forPath(spark, str(Path(dst_table_path).resolve()))
 
-    session.sql(f"""
-    MERGE INTO {dst_table} AS target
-    USING updates AS source
-    ON {merge_condition}
-    WHEN MATCHED THEN UPDATE SET *
-    WHEN NOT MATCHED THEN INSERT *
-    """)
+    (
+        table.alias("t")
+        .merge(df.alias("s"), merge_condition)
+        .whenMatchedUpdateAll()
+        .whenNotMatchedInsertAll()
+        .execute()
+    )
 
 
 
