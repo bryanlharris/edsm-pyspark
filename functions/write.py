@@ -1,4 +1,4 @@
-from functions.utility import create_table_if_not_exists, get_function
+from functions.utility import get_function
 from functions.transform import silver_scd2_transform
 from pyspark.sql.functions import col, row_number
 from pyspark.sql.window import Window
@@ -65,7 +65,7 @@ def stream_upsert_table(df, settings, spark):
 
 def _simple_merge(df, settings, spark):
     """Perform the standard merge logic used for non-SCD2 upserts."""
-    dst_table_name = settings.get("dst_table_name")
+    dst_table_path = settings.get("dst_table_path")
     business_key = settings.get("business_key")
     surrogate_key = settings.get("surrogate_key")
 
@@ -81,7 +81,7 @@ def _simple_merge(df, settings, spark):
     df.createOrReplaceTempView("updates")
     spark.sql(
         f"""
-        MERGE INTO {dst_table_name} t
+        MERGE INTO delta.`{dst_table_path}` t
         USING updates s
         ON {merge_condition}
         WHEN MATCHED AND ({change_condition}) THEN UPDATE SET *
@@ -111,7 +111,13 @@ def upsert_table(df, settings, spark, *, scd2=False, foreach_batch=False, batch_
     """
 
     if foreach_batch and batch_id == 0:
-        create_table_if_not_exists(df, settings.get("dst_table_name"), spark)
+        dst_path = settings.get("dst_table_path")
+        (
+            spark.createDataFrame([], df.schema)
+            .write.format("delta")
+            .option("delta.columnMapping.mode", "name")
+            .save(dst_path)
+        )
 
     if scd2:
         _scd2_upsert(df, settings, spark)
@@ -136,7 +142,7 @@ def microbatch_upsert_fn(settings, spark):
 
 def _scd2_upsert(df, settings, spark):
     """Common logic for performing SCD2 merge operations."""
-    dst_table_name = settings.get("dst_table_name")
+    dst_table_path = settings.get("dst_table_path")
     business_key = settings.get("business_key")
     surrogate_key = settings.get("surrogate_key")
     ingest_time_column = settings.get("ingest_time_column")
@@ -160,7 +166,7 @@ def _scd2_upsert(df, settings, spark):
 
     spark.sql(
         f"""
-        MERGE INTO {dst_table_name} t
+        MERGE INTO delta.`{dst_table_path}` t
         USING updates s
         ON {merge_condition} AND t.current_flag='Yes'
         WHEN MATCHED AND ({change_condition}) THEN
@@ -173,7 +179,7 @@ def _scd2_upsert(df, settings, spark):
 
     spark.sql(
         f"""
-        INSERT INTO {dst_table_name}
+        INSERT INTO delta.`{dst_table_path}`
         SELECT
             s.* EXCEPT (created_on, deleted_on, current_flag, valid_from, valid_to),
             s.{ingest_time_column} AS created_on,
@@ -182,7 +188,7 @@ def _scd2_upsert(df, settings, spark):
             s.{ingest_time_column} AS valid_from,
             CAST('9999-12-31 23:59:59' AS TIMESTAMP) AS valid_to
         FROM updates s
-        LEFT JOIN {dst_table_name} t
+        LEFT JOIN delta.`{dst_table_path}` t
             ON {merge_condition} AND t.current_flag='Yes'
         WHERE t.current_flag IS NULL
         """
@@ -219,7 +225,7 @@ def batch_upsert_scd2(df, settings, spark):
 
 def write_upsert_snapshot(df, settings, spark):
     """Write the latest records per business key into a snapshot table."""
-    dst_table = settings["dst_table_name"]
+    dst_table = settings["dst_table_path"]
     business_key = settings["business_key"]
     ingest_time_col = settings["ingest_time_column"]
 
@@ -230,7 +236,7 @@ def write_upsert_snapshot(df, settings, spark):
     merge_condition = " AND ".join([f"target.{k} = source.{k}" for k in business_key])
 
     spark.sql(f"""
-    MERGE INTO {dst_table} AS target
+    MERGE INTO delta.`{dst_table}` AS target
     USING updates AS source
     ON {merge_condition}
     WHEN MATCHED THEN UPDATE SET *

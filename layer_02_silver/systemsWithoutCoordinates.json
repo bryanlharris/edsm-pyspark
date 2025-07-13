@@ -1,8 +1,8 @@
 {
     "simple_settings": "true",
     "job_type": "silver_standard_batch",
-    "src_table_name": "edsm.bronze.systemsWithoutCoordinates",
-    "dst_table_name": "edsm.silver.systemsWithoutCoordinates",
+    "src_table_path": "./tables/bronze/systemsWithoutCoordinates",
+    "dst_table_path": "./tables/silver/systemsWithoutCoordinates",
     "use_row_hash": "true",
     "row_hash_col": "row_hash",
     "business_key": [

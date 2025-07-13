@@ -53,9 +53,9 @@ def validate_settings(bronze=None, silver=None, gold=None):
 
     bronze_files, silver_files, gold_files = _discover_settings_files()
     required_keys={
-        "bronze":["read_function","transform_function","write_function","dst_table_name","file_schema"],
-        "silver":["read_function","transform_function","write_function","src_table_name","dst_table_name"],
-        "gold":["read_function","transform_function","write_function","src_table_name","dst_table_name"]
+        "bronze":["read_function","transform_function","write_function","dst_table_path","file_schema"],
+        "silver":["read_function","transform_function","write_function","src_table_path","dst_table_path"],
+        "gold":["read_function","transform_function","write_function","src_table_path","dst_table_path"]
     }
 
 
@@ -205,8 +205,8 @@ def check_host_name_matches_catalog():
     ):
         settings = json.loads(open(path).read())
         settings = apply_job_type(settings)
-        dst = settings.get("dst_table_name")
-        if not dst:
+        dst = settings.get("dst_table_name") or settings.get("dst_table_path")
+        if not dst or "/" in dst:
             continue
         catalog = dst.split(".")[0]
         if catalog.lower() != host_name.lower():

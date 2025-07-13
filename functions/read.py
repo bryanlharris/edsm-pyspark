@@ -114,20 +114,20 @@ def stream_read_table(settings, spark):
     """Create a streaming DataFrame from an existing Delta table."""
 
     # Variables (json file)
-    src_table_name          = settings.get("src_table_name")
+    src_table_path          = settings.get("src_table_path")
     readStreamOptions       = settings.get("readStreamOptions")
 
     return (
         spark.readStream
         .format("delta")
         .options(**readStreamOptions)
-        .table(src_table_name)
+        .load(src_table_path)
     )
 
 
 def read_table(settings, spark):
     """Read a Delta table in batch mode."""
-    return spark.read.table(settings["src_table_name"])
+    return spark.read.format("delta").load(settings["src_table_path"])
 
 
 def read_snapshot_windowed(settings, spark):
@@ -138,7 +138,8 @@ def read_snapshot_windowed(settings, spark):
     window = Window.partitionBy(*surrogate_key).orderBy(col(ingest_time_column).desc())
     return (
         spark.read
-        .table(settings["src_table_name"])
+        .format("delta")
+        .load(settings["src_table_path"])
         .withColumn("row_num", row_number().over(window))
         .filter("row_num = 1")
         .drop("row_num")
@@ -148,7 +149,7 @@ def read_snapshot_windowed(settings, spark):
 def read_latest_ingest(settings, spark):
     """Load only the records from the latest ingest time."""
     ingest_time_column = settings["ingest_time_column"]
-    df = spark.read.table(settings["src_table_name"])
+    df = spark.read.format("delta").load(settings["src_table_path"])
     max_time = df.agg({ingest_time_column: "max"}).collect()[0][0]
     return df.filter(df[ingest_time_column] == max_time)
 

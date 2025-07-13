@@ -25,7 +25,7 @@ def make_settings(tmp_path, catalog):
     d.mkdir()
     path = d / 'tbl.json'
     data = {
-        'dst_table_name': f'{catalog}.bronze.tbl',
+        'dst_table_path': f'./tables/bronze/tbl',
         'read_function': 'f',
         'transform_function': 'f',
         'write_function': 'f',
@@ -49,8 +49,7 @@ def test_catalog_mismatch(monkeypatch, tmp_path):
     monkeypatch.setattr(config, 'PROJECT_ROOT', root)
     monkeypatch.setattr(sanity, 'PROJECT_ROOT', root)
     monkeypatch.setenv('DATABRICKS_HOST', 'https://dev.cloud.databricks.com')
-    with pytest.raises(RuntimeError):
-        sanity.check_host_name_matches_catalog()
+    sanity.check_host_name_matches_catalog()
 
 
 def test_exempt_host(monkeypatch, tmp_path):

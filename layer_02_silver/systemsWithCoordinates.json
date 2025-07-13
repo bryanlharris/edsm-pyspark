@@ -1,8 +1,8 @@
 {
     "simple_settings": "true",
     "job_type": "silver_upsert_streaming",
-    "src_table_name": "edsm.bronze.systemsWithCoordinates7days",
-    "dst_table_name": "edsm.silver.systemsWithCoordinates",
+    "src_table_path": "./tables/bronze/systemsWithCoordinates7days",
+    "dst_table_path": "./tables/silver/systemsWithCoordinates",
     "business_key": [
         "id"
     ],

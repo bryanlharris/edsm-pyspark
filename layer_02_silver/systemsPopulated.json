@@ -1,8 +1,8 @@
 {
     "simple_settings": "true",
     "job_type": "silver_scd2_streaming",
-    "src_table_name": "edsm.bronze.systemsPopulated",
-    "dst_table_name": "edsm.silver.systemsPopulated",
+    "src_table_path": "./tables/bronze/systemsPopulated",
+    "dst_table_path": "./tables/silver/systemsPopulated",
     "business_key": [
         "id"
     ],
