@@ -25,8 +25,9 @@ print the full settings for each table.
 ## Ingest all tables
 
 `scripts/run_pipeline.py` runs `scripts/run_ingest.py` for every table defined
-in the settings files. Bronze tables are ingested first followed by silver
-tables.
+in the settings files. Before ingestion starts it validates the settings files
+and creates any missing empty tables based on the JSON definitions. Bronze
+tables are ingested first followed by silver tables.
 
 ```bash
 python scripts/run_pipeline.py

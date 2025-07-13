@@ -1,14 +1,17 @@
 import json
 import os
+from pathlib import Path
 from pyspark.sql.types import StructType
-from functions.utility import (
-    create_table_if_not_exists,
-    get_function,
-    apply_job_type,
-    create_schema_if_not_exists,
-    catalog_exists,
-)
+from functions.utility import get_function, apply_job_type
 from functions.config import PROJECT_ROOT, ALLOWED_HOST_NAMES, WORKSPACE_URL
+
+
+def _path_exists(path: str, spark) -> bool:
+    """Return ``True`` if ``path`` exists in the configured filesystem."""
+
+    jvm = spark._jvm
+    fs = jvm.org.apache.hadoop.fs.FileSystem.get(spark._jsc.hadoopConfiguration())
+    return fs.exists(jvm.org.apache.hadoop.fs.Path(path))
 
 
 def _discover_settings_files():
@@ -141,9 +144,24 @@ def initialize_empty_tables(spark):
                 errs.append(f"{path} missing transform_function for {tbl}, cannot create table")
                 skip_table=True
                 break
-            df=transform_function(df, settings, spark)
-            dst=settings["dst_table_name"]
-            create_table_if_not_exists(df, dst, spark)
+            df = transform_function(df, settings, spark)
+            dst_path = settings.get("dst_table_path")
+            if not dst_path:
+                errs.append(f"{path} missing dst_table_path, cannot create table")
+                skip_table = True
+                break
+            if not _path_exists(dst_path, spark):
+                (
+                    df.limit(0)
+                    .write.format("delta")
+                    .option("delta.columnMapping.mode", "name")
+                    .mode("overwrite")
+                    .save(dst_path)
+                )
+            tbl_name = Path(dst_path).name
+            spark.sql(
+                f"CREATE TABLE IF NOT EXISTS {tbl_name} USING DELTA LOCATION '{dst_path}'"
+            )
         if skip_table:
             continue
 
