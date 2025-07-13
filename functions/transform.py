@@ -9,9 +9,6 @@ from pyspark.sql.types import (
     MapType,
 )
 from pyspark.sql.functions import (
-    concat,
-    regexp_extract,
-    date_format,
     current_timestamp,
     when,
     col,
@@ -23,7 +20,6 @@ from pyspark.sql.functions import (
     trim,
     struct,
     to_json,
-    expr,
     transform,
     array,
 )
@@ -33,12 +29,7 @@ import re
 def bronze_standard_transform(df, settings, spark):
     """Apply standard bronze layer transformations."""
 
-    derived_ingest_time_regex = settings.get("derived_ingest_time_regex", "/(\\d{8})/")
-    add_derived = settings.get("add_derived_ingest_time", "false").lower() == "true"
-    df = (
-        df.transform(clean_column_names)
-        .transform(add_source_metadata, settings)
-    )
+    df = df.transform(clean_column_names)
 
     file_schema = settings.get("file_schema", [])
     rescue_in_schema = any(
@@ -46,19 +37,6 @@ def bronze_standard_transform(df, settings, spark):
     )
 
     df = df.withColumn("ingest_time", current_timestamp())
-
-    if add_derived:
-        df = df.withColumn(
-            "derived_ingest_time",
-            to_timestamp(
-                concat(
-                    regexp_extract(col("source_metadata.file_path"), derived_ingest_time_regex, 1),
-                    lit(" "),
-                    date_format(current_timestamp(), "HH:mm:ss"),
-                ),
-                "yyyyMMdd HH:mm:ss",
-            ),
-        )
 
     if not rescue_in_schema:
         df = df.transform(add_rescued_data)
@@ -78,8 +56,6 @@ def silver_standard_transform(df, settings, spark):
     return (
         df.transform(rename_columns, column_map)
         .transform(cast_data_types, data_type_map)
-        .withColumn("file_path", col("source_metadata").getField("file_path"))
-        .withColumn("file_modification_time", col("source_metadata").getField("file_modification_time"))
         .transform(add_row_hash, surrogate_key, row_hash_col, use_row_hash)
     )
 
@@ -104,23 +80,6 @@ def add_scd2_columns(df, settings, spark):
         .withColumn("valid_from", col(ingest_time_column))
         .withColumn("valid_to", lit("9999-12-31 23:59:59").cast("timestamp"))
     )
-
-
-def add_source_metadata(df, settings):
-    """Attach ingestion metadata to a DataFrame."""
-    metadata_type = StructType([
-        StructField("file_path", StringType(), True),
-        StructField("file_name", StringType(), True),
-        StructField("file_size", LongType(), True),
-        StructField("file_block_start", LongType(), True),
-        StructField("file_block_length", LongType(), True),
-        StructField("file_modification_time", TimestampType(), True)
-    ])
-
-    if settings.get("use_metadata", "true").lower() == "true":
-        return df.withColumn("source_metadata", expr("_metadata"))
-    else:
-        return df.withColumn("source_metadata", lit(None).cast(metadata_type))
 
 
 def add_rescued_data(df):
