@@ -19,14 +19,27 @@ from functions.config import PROJECT_ROOT
 
 
 def main() -> None:
-    settings_dir = PROJECT_ROOT / "layer_02_silver"
-    paths = glob(str(settings_dir / "*.json"))
-    table_map = {Path(p).stem: p for p in paths}
+    layer_map = {
+        "silver": PROJECT_ROOT / "layer_02_silver",
+        "bronze": PROJECT_ROOT / "layer_01_bronze",
+    }
 
     parser = argparse.ArgumentParser(description="Inspect checkpoint directory")
-    parser.add_argument("table", choices=table_map.keys(), help="Table name")
+    parser.add_argument(
+        "color",
+        choices=layer_map.keys(),
+        help="Table color (bronze or silver)",
+    )
+    parser.add_argument("table", help="Table name")
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
+
     args = parser.parse_args()
+
+    settings_dir = layer_map[args.color]
+    paths = glob(str(settings_dir / "*.json"))
+    table_map = {Path(p).stem: p for p in paths}
+    if args.table not in table_map:
+        parser.error(f"Unknown table '{args.table}' for color '{args.color}'")
 
     settings_path = table_map[args.table]
     settings = json.loads(Path(settings_path).read_text())

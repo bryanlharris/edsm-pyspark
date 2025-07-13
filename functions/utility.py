@@ -1,7 +1,6 @@
 import os
 import json
 import importlib
-import subprocess
 import html
 from glob import glob
 from pathlib import Path
@@ -235,27 +234,71 @@ def truncate_table_if_exists(table_name, spark):
 
 
 def inspect_checkpoint_folder(table_name, settings, spark):
-    """Print batch to version mapping from a Delta checkpoint folder."""
+    """Print human readable information from a Delta checkpoint directory.
+
+    The function inspects the checkpoint directory configured for ``table_name``
+    and prints either the mapping from streaming batch to bronze version
+    (silver checkpoints) or the list of directories processed by each batch
+    (bronze checkpoints).
+    """
     checkpoint_path = settings.get("writeStreamOptions", {}).get("checkpointLocation")
     if not checkpoint_path:
         raise ValueError(
             "Missing 'writeStreamOptions.checkpointLocation' in the settings file"
         )
+
     checkpoint_path = checkpoint_path.rstrip("/")
-    offsets_path = f"{checkpoint_path}/offsets"
+    offsets_path = Path(checkpoint_path, "offsets")
+    sources_path = Path(checkpoint_path, "sources", "0")
 
-    files = glob(f"{offsets_path}/*")
-    sorted_files = sorted(files, key=lambda f: int(Path(f).name))
+    # Prefer bronze-style checkpoints if a sources directory with batch files
+    # exists. Silver tables typically lack this structure.
+    if sources_path.is_dir() and any(sources_path.iterdir()):
+        files = glob(str(sources_path / "*"))
+        sorted_files = sorted(files, key=lambda f: int(Path(f).name))
+        print(f"{table_name}: batch → processed directories")
 
-    print(f"{table_name}: batch → bronze version mapping")
+        for path in sorted_files:
+            batch_id = Path(path).name
+            with open(path) as fh:
+                lines = [l.strip() for l in fh.readlines() if l.strip()]
+            # Skip the version header line if present
+            if lines and lines[0].startswith("v"):  # e.g. "v1"
+                lines = lines[1:]
+            dirs = set()
+            for line in lines:
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                p = entry.get("path")
+                if p:
+                    # remove file:// prefix and get parent directory
+                    dirs.add(str(Path(p.replace("file://", "")).parent))
+            dir_list = ", ".join(sorted(dirs)) if dirs else "(no files)"
+            print(f"  Bronze Batch {batch_id} → {dir_list}")
+    elif offsets_path.is_dir():
+        files = glob(str(offsets_path / "*"))
+        sorted_files = sorted(files, key=lambda f: int(Path(f).name))
+        print(f"{table_name}: batch → bronze version mapping")
 
-    for path in sorted_files:
-        batch_id = Path(path).name
-        result = subprocess.run(
-            ["grep", "reservoirVersion", path], capture_output=True, text=True
+        for path in sorted_files:
+            batch_id = Path(path).name
+            with open(path) as fh:
+                for line in fh:
+                    if '"reservoirVersion"' in line:
+                        data = json.loads(line)
+                        version = data["reservoirVersion"]
+                        print(
+                            f"  Silver Batch {batch_id} → Bronze version {version - 1}"
+                        )
+                        break
+            # If no reservoirVersion found we assume this is not a silver offset
+            # file and skip
+    else:
+        raise FileNotFoundError(
+            f"No recognizable checkpoint data at {checkpoint_path}"
         )
-        version = json.loads(result.stdout)["reservoirVersion"]
-        print(f"  Silver Batch {batch_id} → Bronze version {version - 1}")
 
 
 def create_bad_records_table(settings, spark):
