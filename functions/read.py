@@ -30,13 +30,14 @@ def stream_read_files(settings, spark):
     readStreamOptions = settings.get("readStreamOptions", {})
     readStream_load = settings.get("readStream_load")
 
-    # Determine the file format using either ``cloudFiles.format`` or ``format``
+    # Determine the file format using ``file_format`` or ``format`` options.
     file_format = (
-        readStreamOptions.get("cloudFiles.format")
+        settings.get("file_format")
         or readStreamOptions.get("format")
+        or readStreamOptions.get("cloudFiles.format")
     )
     if not file_format:
-        raise ValueError("File format must be specified in readStreamOptions")
+        raise ValueError("File format must be specified in settings")
 
     # Remove databricks specific options and ``cloudFiles.`` prefixes
     options = {}

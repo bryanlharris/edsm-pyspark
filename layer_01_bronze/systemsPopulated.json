@@ -4,8 +4,8 @@
     "dst_table_path": "./tables/bronze/systemsPopulated",
     "derived_ingest_time_regex": "/(\\d{8})/",
     "add_derived_ingest_time": "false",
+    "file_format": "json",
     "readStreamOptions": {
-        "cloudFiles.format": "json",
         "encoding": "utf-8",
         "pathGlobFilter": "systemsPopulated.json",
         "recursiveFileLookup": "true",
