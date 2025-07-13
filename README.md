@@ -56,3 +56,7 @@ python scripts/run_pipeline.py
 ```
 
 Add `--color bronze` or `--color silver` to ingest only one layer. All output from the ingest commands is written to the `logs` directory.
+
+## Ubuntu autoinstall example
+
+An unattended installation file for Ubuntu 22.04 that installs Spark, Hadoop, and related tooling lives in `docs/autoinstall/ubuntu-22.04-spark-autoinstall.yaml`.

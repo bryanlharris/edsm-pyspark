@@ -1,0 +1,32 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: spark-node
+    username: sparkuser
+    # password is 'sparkpass' hashed via mkpasswd --method=SHA-512
+    password: "$6$rounds=4096$TdTtzfJHN6mEsxFr$yAt2ulJ9V2/gFyiIeKbjz3vYjIE6uAgiMKYZtHa3qPNAlzEkD1o5aAW6sK00t88qjbvM90oCbGyF5dh4Olbk01"
+  ssh:
+    install-server: true
+  apt:
+    primary:
+      - arches: [default]
+        uri: http://archive.ubuntu.com/ubuntu
+  packages:
+    - openjdk-11-jdk
+    - python3-pip
+    - python3-venv
+    - scala
+    - hadoop
+    - hive
+  late-commands:
+    - curtin in-target --target=/target pip3 install --quiet pyspark delta-spark jupyterlab
+    - curtin in-target --target=/target bash -c 'echo SPARK_HOME=/usr/lib/spark >> /etc/environment'
+    - curtin in-target --target=/target bash -c 'echo PYSPARK_DRIVER_HOST=127.0.0.1 >> /etc/environment'
+    - curtin in-target --target=/target bash -c 'echo 127.0.0.1 spark-host >> /etc/hosts'
+    - curtin in-target --target=/target hdfs namenode -format -force
+    - curtin in-target --target=/target systemctl enable hadoop-hdfs-namenode
+    - curtin in-target --target=/target systemctl enable hadoop-hdfs-datanode
+    - curtin in-target --target=/target bash -c 'schematool -initSchema -dbType derby || true'
+    - curtin in-target --target=/target systemctl enable hive-metastore
+    - curtin in-target --target=/target systemctl enable hive-server2
