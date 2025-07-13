@@ -6,4 +6,4 @@
 python scripts/run_pipeline.py
 ```
 
-The stdout and stderr from each ingest run are written to files in the `logs` directory. Use `--master` to override the Spark master URL and `-v` to pass the verbose flag to `run_ingest.py`.
+The stdout and stderr from each ingest run are written to files in the `logs` directory. Use `--master` to override the Spark master URL, `--log-level` to adjust Spark logging, and `-v` to pass the verbose flag to `run_ingest.py`.

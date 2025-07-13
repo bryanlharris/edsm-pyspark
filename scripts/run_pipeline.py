@@ -36,11 +36,13 @@ def discover_tables(color: str) -> list[str]:
     return sorted(Path(p).stem for p in paths)
 
 
-def run_ingest(color: str, table: str, master: str, verbose: bool, log_dir: Path) -> int:
+def run_ingest(color: str, table: str, master: str, verbose: bool, log_dir: Path, log_level: str) -> int:
     """Invoke ``run_ingest.py`` for ``table`` and capture output."""
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / f"{color}_{table}.log"
     cmd = [sys.executable, str(RUN_INGEST), color, table, "--master", master]
+    if log_level:
+        cmd += ["--log-level", log_level]
     if verbose:
         cmd.append("-v")
 
@@ -53,6 +55,7 @@ def run_ingest(color: str, table: str, master: str, verbose: bool, log_dir: Path
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run ingest for all tables")
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
+    parser.add_argument("--log-level", default="WARN", help="Spark log level")
     parser.add_argument("-v", "--verbose", action="store_true", help="Pass -v to run_ingest")
     parser.add_argument("--log-dir", type=Path, default=DEFAULT_LOG_DIR, help="Directory to store logs")
     parser.add_argument(
@@ -63,7 +66,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    spark = create_spark_session(args.master, "edsm-pipeline")
+    spark = create_spark_session(args.master, "edsm-pipeline", log_level=args.log_level)
 
     try:
         validate_settings()
@@ -72,7 +75,7 @@ def main() -> None:
         colors = args.color if args.color else ["bronze", "silver"]
         for color in colors:
             for table in discover_tables(color):
-                code = run_ingest(color, table, args.master, args.verbose, args.log_dir)
+                code = run_ingest(color, table, args.master, args.verbose, args.log_dir, args.log_level)
                 if code != 0:
                     print(
                         f"Ingest failed for {color}/{table}. See {args.log_dir/(color + '_' + table + '.log')}"

@@ -9,4 +9,5 @@ python utilities/run_job.py
 ```
 
 Use `--master` to override the Spark master URL if required.
-Include `-v` to print the full settings for each table.
+`--log-level` controls the Spark log level and `-v` prints the full settings for each table.
+

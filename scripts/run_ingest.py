@@ -13,10 +13,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-# Allow PySpark to bind the callback server to an ephemeral port. Setting this
-# before importing ``pyspark`` ensures the value is in effect when the Spark
-# session is created.
-os.environ.setdefault("PYSPARK_ALLOW_INSECURE_PORT", "1")
+
 
 from pyspark.sql import SparkSession
 from functions.utility import create_spark_session
@@ -73,10 +70,11 @@ def main() -> None:
     parser.add_argument("color", choices=["bronze", "silver", "gold"], help="Layer color")
     parser.add_argument("table", help="Table name (without .json)")
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
+    parser.add_argument("--log-level", default="WARN", help="Spark log level")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print full settings including file schema")
     args = parser.parse_args()
 
-    spark = create_spark_session(args.master, "edsm-ingest")
+    spark = create_spark_session(args.master, "edsm-ingest", log_level=args.log_level)
 
     try:
         run_pipeline(args.color, args.table, spark, verbose=args.verbose)

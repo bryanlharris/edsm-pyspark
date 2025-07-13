@@ -9,16 +9,22 @@ from pyspark.sql.types import StructType
 from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY
 
 
-def create_spark_session(master: str, app_name: str):
-    """Return a Spark session configured for Delta."""
+def create_spark_session(master: str, app_name: str, log_level: str | None = "WARN"):
+    """Return a Spark session configured for Delta.
+
+    Parameters
+    ----------
+    master : str
+        Spark master URL.
+    app_name : str
+        Name for the Spark application.
+    log_level : str or None, optional
+        Set the Spark context log level when provided. Defaults to ``"WARN"``.
+    """
 
     from pyspark.sql import SparkSession
     from delta import configure_spark_with_delta_pip
 
-    # Allow PySpark to bind the callback server to an ephemeral port. This
-    # prevents "OSError: [Errno 22] Invalid argument" errors that can occur when
-    # ``foreachBatch`` starts the callback server on some platforms.
-    os.environ.setdefault("PYSPARK_ALLOW_INSECURE_PORT", "1")
     os.environ["SPARK_LOCAL_IP"] = "192.168.43.1"
 
     builder = (
@@ -34,7 +40,10 @@ def create_spark_session(master: str, app_name: str):
     )
 
     builder = configure_spark_with_delta_pip(builder)
-    return builder.getOrCreate()
+    spark = builder.getOrCreate()
+    if log_level:
+        spark.sparkContext.setLogLevel(str(log_level))
+    return spark
 
 
 def print_settings(job_settings, settings, color, table, verbose=False):
