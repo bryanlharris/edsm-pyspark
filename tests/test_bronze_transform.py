@@ -49,7 +49,6 @@ class BronzeTransformTests(unittest.TestCase):
             'use_metadata': 'true'
         }
         with mock.patch.object(transform, 'clean_column_names', new=lambda df_in: df_in), \
-             mock.patch.object(transform, 'add_source_metadata', new=lambda df_in, settings: df_in), \
              mock.patch.object(transform, 'add_rescued_data', new=mock.Mock(side_effect=lambda df_in: df_in)) as add_mock:
             transform.bronze_standard_transform(df, settings, spark=None)
             add_mock.assert_not_called()

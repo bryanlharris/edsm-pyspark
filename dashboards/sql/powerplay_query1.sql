@@ -1,34 +1,3 @@
-WITH file_history AS (
-
-    SELECT
-
-        h.table_name,
-
-        h.version,
-
-        h.timestamp,
-
-        h.operation,
-
-        f.file_path AS file
-
-    FROM edsm.silver.powerPlay_transaction_history h
-
-    JOIN (
-
-        SELECT
-
-            primary_key,
-
-            EXPLODE(file_path) AS file_path
-
-        FROM edsm.silver.powerPlay_file_version_history
-
-    ) f
-
-      ON h.primary_key = f.primary_key
-
-)
 
 SELECT
 
@@ -52,21 +21,7 @@ SELECT
 
     p.derived_ingest_time,
 
-    p.source_metadata.file_path,
 
-    fh.table_name,
-
-    fh.version,
-
-    fh.timestamp,
-
-    fh.operation
-
-FROM edsm.silver.powerPlay p
-
-JOIN file_history fh
-
-  ON p.source_metadata.file_path = fh.file
 
 WHERE (
 
@@ -82,4 +37,4 @@ WHERE (
 
 )
 
-ORDER BY fh.timestamp;
+ORDER BY p.derived_ingest_time;

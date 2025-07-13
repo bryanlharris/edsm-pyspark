@@ -5,8 +5,7 @@ import argparse
 from pathlib import Path
 from functions.utility import create_spark_session
 
-QUERY1 = Path(__file__).with_name('sql').joinpath('powerplay_query1.sql').read_text()
-QUERY2 = Path(__file__).with_name('sql').joinpath('powerplay_query2.sql').read_text()
+QUERY = Path(__file__).with_name('sql').joinpath('powerplay_query1.sql').read_text()
 
 
 def main() -> None:
@@ -26,10 +25,8 @@ def main() -> None:
     spark = create_spark_session(args.master, "powerplay-tracker")
     try:
         params = vars(args)
-        df1 = spark.sql(QUERY1.format(**params))
-        df1.show(truncate=False)
-        df2 = spark.sql(QUERY2.format(**params))
-        df2.show(truncate=False)
+        df = spark.sql(QUERY.format(**params))
+        df.show(truncate=False)
     finally:
         spark.stop()
 
