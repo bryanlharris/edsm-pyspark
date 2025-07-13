@@ -5,15 +5,18 @@ import argparse
 import json
 from glob import glob
 from pathlib import Path
+
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from functions.utility import create_spark_session, inspect_checkpoint_folder
+from functions.config import PROJECT_ROOT
 
 
 def main() -> None:
-    paths = glob("../layer_02_silver/*.json")
+    settings_dir = PROJECT_ROOT / "layer_02_silver"
+    paths = glob(str(settings_dir / "*.json"))
     table_map = {Path(p).stem: p for p in paths}
 
     parser = argparse.ArgumentParser(description="Inspect checkpoint directory")
