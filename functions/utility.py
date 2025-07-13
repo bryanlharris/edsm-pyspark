@@ -134,14 +134,13 @@ def apply_job_type(settings):
         # filename is supplied, prepend ``**/`` so the glob is applied
         # recursively.
         read_opts = settings.get("readStreamOptions", {})
-        glob = read_opts.pop("pathGlobFilter", None)
+        glob = read_opts.get("pathGlobFilter")
         if glob:
             load_path = settings.get("readStream_load", "").rstrip("/")
             if "/" not in glob and "*" not in glob and "?" not in glob:
                 glob = f"**/{glob}"
             final_path = f"{load_path}/{glob}"
             settings["readStream_load"] = final_path
-            settings["readStreamOptions"] = read_opts
 
     return settings
 
