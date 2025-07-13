@@ -3,7 +3,7 @@
 
 import argparse
 from pathlib import Path
-from pyspark.sql import SparkSession
+from functions.utility import create_spark_session
 
 QUERY = Path(__file__).with_name('sql').joinpath('stations_query.sql').read_text()
 
@@ -22,20 +22,7 @@ def main() -> None:
     parser.add_argument("--master", default="local[*]", help="Spark master URL")
     args = parser.parse_args()
 
-    spark = (
-        SparkSession.builder.master(args.master)
-        .appName("stations-tracker")
-        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
-        .config(
-            "spark.sql.extensions",
-            "io.delta.sql.DeltaSparkSessionExtension",
-        )
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-        .getOrCreate()
-    )
+    spark = create_spark_session(args.master, "stations-tracker")
     try:
         params = vars(args)
         df = spark.sql(QUERY.format(**params))

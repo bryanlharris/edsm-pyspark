@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from pyspark.sql import SparkSession
+from functions.utility import create_spark_session
 
 
 def remove_volume(path: Path) -> None:
@@ -54,20 +54,7 @@ def main() -> None:
     for layer in ["bronze", "silver", "gold"]:
         remove_volume(args.volume_root / layer / "utility")
 
-    spark = (
-        SparkSession.builder.master(args.master)
-        .appName("reset-catalog")
-        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
-        .config(
-            "spark.sql.extensions",
-            "io.delta.sql.DeltaSparkSessionExtension",
-        )
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-        .getOrCreate()
-    )
+    spark = create_spark_session(args.master, "reset-catalog")
     try:
         drop_tables(spark, args.catalog)
     finally:

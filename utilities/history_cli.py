@@ -8,9 +8,12 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from pyspark.sql import SparkSession
+from functions.utility import (
+    create_spark_session,
+    schema_exists,
+    apply_job_type,
+)
 from functions.history import build_and_merge_file_history, transaction_history
-from functions.utility import schema_exists, apply_job_type
 
 
 def main() -> None:
@@ -29,20 +32,7 @@ def main() -> None:
     history_schema = job_settings.get("history_schema")
     catalog = full_table_name.split(".")[0]
 
-    spark = (
-        SparkSession.builder.master(args.master)
-        .appName("history")
-        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
-        .config(
-            "spark.sql.extensions",
-            "io.delta.sql.DeltaSparkSessionExtension",
-        )
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-        .getOrCreate()
-    )
+    spark = create_spark_session(args.master, "history")
     try:
         if history_schema is None:
             print("Skipping history build: no history_schema provided")

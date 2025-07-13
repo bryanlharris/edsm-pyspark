@@ -12,14 +12,13 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 
-from pyspark.sql import SparkSession
+from functions.utility import create_spark_session, apply_job_type
 
 from functions.sanity import (
     validate_settings,
     initialize_schemas_and_volumes,
     initialize_empty_tables,
 )
-from functions.utility import apply_job_type
 
 
 def _generate_job_settings() -> dict:
@@ -42,11 +41,7 @@ def _generate_job_settings() -> dict:
 
 def _init_job() -> dict:
     """Validate settings and create schemas/volumes."""
-    spark = (
-        SparkSession.builder.master("local[*]")
-        .appName("edsm-job-settings")
-        .getOrCreate()
-    )
+    spark = create_spark_session("local[*]", "edsm-job-settings")
     try:
         validate_settings()
         initialize_schemas_and_volumes(spark)

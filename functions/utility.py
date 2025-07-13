@@ -10,6 +10,24 @@ from pyspark.sql.types import StructType
 from .config import JOB_TYPE_MAP, S3_ROOT_LANDING, S3_ROOT_UTILITY
 
 
+def create_spark_session(master: str, app_name: str):
+    """Return a Spark session configured for Delta."""
+
+    from pyspark.sql import SparkSession
+
+    return (
+        SparkSession.builder.master(master)
+        .appName(app_name)
+        .config("spark.jars.packages", "io.delta:delta-spark_2.12:2.4.0")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config(
+            "spark.sql.catalog.spark_catalog",
+            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+        )
+        .getOrCreate()
+    )
+
+
 def print_settings(job_settings, settings, color, table):
     """Display formatted job and table settings with copy buttons."""
 

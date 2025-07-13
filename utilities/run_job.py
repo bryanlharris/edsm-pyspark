@@ -16,7 +16,7 @@ import sys
 # Ensure repo modules are on the path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from pyspark.sql import SparkSession
+from functions.utility import create_spark_session
 
 from scripts.run_ingest import run_pipeline
 from functions.sanity import (
@@ -37,11 +37,7 @@ def run_job(master: str) -> None:
 
     validate_settings()
 
-    spark = (
-        SparkSession.builder.master(master)
-        .appName("edsm-job")
-        .getOrCreate()
-    )
+    spark = create_spark_session(master, "edsm-job")
     try:
         initialize_schemas_and_volumes(spark)
         initialize_empty_tables(spark)
