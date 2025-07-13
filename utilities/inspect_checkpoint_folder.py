@@ -11,7 +11,6 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from functions.utility import (
-    create_spark_session,
     inspect_checkpoint_folder,
     apply_job_type,
 )
@@ -31,8 +30,6 @@ def main() -> None:
         help="Table color (bronze or silver)",
     )
     parser.add_argument("table", help="Table name")
-    parser.add_argument("--master", default="local[*]", help="Spark master URL")
-
     args = parser.parse_args()
 
     settings_dir = layer_map[args.color]
@@ -45,11 +42,7 @@ def main() -> None:
     settings = json.loads(Path(settings_path).read_text())
     settings = apply_job_type(settings)
 
-    spark = create_spark_session(args.master, "inspect-checkpoints")
-    try:
-        inspect_checkpoint_folder(args.table, settings, spark)
-    finally:
-        spark.stop()
+    inspect_checkpoint_folder(args.table, settings, spark=None)
 
 
 if __name__ == "__main__":
